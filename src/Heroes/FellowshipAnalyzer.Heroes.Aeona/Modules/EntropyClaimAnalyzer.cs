@@ -2,8 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 using FellowshipAnalyzer.Core.Events;
 
-using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
-
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>The pull read surface for Entropy's Claim.</summary>
@@ -85,11 +83,12 @@ public sealed record EntropicBurstLapse(int Timestamp, int Units, int PeakStacks
 /// Only completions are casts.
 /// </para>
 /// <para>
-/// The analyzer runs only with Mass Entropy equipped, because rollover is unreachable on one charge.
+/// The analyzer runs only with Mass Entropy equipped and Entropic Burst taken: rollover is unreachable
+/// on one charge, and without Entropic Burst there is nothing to roll over.
 /// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
-[ActiveWhen<HasMassEntropy>]
+[ActiveWhen<HasMassEntropyAndEntropicBurst>]
 [Dependency<SpellUsable>]
 [Dependency<AeonaBuild>]
 public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEntropyClaimAnalyzer
@@ -142,19 +141,16 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
     /// <summary>Mean milliseconds of <see cref="DelaysAfterReady"/>.</summary>
     public double AverageDelayAfterReadyMs => DelayEntries.Count == 0 ? 0 : DelayEntries.Average();
 
-    /// <summary>Whether the player took Entropic Burst.</summary>
-    public bool EntropicBurstTaken => Owner.SelectedCombatant.HasTalent(AeonaTalents.EntropicBurst);
-
     /// <summary>
     /// Milliseconds before a lapse by which a charge has to be available for a cast then to expire
     /// before the lapse: the application's duration plus the cast time.
     /// </summary>
     public int RolloverLeadMs => AeonaBuild.EntropyClaimDurationMs + AeonaBuild.EntropyClaimCastTimeMs;
 
-    /// <summary>Every Entropic Burst chain in the pull, in the order they started. Empty without the talent.</summary>
+    /// <summary>Every Entropic Burst chain in the pull, in the order they started.</summary>
     public IReadOnlyList<EntropicBurstChain> Chains => field ??= BuildChains();
 
-    /// <summary>Every lapse in the pull, in order. Empty without the talent.</summary>
+    /// <summary>Every lapse in the pull, in order.</summary>
     public IReadOnlyList<EntropicBurstLapse> Lapses => field ??= BuildLapses();
 
     /// <summary>Lapses with a charge available early enough to have rolled the chain over.</summary>
@@ -182,28 +178,28 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
             ? leads.Average()
             : null;
 
-    /// <summary>Milliseconds of the pull Entropic Burst was active on at least one enemy, or null without the talent.</summary>
-    public long? EntropicBurstActiveMs => EntropicBurstTaken ? AuraWindowLedger.ActiveMs(Burst.Windows) : null;
+    /// <summary>Milliseconds of the pull Entropic Burst was active on at least one enemy.</summary>
+    public long EntropicBurstActiveMs => AuraWindowLedger.ActiveMs(Burst.Windows);
 
-    /// <summary>Share of the pull (0-1) Entropic Burst was active on at least one enemy, or null without the talent.</summary>
-    public double? EntropicBurstUptime => EntropicBurstActiveMs is { } activeMs && Pull.Duration > 0
-        ? Math.Min(1d, activeMs / (double)Pull.Duration)
+    /// <summary>Share of the pull (0-1) Entropic Burst was active on at least one enemy, or null when the pull has no duration.</summary>
+    public double? EntropicBurstUptime => Pull.Duration > 0
+        ? Math.Min(1d, EntropicBurstActiveMs / (double)Pull.Duration)
         : null;
 
     /// <summary>
     /// Milliseconds Entropic Burst was active summed across enemies, counting a moment once per enemy it
-    /// was active on, or null without the talent. The denominator of <see cref="EntropicBurstAverageStacks"/>.
+    /// was active on. The denominator of <see cref="EntropicBurstAverageStacks"/>.
     /// </summary>
-    public long? EntropicBurstUnitActiveMs => EntropicBurstTaken ? Burst.UnitActiveMs : null;
+    public long EntropicBurstUnitActiveMs => Burst.UnitActiveMs;
 
     /// <summary>
     /// Stack-weighted active time in millisecond-stacks: each stretch of active time multiplied by its
-    /// stack count, summed over every enemy. Null without the talent. The numerator of <see cref="EntropicBurstAverageStacks"/>.
+    /// stack count, summed over every enemy. The numerator of <see cref="EntropicBurstAverageStacks"/>.
     /// </summary>
-    public long? EntropicBurstStackMs => EntropicBurstTaken ? Burst.StackMs : null;
+    public long EntropicBurstStackMs => Burst.StackMs;
 
-    /// <summary>Mean Entropic Burst stacks on each enemy, weighted by the time it was active on them, or null without the talent.</summary>
-    public double? EntropicBurstAverageStacks => EntropicBurstTaken && Burst.UnitActiveMs > 0
+    /// <summary>Mean Entropic Burst stacks on each enemy, weighted by the time it was active on them, or null when it was never active.</summary>
+    public double? EntropicBurstAverageStacks => Burst.UnitActiveMs > 0
         ? Burst.StackMs / (double)Burst.UnitActiveMs
         : null;
 
@@ -456,8 +452,6 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
 
     private List<EntropicBurstChain> BuildChains()
     {
-        if (!EntropicBurstTaken) return [];
-
         var chains = _closedChains
             .Select(chain => new EntropicBurstChain(chain.Unit, chain.Start, chain.End, chain.Peak, chain.Rollovers, chain.EndedBy))
             .ToList();

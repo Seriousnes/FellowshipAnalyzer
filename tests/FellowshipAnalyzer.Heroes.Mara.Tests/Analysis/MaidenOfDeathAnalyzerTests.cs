@@ -142,6 +142,29 @@ public sealed class MaidenOfDeathAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_StealthBuilders_CountAsGenerators()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
+            Cast(1000, Spells.BackstabStealth, comboPoints: 0),
+            Cast(2500, Spells.SkitteringBladesStealth, comboPoints: 6),
+            Cast(4000, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(5500, Spells.MaidenOfDeathBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.GeneratorCasts.ShouldBe(2);
+        window.WastedGeneratorCasts.ShouldBe(1);
+
+        var doubled = window.Casts.Single(cast => cast.WastedGeneration);
+        doubled.AbilityId.ShouldBe(Spells.SkitteringBladesStealth.Id);
+        doubled.Role.ShouldBe(MaidenCastRole.Generator);
+    }
+
+    [Fact]
     public async Task Analyze_WindowOpeningAtFourComboPoints_FailsAnOpeningGenerator()
     {
         var events = new List<Event>

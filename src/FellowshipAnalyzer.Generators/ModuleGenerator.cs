@@ -218,20 +218,24 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     private static ImmutableArray<LazyAccessorInfo> CollectLazyAccessors(INamedTypeSymbol symbol)
     {
         IMethodSymbol? primaryCtor = null;
+        ClassDeclarationSyntax? primaryDecl = null;
         foreach (var ctor in symbol.InstanceConstructors)
         {
             foreach (var declRef in ctor.DeclaringSyntaxReferences)
             {
-                if (declRef.GetSyntax() is ClassDeclarationSyntax)
+                if (declRef.GetSyntax() is ClassDeclarationSyntax decl)
                 {
                     primaryCtor = ctor;
+                    primaryDecl = decl;
                     break;
                 }
             }
             if (primaryCtor is not null) break;
         }
 
-        if (primaryCtor is null) return [];
+        if (primaryCtor is null || primaryDecl is null) return [];
+
+        var forwarded = ForwardedToBase(primaryDecl);
 
         var builder = ImmutableArray.CreateBuilder<LazyAccessorInfo>();
         var existingMemberNames = new HashSet<string>(StringComparer.Ordinal);
@@ -246,6 +250,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (paramType.TypeArguments[0] is not INamedTypeSymbol inner) continue;
             var paramName = param.Name;
             if (paramName.StartsWith("_")) continue;
+            if (forwarded.Contains(paramName)) continue;
             var propName = "_" + paramName;
             if (existingMemberNames.Contains(propName)) continue;
 
@@ -256,6 +261,23 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
 
         return builder.ToImmutable();
+    }
+
+    /// <summary>Names of the primary-constructor parameters passed as arguments to the base type's constructor.</summary>
+    private static HashSet<string> ForwardedToBase(ClassDeclarationSyntax decl)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        if (decl.BaseList is null) return names;
+
+        foreach (var baseType in decl.BaseList.Types)
+        {
+            if (baseType is not PrimaryConstructorBaseTypeSyntax primaryBase) continue;
+
+            foreach (var argument in primaryBase.ArgumentList.Arguments)
+                if (argument.Expression is IdentifierNameSyntax identifier) names.Add(identifier.Identifier.ValueText);
+        }
+
+        return names;
     }
 
     /// <summary>

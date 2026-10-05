@@ -177,6 +177,43 @@ public class ParserGeneratorTests
         }
         """;
 
+    [Fact]
+    public void ASubclassOfABaseModule_ReplacesIt_AndTakesItsOrdering()
+    {
+        var result = ParserGeneratorTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<WatcherAnalyzer>]
+            [AddAnalyzer<HeroSpellUsable>]
+            public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+            [After<SpellUsable>]
+            public sealed partial class WatcherAnalyzer : Analyzer
+            {
+                [On<CastEvent>]
+                private void OnCast(CastEvent e) { }
+            }
+
+            public sealed partial class HeroSpellUsable(
+                Lazy<Abilities> abilities,
+                Lazy<DebugAnnotations> debugAnnotations,
+                Lazy<Haste> haste,
+                Lazy<StatTracker> statTracker) : SpellUsable(abilities, debugAnnotations, haste, statTracker)
+            {
+                public override void BeginCooldown(int spellId, int? timestamp = null) { }
+            }
+            """);
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldNotContain("typeof(FellowshipAnalyzer.Core.Analysis.SpellUsable),");
+        var replacement = gen.IndexOf("typeof(Test.HeroSpellUsable),", StringComparison.Ordinal);
+        var watcher = gen.IndexOf("typeof(Test.WatcherAnalyzer),", StringComparison.Ordinal);
+        replacement.ShouldBeGreaterThan(-1);
+        watcher.ShouldBeGreaterThan(replacement);
+        AssertNoErrors(result);
+    }
+
     private static string HeroParser() => Usings + """
 
         namespace Test;

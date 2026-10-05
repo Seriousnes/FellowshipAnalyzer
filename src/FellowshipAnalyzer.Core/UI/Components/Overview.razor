@@ -21,7 +21,7 @@
             }
         </dd>
         <dt>Dungeon Duration</dt>
-        <dd>@FormatDuration(DungeonEndTime - DungeonStartTime)</dd>
+        <dd>@TimeFormat.Timestamp((long)(DungeonEndTime - DungeonStartTime))</dd>
     </dl>
     <div class="overview-links">
         <Badge Variant="BadgeVariant.Gold" OnClick='@(() => OnViewEvents.InvokeAsync())'>View Events List →</Badge>
@@ -47,10 +47,4 @@
 
     private int CountEventsInPull(PullStartEvent pull) =>
         Result.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime);
-
-    private static string FormatDuration(double milliseconds)
-    {
-        var ts = TimeSpan.FromMilliseconds(milliseconds);
-        return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
-    }
 }

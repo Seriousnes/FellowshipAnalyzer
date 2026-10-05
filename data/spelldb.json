@@ -2206,6 +2206,19 @@
       "name": "Caustic Poison",
       "icon": "T_TurtleShield"
     },
+    "BackstabStealth": {
+      "kind": "ability",
+      "id": 2308,
+      "name": "Backstab",
+      "icon": "Mara_backstab",
+      "abilityCategory": "Core",
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 2,
+        "criticalAmount": 3,
+        "trigger": "PerCast"
+      }
+    },
     "BroodingShadows": {
       "kind": "ability",
       "id": 1130,
@@ -2498,6 +2511,24 @@
       "name": "Volatile Poison",
       "icon": "T_ArcaneCoils"
     },
+    "SkitteringBladesStealth": {
+      "kind": "ability",
+      "id": 2309,
+      "name": "Skittering Blades",
+      "icon": "Mara_AOEBuilder",
+      "abilityCategory": "Core",
+      "range": 800,
+      "radius": 800,
+      "costs": {
+        "primary": 35
+      },
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 1,
+        "criticalAmount": 2,
+        "trigger": "PerHit"
+      }
+    },
     "StalkerStep": {
       "kind": "ability",
       "id": 1205,
@@ -2635,6 +2666,14 @@
       "name": "Cyclone",
       "icon": "T_Meiko_Massgrip"
     },
+    "DoublePalmStrike": {
+      "kind": "ability",
+      "id": 1105,
+      "name": "Double Palm Strike",
+      "icon": "Meiko_AbilityIcon_04",
+      "abilityCategory": "Core",
+      "range": 500
+    },
     "EarthFist": {
       "kind": "ability",
       "id": 1100,
@@ -2655,13 +2694,18 @@
       "name": "Earth Fist",
       "icon": "Meiko_AbilityIcon_03"
     },
+    "Earthfall": {
+      "kind": "effect",
+      "id": 1532,
+      "name": "Earthfall",
+      "icon": "Meiko_AbilityIcon_09"
+    },
     "EarthfistBarrage": {
       "kind": "ability",
       "id": 1112,
       "name": "Earthfist Barrage",
       "icon": "Meiko_AbilityIcon_09",
       "abilityCategory": "Power",
-      "cooldown": 45,
       "range": 500,
       "channelDuration": 1,
       "channelTickInterval": 0.25
@@ -2739,6 +2783,12 @@
       "abilityCategory": "Power",
       "range": 500
     },
+    "LashingStormkickAlt": {
+      "kind": "ability",
+      "id": 2310,
+      "name": "Lashing Stormkick",
+      "icon": "Meiko_AbilityIcon_08"
+    },
     "LashingStormkickDamage": {
       "kind": "effect",
       "id": 1537,
@@ -2750,6 +2800,23 @@
       "id": 1547,
       "name": "Peacefield",
       "icon": "T_Icon_Elements_77"
+    },
+    "RisingEarth": {
+      "kind": "ability",
+      "id": 1104,
+      "name": "Rising Earth",
+      "icon": "Meiko_AbilityIcon_06",
+      "abilityCategory": "Core",
+      "range": 500
+    },
+    "RisingStorm": {
+      "kind": "ability",
+      "id": 1103,
+      "name": "Rising Storm",
+      "icon": "Meiko_AbilityIcon_05",
+      "abilityCategory": "Core",
+      "range": 500,
+      "radius": 500
     },
     "Serenity": {
       "kind": "ability",
@@ -2824,6 +2891,12 @@
       "id": 1526,
       "name": "Spirit Palm",
       "icon": "Meiko_AbilityIcon_01"
+    },
+    "SpiritedStrikes": {
+      "kind": "effect",
+      "id": 1534,
+      "name": "Spirited Strikes",
+      "icon": "Meiko_AbilityIcon_04"
     },
     "SpiritedVortex": {
       "kind": "ability",
@@ -2976,6 +3049,12 @@
       "name": "Stunned",
       "icon": "effect_stunned_icon"
     },
+    "Stormfall": {
+      "kind": "effect",
+      "id": 1530,
+      "name": "Stormfall",
+      "icon": "Meiko_AbilityIcon_08"
+    },
     "Taunt": {
       "kind": "ability",
       "id": 1095,
@@ -3002,6 +3081,18 @@
         "spirit": 100
       }
     },
+    "TwinSoulsArmyOfOneBuff": {
+      "kind": "effect",
+      "id": 1547,
+      "name": "Twin Souls: Army of One",
+      "icon": "T_Meiko_SpiritUltimate"
+    },
+    "TwinSoulsArmyOfOneDamage": {
+      "kind": "effect",
+      "id": 1548,
+      "name": "Twin Souls: Army of One",
+      "icon": "T_Meiko_SpiritUltimate"
+    },
     "TwinSoulsBulwark": {
       "kind": "ability",
       "id": 1082,
@@ -3023,6 +3114,12 @@
       "id": 2380,
       "name": "Taunted",
       "icon": "T_Meiko_Taunt"
+    },
+    "WardenOfTheTemple": {
+      "kind": "effect",
+      "id": 2447,
+      "name": "Warden of the Temple",
+      "icon": "Meiko_AbilityIcon_01"
     },
     "WindKick": {
       "kind": "ability",
@@ -3340,6 +3437,17 @@
         "tertiary": 2
       }
     },
+    "IceCometAlt": {
+      "kind": "ability",
+      "id": 2227,
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE",
+      "range": 3000,
+      "radius": 700,
+      "costs": {
+        "tertiary": 2
+      }
+    },
     "IceCometCost": {
       "kind": "effect",
       "id": 1381,
@@ -3349,8 +3457,8 @@
     "IceCometDamage": {
       "kind": "effect",
       "id": 1380,
-      "name": "",
-      "icon": ""
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE"
     },
     "IceDash": {
       "kind": "ability",
@@ -4352,6 +4460,12 @@
         "spirit": 100
       }
     },
+    "AvatarOfLightBuff": {
+      "kind": "effect",
+      "id": 1333,
+      "name": "Avatar of Light",
+      "icon": "T_Vigor_Spirit"
+    },
     "AvatarOfLightHeal": {
       "kind": "effect",
       "id": 1332,
@@ -4369,6 +4483,12 @@
       "id": 2156,
       "name": "",
       "icon": ""
+    },
+    "CeremonyOfLightBuff": {
+      "kind": "effect",
+      "id": 2278,
+      "name": "Ceremony of Light",
+      "icon": "Tex_SpellBook06_23"
     },
     "CircleOfLight": {
       "kind": "ability",
@@ -4517,6 +4637,12 @@
         "mana": 63
       }
     },
+    "LightshaperWardBuff": {
+      "kind": "effect",
+      "id": 1342,
+      "name": "Lightshaper\u0027s Ward",
+      "icon": "T_Vigor_Ward"
+    },
     "LightshaperWardCastingCost": {
       "kind": "effect",
       "id": 1341,
@@ -4557,6 +4683,12 @@
     "MeticulousRunesmith": {
       "kind": "ability",
       "id": 1563,
+      "name": "Meticulous Runesmith",
+      "icon": "T_LightPortal"
+    },
+    "MeticulousRunesmithAbsorb": {
+      "kind": "effect",
+      "id": 2289,
       "name": "Meticulous Runesmith",
       "icon": "T_LightPortal"
     },
@@ -4638,11 +4770,23 @@
       "name": "Rune of Renewal",
       "icon": ""
     },
+    "RuneOfRenewalBuff": {
+      "kind": "effect",
+      "id": 1316,
+      "name": "Rune of Renewal",
+      "icon": "T_Vigor_Rune"
+    },
     "RuneOfRenewalDirectHeal": {
       "kind": "effect",
       "id": 1319,
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune"
+    },
+    "RuneOfRenewalEcho": {
+      "kind": "effect",
+      "id": 1328,
+      "name": "Rune of Renewal: Echo",
+      "icon": ""
     },
     "RuneOfRenewalHot": {
       "kind": "effect",
@@ -4908,6 +5052,12 @@
       "name": "Decree of the Sun",
       "icon": "T_Sune_Decree"
     },
+    "GoldenHour": {
+      "kind": "effect",
+      "id": 2661,
+      "name": "Golden Hour",
+      "icon": "T_Sune_Omnistrike"
+    },
     "Interrupt": {
       "kind": "ability",
       "id": 1844,
@@ -4928,6 +5078,12 @@
       "id": 2545,
       "name": "Tremble!",
       "icon": "Tex_red_10"
+    },
+    "MagicWard": {
+      "kind": "effect",
+      "id": 2650,
+      "name": "Magic Ward",
+      "icon": "T_Nhance_RPG_Icons_ShadowBarrier"
     },
     "OmegaReprieval": {
       "kind": "ability",
@@ -5104,6 +5260,12 @@
       "name": "Sun Strike",
       "icon": "T_Sune_Sunstrike"
     },
+    "SwiftReprieval": {
+      "kind": "effect",
+      "id": 2663,
+      "name": "Swift Reprieval",
+      "icon": "T_Sune_BrilliantFlash"
+    },
     "Taunt": {
       "kind": "ability",
       "id": 1843,
@@ -5137,6 +5299,18 @@
       "school": "Magic",
       "radius": 80
     },
+    "EmpoweredMinionVictoryRush": {
+      "kind": "effect",
+      "id": 44,
+      "name": "Empowered Minion: Victory Rush",
+      "icon": "T_Nhance_RPG_Gold_01"
+    },
+    "RuneRush": {
+      "kind": "effect",
+      "id": 2958,
+      "name": "Rune Rush",
+      "icon": "T_Nhance_RPG_Icons_MagicSpeed"
+    },
     "SanguineClaws": {
       "kind": "ability",
       "id": 2187,
@@ -5146,6 +5320,12 @@
       "cooldown": 32,
       "range": 300,
       "radius": 700
+    },
+    "ShadowsDefeat": {
+      "kind": "effect",
+      "id": 2221,
+      "name": "Shadow\u0027s Defeat",
+      "icon": "T_Nhance_RPG_Icons_WInterGhoul"
     },
     "SpiritOfHeroism": {
       "kind": "effect",
@@ -5171,6 +5351,12 @@
       "name": "Spirit of Heroism",
       "icon": "Tex_b_02"
     },
+    "StormsFury": {
+      "kind": "effect",
+      "id": 2699,
+      "name": "Storm\u0027s Fury",
+      "icon": "T_Nhance_RPG_Shadow_50"
+    },
     "VeinSprout": {
       "kind": "ability",
       "id": 2031,
@@ -5183,15 +5369,15 @@
   "items": {
     "AdrenalineRush": {
       "kind": "effect",
-      "id": 939,
+      "id": 1939,
       "name": "Adrenaline Rush",
-      "icon": "T_Nhance_RPG_BloodCombat_23"
+      "icon": "T_Nhance_RPG_Icons_HolyArrow"
     },
     "AdrenalineRushII": {
       "kind": "effect",
-      "id": 940,
+      "id": 1940,
       "name": "Adrenaline Rush - II",
-      "icon": "T_Nhance_RPG_Icons_BloodHide"
+      "icon": "T_Nhance_RPG_Icons_HolyArrow"
     },
     "AlShackle": {
       "kind": "ability",
@@ -5243,6 +5429,66 @@
       "id": 1920,
       "name": "Ancestral Surge - II",
       "icon": "T_Icon_Energy_130"
+    },
+    "AnomalousResidueAmethyst": {
+      "kind": "effect",
+      "id": 2710,
+      "name": "Anomalous Residue: Amethyst",
+      "icon": "T_Icons_GemPowerOverflowIcon_Amethyst"
+    },
+    "AnomalousResidueDiamond": {
+      "kind": "effect",
+      "id": 2708,
+      "name": "Anomalous Residue: Diamond",
+      "icon": "T_Icons_GemPowerOverflowIcon_Diamond"
+    },
+    "AnomalousResidueEmerald": {
+      "kind": "effect",
+      "id": 2707,
+      "name": "Anomalous Residue: Emerald",
+      "icon": "T_Icons_GemPowerOverflowIcon_Emerald"
+    },
+    "AnomalousResidueRuby": {
+      "kind": "effect",
+      "id": 2706,
+      "name": "Anomalous Residue: Ruby",
+      "icon": "T_Icons_GemPowerOverflowIcon_Ruby"
+    },
+    "AnomalousResidueSapphire": {
+      "kind": "effect",
+      "id": 2705,
+      "name": "Anomalous Residue: Sapphire",
+      "icon": "T_Icons_GemPowerOverflowIcon_Sapphire"
+    },
+    "AnomalousResidueTopaz": {
+      "kind": "effect",
+      "id": 2704,
+      "name": "Anomalous Residue: Topaz",
+      "icon": "T_Icons_GemPowerOverflowIcon_Topaz"
+    },
+    "BerserkersZeal": {
+      "kind": "effect",
+      "id": 1909,
+      "name": "Berserker\u0027s Zeal",
+      "icon": ""
+    },
+    "BerserkersZealII": {
+      "kind": "effect",
+      "id": 1910,
+      "name": "Berserker\u0027s Zeal - II",
+      "icon": ""
+    },
+    "BlessingOfTheCommander": {
+      "kind": "effect",
+      "id": 1963,
+      "name": "Blessing of the Commander",
+      "icon": ""
+    },
+    "BlessingOfTheCommanderII": {
+      "kind": "effect",
+      "id": 1964,
+      "name": "Blessing of the Commander - II",
+      "icon": ""
     },
     "BlessingOfTheConqueror": {
       "kind": "ability",
@@ -5381,6 +5627,18 @@
       "name": "Essence of the Conqueror - II",
       "icon": "T_Nhance_RPG_Icons_BloodHide"
     },
+    "EssenceOfTheVirtuoso": {
+      "kind": "effect",
+      "id": 1937,
+      "name": "Essence of the Virtuoso",
+      "icon": "Tex_SpellBook01_11"
+    },
+    "EssenceOfTheVirtuosoII": {
+      "kind": "effect",
+      "id": 1938,
+      "name": "Essence of the Virtuoso - II",
+      "icon": "Tex_SpellBook01_11"
+    },
     "FatedStrike": {
       "kind": "ability",
       "id": 160,
@@ -5402,17 +5660,29 @@
       "name": "Fated Strike",
       "icon": "T_Weapon_CDstrike"
     },
+    "FelineGrace": {
+      "kind": "effect",
+      "id": 1941,
+      "name": "Feline Grace",
+      "icon": ""
+    },
+    "FelineGraceII": {
+      "kind": "effect",
+      "id": 1942,
+      "name": "Feline Grace - II",
+      "icon": ""
+    },
     "FirstStrike": {
       "kind": "effect",
-      "id": 943,
+      "id": 1943,
       "name": "First Strike",
-      "icon": "T_Nhance_RPG_Icons_BloodAxeStrike"
+      "icon": "T_Icon_Nature_205"
     },
     "FirstStrikeII": {
       "kind": "effect",
-      "id": 944,
+      "id": 1944,
       "name": "First Strike - II",
-      "icon": "T_Nhance_RPG_Icons_HolyHand"
+      "icon": "T_Icon_Nature_205"
     },
     "FocusedHasteBuff": {
       "kind": "effect",
@@ -5511,6 +5781,18 @@
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01"
     },
+    "KillerInstinct": {
+      "kind": "effect",
+      "id": 1953,
+      "name": "Killer Instinct",
+      "icon": ""
+    },
+    "KillerInstinctII": {
+      "kind": "effect",
+      "id": 1954,
+      "name": "Killer Instinct - II",
+      "icon": ""
+    },
     "MajorDispel": {
       "kind": "ability",
       "id": 187,
@@ -5551,6 +5833,18 @@
       "id": 1922,
       "name": "Might of the Minotaur - II",
       "icon": "T_Nhance_RPG_Icons_InfernalMadness"
+    },
+    "MysticsIntuition": {
+      "kind": "effect",
+      "id": 1901,
+      "name": "Mystic\u0027s Intuition",
+      "icon": ""
+    },
+    "MysticsIntuitionII": {
+      "kind": "effect",
+      "id": 1902,
+      "name": "Mystic\u0027s Intuition - II",
+      "icon": ""
     },
     "NatureFury": {
       "kind": "ability",
@@ -5623,6 +5917,18 @@
       "id": 2715,
       "name": "Obsidian Skin",
       "icon": "T_Nhance_RPG_Tech_25"
+    },
+    "OraclesForesight": {
+      "kind": "effect",
+      "id": 1911,
+      "name": "Oracle\u0027s Foresight",
+      "icon": ""
+    },
+    "OraclesForesightII": {
+      "kind": "effect",
+      "id": 1912,
+      "name": "Oracle\u0027s Foresight - II",
+      "icon": ""
     },
     "ReapersReprieve": {
       "kind": "effect",
@@ -5812,6 +6118,18 @@
       "name": "Sentinel\u0027s Bastion - II",
       "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion"
     },
+    "TacticiansAccumen": {
+      "kind": "effect",
+      "id": 1949,
+      "name": "Tactician\u0027s Accumen",
+      "icon": ""
+    },
+    "TacticiansAccumenII": {
+      "kind": "effect",
+      "id": 1950,
+      "name": "Tactician\u0027s Accumen - II",
+      "icon": ""
+    },
     "ThePhilosopher": {
       "kind": "effect",
       "id": 3189,
@@ -5841,6 +6159,18 @@
       "id": 3184,
       "name": "The Wayfarer",
       "icon": "T_Nhance_RPG_Elements_38"
+    },
+    "ThiefsAlacrity": {
+      "kind": "effect",
+      "id": 1905,
+      "name": "Thief\u0027s Alacrity",
+      "icon": ""
+    },
+    "ThiefsAlacrityII": {
+      "kind": "effect",
+      "id": 1906,
+      "name": "Thief\u0027s Alacrity - II",
+      "icon": ""
     },
     "TwilightSkybolt": {
       "kind": "ability",
@@ -5887,6 +6217,18 @@
       "id": 1933,
       "name": "Unyielding Vitality - II",
       "icon": "T_Icon_BloodCombat_137"
+    },
+    "VanguardsResolve": {
+      "kind": "effect",
+      "id": 1907,
+      "name": "Vanguard\u0027s Resolve",
+      "icon": ""
+    },
+    "VanguardsResolveII": {
+      "kind": "effect",
+      "id": 1908,
+      "name": "Vanguard\u0027s Resolve - II",
+      "icon": ""
     },
     "VengefulSoulBuff": {
       "kind": "effect",

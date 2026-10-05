@@ -91,7 +91,7 @@ public sealed class FunctionsHost : IAsyncLifetime
 
         var publish = new ProcessStartInfo(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet")
         {
-            ArgumentList = { "publish", project, "-c", "Release", "-o", _temporaryPublishDirectory, "-nologo" },
+            ArgumentList = { "publish", project, "-c", "Release", "-o", _temporaryPublishDirectory, "-nologo", "-nodeReuse:false", "-p:UseSharedCompilation=false" },
         };
 
         using var process = Start(publish);

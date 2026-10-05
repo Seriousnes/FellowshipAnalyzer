@@ -1,0 +1,61 @@
+@inherits GuideComponent<XavianCombatLogParser>
+
+<GuideSection Title="Shining Halo">
+    <LeftPanel>
+        <p>
+            Cast <SpellLink Spell="Spells.ShiningHalo" /> whenever it is ready and enemies are on you.
+            Stand inside it.
+            It cuts your damage taken by 20%.
+            Cast <SpellLink Spell="Spells.BrilliantFlash" /> while it is up to extend it.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Shining Halo By Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Parser.ShiningHaloAnalyzers.Any(entry => entry.Analyzer.Casts > 0);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var entries = Parser.ShiningHaloAnalyzers.ToList();
+        var pullMs = entries.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
+        if (pullMs == 0) return [];
+
+        var analyzers = entries.Select(entry => entry.Analyzer).ToList();
+        var uptime = analyzers.Sum(analyzer => (long)analyzer.ActiveMs) / (double)pullMs * 100;
+        var flashes = analyzers.Sum(analyzer => analyzer.BrilliantFlashCasts);
+        var inHalo = analyzers.Sum(analyzer => analyzer.BrilliantFlashInHalo);
+
+        return
+        [
+            new(
+                $"{uptime:F1}%",
+                "Uptime",
+                "Share of pull time you stood in your Shining Halo.",
+                UptimeTier(uptime)),
+            new($"{analyzers.Sum(analyzer => analyzer.Casts)}", "Casts"),
+            new(
+                $"{inHalo}/{flashes}",
+                "BF In SH",
+                "Brilliant Flash casts made while standing in Shining Halo."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.ShiningHaloAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = UptimeTier(analyzer.Uptime * 100),
+            Stats =
+            [
+                new PerCastStat($"{analyzer.Uptime * 100:F0}%", "Uptime"),
+                new PerCastStat($"{analyzer.Casts}", "Casts"),
+                new PerCastStat($"{analyzer.BrilliantFlashInHalo}/{analyzer.BrilliantFlashCasts}", "BF In SH"),
+            ],
+        });
+
+    private static QualitativePerformance UptimeTier(double uptime) =>
+        PerformanceTiers.FromThresholds(uptime, 80, 70, 60);
+}

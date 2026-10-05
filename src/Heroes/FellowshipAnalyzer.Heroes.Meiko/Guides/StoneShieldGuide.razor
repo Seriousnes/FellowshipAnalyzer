@@ -1,0 +1,92 @@
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.UI.Charts
+@inherits GuideComponent<MeikoCombatLogParser>
+@inject ChartPalette Palette
+
+<GuideSection Title="Stone Shield">
+    <LeftPanel>
+        <p>
+            Keep at least one <strong><SpellLink Spell="Spells.StoneShieldAlt" /></strong> stone up at all times.
+            Cast Stone Shield again before your last stone breaks.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Stone Shield by Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Count > 0;
+
+    private List<StoneShieldAnalyzer> Analyzers =>
+        [.. Parser.StoneShieldAnalyzers.Select(entry => entry.Analyzer).OfType<StoneShieldAnalyzer>()];
+
+    private static QualitativePerformance UptimePerformance(double uptime) =>
+        PerformanceTiers.FromThresholds(uptime * 100, 97, 94, 85);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var durationMs = analyzers.Sum(analyzer => (long)analyzer.DurationMs);
+        if (durationMs == 0) return [];
+
+        var uptime = analyzers.Sum(analyzer => (long)analyzer.ActiveMs) / (double)durationMs;
+
+        return
+        [
+            new OverviewStat(
+                $"{uptime * 100:F1}%",
+                "Uptime",
+                "Share of the pull with at least one stone up.",
+                UptimePerformance(uptime)),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.Casts.Count)}", "Casts"),
+            new OverviewStat(
+                $"{analyzers.Sum(analyzer => analyzer.Drops)}",
+                "Drops",
+                "Times your last stone broke or expired."),
+            new OverviewStat(
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.DamageSoaked)),
+                "Damage Soaked",
+                "Estimated damage your stones soaked, at 35% of each hit taken with a stone up."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.StoneShieldAnalyzers.ToPullRows(Parser, (surface, pull) =>
+        {
+            var analyzer = (StoneShieldAnalyzer)surface;
+            var performance = UptimePerformance(analyzer.Uptime);
+
+            return new PerCastRow
+            {
+                Performance = performance,
+                Stats =
+                [
+                    new PerCastStat($"{analyzer.Uptime * 100:F1}%", "Uptime", Performance: performance),
+                    new PerCastStat($"{analyzer.Casts.Count}", "Casts"),
+                    new PerCastStat($"{analyzer.Drops}", "Drops"),
+                    new PerCastStat(NumberFormat.Compact(analyzer.DamageSoaked), "Damage Soaked"),
+                ],
+                AdditionalContent = new AdditionalContent(
+                    "Stones Through The Pull",
+                    @<AuraStackGraph @key="pull"
+                                     Samples="@ChartSamples(analyzer)"
+                                     Bands="@ChartBands(analyzer)"
+                                     YAxisTitle="Stones"
+                                     Height="200" />),
+                Details = analyzer.InactiveMs > 0 ? BuildDetails(analyzer) : null,
+            };
+        });
+
+    private static List<int> ChartSamples(StoneShieldAnalyzer analyzer) =>
+        [.. analyzer.StackChanges.Select(change => change.Timestamp), analyzer.Pull.EndTime];
+
+    private List<AuraStackBand> ChartBands(StoneShieldAnalyzer analyzer) =>
+        [new AuraStackBand("Stones", Palette.Resolve(nameof(FaPalette.Amber)), [.. analyzer.StackChanges.Select(change => change.Stacks), analyzer.StackChanges[^1].Stacks])];
+
+    private static RenderFragment BuildDetails(StoneShieldAnalyzer analyzer) =>
+        @<ul>
+            <li>You had no stone up for @($"{analyzer.InactiveMs / 1000d:F1}")s.</li>
+        </ul>;
+}

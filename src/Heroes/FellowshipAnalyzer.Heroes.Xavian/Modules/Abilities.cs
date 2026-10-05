@@ -11,6 +11,13 @@ public class Abilities : CoreAbilities
     [
         new()
         {
+            PrimarySpell = Spells.BrilliantFlash,
+            AdditionalSpells = [Spells.BrilliantFlashDamage, Spells.BrilliantFlashHeal],
+            Category = SpellCategory.Rotational,
+            Gcd = StandardGcd,
+        },
+        new()
+        {
             PrimarySpell = Spells.SunStrike,
             AdditionalSpells = [Spells.SunStrikeDamage],
             Category = SpellCategory.Rotational,
@@ -28,6 +35,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.BlindingSlashDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -35,39 +43,44 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.OmnistrikeDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.SolarBlades,
             AdditionalSpells = [Spells.SolarBladesDamage],
             Category = SpellCategory.RotationalAoe,
-            Gcd = StandardGcd,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.ShiningHalo,
             AdditionalSpells = [Spells.ShiningHaloDamage],
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.SkyCrash,
             AdditionalSpells = [Spells.SkyCrashDamage],
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.OmegaReprieval,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.DecreeOfTheSun,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
         },
         new()
         {
@@ -75,13 +88,14 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.AuraOfSolace,
             Category = SpellCategory.Defensive,
             Gcd = null,
-            IsDefensive = true,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -94,6 +108,7 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.RupturedDawn,
             Category = SpellCategory.Utility,
             Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -104,6 +119,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.Attack,
+            AdditionalSpells = [Spells.AttackDamage],
             Category = SpellCategory.Hidden,
         },
     ];

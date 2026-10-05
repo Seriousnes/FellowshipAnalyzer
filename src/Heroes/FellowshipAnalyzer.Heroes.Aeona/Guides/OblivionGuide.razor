@@ -60,7 +60,7 @@
         if (rated > 0)
         {
             stats.Add(new OverviewStat(
-                $"{flagged} ({FormatShare(flagged, rated)})",
+                $"{flagged} ({NumberFormat.Share(flagged, rated, 1)})",
                 "Casts at Cleanse Priority",
                 $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, out of {rated} casts.",
                 PriorityTier(flagged, rated)));
@@ -69,20 +69,20 @@
         if (casts > 0)
         {
             stats.Add(new OverviewStat(
-                FormatAmount(analyzers.Sum(analyzer => analyzer.EffectiveHealing) / (double)casts),
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.EffectiveHealing) / (double)casts),
                 "Effective Healing per Cast",
                 "Average effective healing per Oblivion cast, for all allies together."));
 
             if (OblivionsEmbrace)
             {
                 stats.Add(new OverviewStat(
-                    FormatAmount(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
+                    NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
                     "Shielding per Cast",
                     "Average shielding per Oblivion cast, for all allies together."));
             }
 
             stats.Add(new OverviewStat(
-                FormatAmount(analyzers.Sum(analyzer => analyzer.Damage) / (double)casts),
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.Damage) / (double)casts),
                 "Damage per Cast"));
         }
 
@@ -116,7 +116,7 @@
                 "Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, out of the rated casts.",
                 performance),
             new(
-                FormatAmount(analyzer.EffectiveHealingPerCast),
+                NumberFormat.Compact(analyzer.EffectiveHealingPerCast),
                 "Effective Healing per Cast",
                 "Average effective healing per Oblivion cast in this pull, for all allies together."),
         };
@@ -124,7 +124,7 @@
         if (analyzer.ShieldAppliedPerCast is { } shield)
         {
             stats.Add(new PerCastStat(
-                FormatAmount(shield),
+                NumberFormat.Compact(shield),
                 "Shielding per Cast",
                 "Average shielding per Oblivion cast in this pull, for all allies together."));
         }
@@ -164,11 +164,4 @@
 
     private static QualitativePerformance PriorityTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.98, 0.90, 0.75);
-
-    private static string FormatShare(int part, int whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
-
-    private static string FormatAmount(double amount) =>
-        amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"
-        : amount >= 1_000 ? $"{amount / 1_000:0.#}k"
-        : $"{amount:0}";
 }

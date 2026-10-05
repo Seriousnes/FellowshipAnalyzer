@@ -50,7 +50,7 @@
                 "Share of measured time spent casting, channelling, or on the global cooldown.",
                 ActiveTier(activePercent)),
             new OverviewStat(
-                FormatDuration(downtimeMs),
+                TimeFormat.Timestamp(downtimeMs),
                 "Downtime",
                 "Total time the global cooldown was empty across every pull."),
             new OverviewStat(
@@ -98,10 +98,4 @@
 
     private static QualitativePerformance GapTier(int gapMs) =>
         gapMs < AcceptableGapMs ? QualitativePerformance.Ok : QualitativePerformance.Fail;
-
-    private static string FormatDuration(int milliseconds)
-    {
-        var totalSeconds = milliseconds / 1000;
-        return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
-    }
 }

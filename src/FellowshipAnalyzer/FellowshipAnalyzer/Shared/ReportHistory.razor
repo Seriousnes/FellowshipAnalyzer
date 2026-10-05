@@ -20,7 +20,7 @@
                        class="report-history-link">
                         <span class="report-history-player" style="@(entry.Hero is { } hero ? $"color: {Hero.For(hero).Color}" : null)">@entry.PlayerName</span>
                         <span class="report-history-dungeon">@entry.DungeonName</span>
-                        <span class="report-history-age">@FormatAge(entry.CachedAt)</span>
+                        <span class="report-history-age">@TimeFormat.Age(entry.CachedAt, DateTimeOffset.UtcNow)</span>
                     </a>
                 </li>
             }
@@ -60,15 +60,5 @@
     {
         await ReportCache.ClearAsync();
         _history = [];
-    }
-
-    private static string FormatAge(DateTimeOffset cachedAt)
-    {
-        var age = DateTimeOffset.UtcNow - cachedAt;
-
-        if (age.TotalMinutes < 1) return "just now";
-        if (age.TotalHours < 1) return $"{(int)age.TotalMinutes}m ago";
-        if (age.TotalDays < 1) return $"{(int)age.TotalHours}h ago";
-        return $"{(int)age.TotalDays}d ago";
     }
 }

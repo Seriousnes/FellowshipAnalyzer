@@ -12,7 +12,7 @@
                     var casts = GeneratorCastsFor(generator.SpellId);
                     if (casts > 0)
                     {
-                        <StatRow Value="@Ratio(OvercappedCastsFor(generator.SpellId), casts)"
+                        <StatRow Value="@NumberFormat.Share(OvercappedCastsFor(generator.SpellId), casts)"
                                  Tooltip="@GeneratorTooltip(generator, casts)">
                             <SpellLink Spell="generator.SpellId" /> cast at maximum
                         </StatRow>
@@ -20,16 +20,13 @@
                 }
                 @if (Blocks > 0)
                 {
-                    <StatRow Value="@Ratio(OvercappedBlocks, Blocks)"
+                    <StatRow Value="@NumberFormat.Share(OvercappedBlocks, Blocks)"
                              Tooltip="@BlockTooltip">
                         blocks taken at maximum
                     </StatRow>
                 }
             </ChildContent>
         </StatCard>;
-
-    private static string Ratio(int part, int whole) =>
-        whole > 0 ? $"{(double)part / whole * 100:F0}%" : "0%";
 
     private string GeneratorTooltip(ToughnessGenerator generator, int casts) =>
         $"{OvercappedCastsFor(generator.SpellId)} of {casts} casts at maximum Toughness.";

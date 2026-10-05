@@ -36,7 +36,7 @@ else
                         @foreach (var row in GroupByMinute(scopedEvents))
                         {
                             <div class="da-row">
-                                <span class="da-row-label">@FormatMinute(row.MinuteIndex)</span>
+                                <span class="da-row-label">@TimeFormat.Timestamp(row.MinuteIndex * 60_000L)</span>
                                 <div class="da-row-dots">
                                     @foreach (var annotatedEvent in row.Events)
                                     {
@@ -44,7 +44,7 @@ else
                                         var isSelected = _selectedEvent == annotatedEvent;
                                         <button class="da-dot @(isSelected ? "selected" : "")"
                                                 style="background-color: @topAnnotation.Color; border-color: @(isSelected ? SelectedRing : topAnnotation.Color)"
-                                                title="@(FormatTime(annotatedEvent.Event.Timestamp)) - @topAnnotation.Summary"
+                                                title="@(TimeFormat.Timestamp(annotatedEvent.Event.Timestamp - DungeonStartTime)) - @topAnnotation.Summary"
                                                 @onclick="() => SelectEvent(annotatedEvent)">
                                         </button>
                                     }
@@ -64,7 +64,7 @@ else
                                 <div class="da-detail-meta">
                                     <dl>
                                         <dt>Time</dt>
-                                        <dd>@FormatTime(_selectedEvent.Event.Timestamp)</dd>
+                                        <dd>@TimeFormat.Timestamp(_selectedEvent.Event.Timestamp - DungeonStartTime)</dd>
                                         <dt>Type</dt>
                                         <dd class="da-type">@GetTypeName(_selectedEvent.Event)</dd>
                                         @if (_selectedEvent.Event is IAbilityEvent ae)
@@ -143,17 +143,6 @@ else
             ? events
             : events.Where(ae => ae.Event.Timestamp >= pull.StartTime && ae.Event.Timestamp <= pull.EndTime).ToList();
     }
-
-    private string FormatTime(int timestamp)
-    {
-        var ms = timestamp - DungeonStartTime;
-        var totalSec = Math.Abs(ms) / 1000.0;
-        var min = (int)(totalSec / 60);
-        var sec = (int)(totalSec % 60);
-        return $"{(ms < 0 ? "-" : "")}{min}:{sec:D2}";
-    }
-
-    private string FormatMinute(int minuteIndex) => $"{minuteIndex}:00";
 
     private static DebugAnnotation GetTopAnnotation(List<DebugAnnotation> annotations) =>
         annotations.MaxBy(a => a.Priority) ?? annotations[0];

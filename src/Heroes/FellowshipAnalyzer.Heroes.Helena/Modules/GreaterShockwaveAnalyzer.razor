@@ -9,14 +9,12 @@
                 <SpellLink Spell="Talents.GreaterShockwave" />
             </Header>
             <ChildContent>
-                <StatRow Value="@Percent(ToughnessWastedShare)">
+                <StatRow Value="@NumberFormat.Percent(ToughnessWastedShare, 1)">
                     Toughness returned wasted
                 </StatRow>
-                <StatRow Value="@Percent(AverageAmplification)">
+                <StatRow Value="@NumberFormat.Percent(AverageAmplification, 1)">
                     average damage amplification
                 </StatRow>
             </ChildContent>
         </StatCard>;
-
-    private static string Percent(double share) => $"{share * 100:F1}%";
 }

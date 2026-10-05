@@ -73,7 +73,7 @@
         if (bleed > 0)
         {
             stats.Add(new OverviewStat(
-                FormatDamage(bleed / casts),
+                NumberFormat.Compact(bleed / casts),
                 "Avg Bleed Damage",
                 "Average Slaughter bleed damage per cast."));
         }
@@ -117,7 +117,7 @@
             "Rend stacks this cast consumed across every enemy it hit."));
 
         stats.Add(new PerCastStat(
-            FormatDamage(slaughter.BleedDamage),
+            NumberFormat.Compact(slaughter.BleedDamage),
             "Bleed Damage"));
 
         var note = BuildNote(row, isAoe);
@@ -166,7 +166,7 @@
         if (slaughter.RendConsumed == 0)
             return "No Rend was consumed.";
 
-        var damage = slaughter.BleedDamage > 0 ? $", which bled for {FormatDamage(slaughter.BleedDamage)}" : string.Empty;
+        var damage = slaughter.BleedDamage > 0 ? $", which bled for {NumberFormat.Compact(slaughter.BleedDamage)}" : string.Empty;
         return $"It consumed {slaughter.RendConsumed} Rend{damage}.";
     }
 
@@ -190,12 +190,6 @@
 
     private static int UsedWindowRate(int windows, int wasted) =>
         (int)Math.Round((double)(windows - wasted) / windows * 100);
-
-    private static string FormatDamage(long damage) =>
-        damage >= 1_000_000 ? $"{damage / 1_000_000d:0.0}M"
-        : damage >= 10_000 ? $"{damage / 1_000d:0}k"
-        : damage >= 1_000 ? $"{damage / 1_000d:0.0}k"
-        : $"{damage}";
 
     private static QualitativePerformance PercentTier(int percent) =>
         PerformanceTiers.FromThresholds(percent, 75, 50, 25);

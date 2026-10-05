@@ -85,7 +85,7 @@
                 "Gaps",
                 "Times Searing Blaze dropped off before being reapplied."),
             new PerCastStat(
-                FormatSeconds(analyzer.TotalGapMs),
+                TimeFormat.Seconds(analyzer.TotalGapMs, 1),
                 "Downtime",
                 "Total time Searing Blaze was off the boss between applications."),
         };
@@ -136,7 +136,7 @@
             return $"Searing Blaze had {uptimePercent}% uptime with no gaps once applied.";
 
         var gapLabel = analyzer.GapCount == 1 ? "1 gap" : $"{analyzer.GapCount} gaps";
-        return $"Searing Blaze had {uptimePercent}% uptime with {gapLabel} totalling {FormatSeconds(analyzer.TotalGapMs)} - reapply it before it expires.";
+        return $"Searing Blaze had {uptimePercent}% uptime with {gapLabel} totalling {TimeFormat.Seconds(analyzer.TotalGapMs, 1)} - reapply it before it expires.";
     }
 
     private static string BuildTrashNote(SearingBlazeSpreadAnalyzer analyzer, int score)
@@ -155,9 +155,6 @@
 
     private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>
         analyzer.DistinctTargets == 0 ? 0 : (int)Math.Round(analyzer.Coverage * 100);
-
-    private static string FormatSeconds(int milliseconds) =>
-        $"{milliseconds / 1000d:0.#}s";
 
     private static QualitativePerformance UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
 

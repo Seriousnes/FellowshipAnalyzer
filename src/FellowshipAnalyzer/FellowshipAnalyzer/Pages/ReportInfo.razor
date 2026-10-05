@@ -64,7 +64,7 @@
                                     @if (isKill)
                                     {
                                         <Glyph Name="check" />
-                                        <span>@FormatDuration(dungeon.EndTime - dungeon.StartTime)</span>
+                                        <span>@TimeFormat.Timestamp((long)(dungeon.EndTime - dungeon.StartTime))</span>
                                     }
                                     else
                                     {
@@ -74,7 +74,7 @@
                                         {
                                             <span class="pill-pct">@pct.ToString("F2")%</span>
                                         }
-                                        <span>@FormatDuration(dungeon.EndTime - dungeon.StartTime)</span>
+                                        <span>@TimeFormat.Timestamp((long)(dungeon.EndTime - dungeon.StartTime))</span>
                                     }
                                 </Badge>
                             }
@@ -156,7 +156,7 @@
                                             {
                                                 <Glyph Name="skull" />
                                             }
-                                            @dungeon.Name - @FormatDuration(dungeon.EndTime - dungeon.StartTime)
+                                            @dungeon.Name - @TimeFormat.Timestamp((long)(dungeon.EndTime - dungeon.StartTime))
                                         </Badge>
                                     }
                                 </div>
@@ -276,14 +276,6 @@
 
         if (_report.Dungeons.Any(f => f.Id == dungeonId))
             _expandedDungeonId = dungeonId;
-    }
-
-    private static string FormatDuration(double milliseconds)
-    {
-        var ts = TimeSpan.FromMilliseconds(milliseconds);
-        return ts.TotalMinutes >= 1
-            ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}"
-            : $"{ts.Seconds}s";
     }
 
     private static string FirstLetter(string value) =>

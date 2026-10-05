@@ -15,6 +15,7 @@ query GetReportMasterData($code: String!, $fightIDs: [Int], $includeFight: Boole
         friendlyPlayers
         inProgress
         fightPercentage
+        modifiers
       }
       targetFight: fights(fightIDs: $fightIDs) @include(if: $includeFight) {
         id

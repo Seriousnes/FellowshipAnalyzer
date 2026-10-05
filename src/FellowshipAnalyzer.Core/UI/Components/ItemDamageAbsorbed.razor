@@ -1,8 +1,8 @@
 @using FellowshipAnalyzer.Core.Analysis
 
 <ItemThroughput Icon="shield" Accent="buff"
-                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} absorbed/s")"
-                Detail="@($"{ThroughputFormat.Total(Amount)} total")" />
+                Rate="@($"{NumberFormat.Compact(Throughput.PerSecond(Amount))} absorbed/s")"
+                Detail="@($"{NumberFormat.Compact(Amount)} total")" />
 
 @code {
     /// <summary>The damage this source's shields consumed over the dungeon.</summary>

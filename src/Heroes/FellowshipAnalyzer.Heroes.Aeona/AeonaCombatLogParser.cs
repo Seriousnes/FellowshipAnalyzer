@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Analysis;
 namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 
 [HeroAnalyzer(HeroName.Aeona)]
+[AddNormalizer<Normalizers.AeonaEventLinkNormalizer>]
 [AddModule<Modules.Abilities>]
 [AddModule<Modules.AeonaBuild>]
 [AddAnalyzer<Modules.AeonaStatBuffs>]

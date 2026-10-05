@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
+using FellowshipAnalyzer.Heroes.Aeona.Normalizers;
 
 using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 
@@ -60,7 +61,9 @@ public sealed record BarrageChannel
     public required int? PrimaryHealTargetId { get; init; }
 
     /// <summary>
-    /// The Stagger cleared off <see cref="PrimaryHealTargetId"/> across the channel, in hit points.
+    /// The Stagger Paradoxical Twist cleared off <see cref="PrimaryHealTargetId"/> across the channel, in hit
+    /// points. A bolt counts only when its heal changed the ally's Stagger and the ally's Stagger before that
+    /// change is known. <see langword="null"/> without Paradoxical Twist or when no bolt counted.
     /// </summary>
     public required int? StaggerCleared { get; init; }
 
@@ -99,10 +102,15 @@ public sealed record BarrageChannel
 /// until the next one opens. A channel-end event closes the channel currently accumulating. Damage and
 /// healing share a bolt's timestamp, so a bolt is one instant rather than one record.
 /// </para>
+/// <para>
+/// Direct healing and Deferred Fate: Relay healing both arrive as heal records on the Temporal Barrage
+/// ability. A channel strikes one target, so its <see cref="BarrageChannel.Target"/> separates the two.
+/// Every heal in a channel aimed at an ally is direct healing. Every heal in a channel aimed at an enemy
+/// is relay healing.
+/// </para>
 /// </remarks>
 [Dependency<FleetingHourAnalyzer>]
 [Dependency<SpellUsable>]
-[Dependency<StaggerTracker>]
 public sealed partial class TemporalBarrageAnalyzer : Analyzer
 {
     /// <summary>
@@ -110,8 +118,11 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
     /// </summary>
     public const int TemporalShiftBenefitMs = 300;
 
-    /// <summary>How far after a channel the Stagger bracket may close.</summary>
-    public const int StaggerBracketToleranceMs = 2_000;
+    /// <summary>
+    /// The share of the ally's Stagger each bolt aimed at an ally cleanses under Fleeting Hour with
+    /// Paradoxical Twist.
+    /// </summary>
+    public const double ParadoxicalTwistStaggerClearedPerBolt = 0.03;
 
     private readonly List<ChannelBuilder> _builders = [];
 
@@ -136,20 +147,43 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
     public long DamageUnderFleetingHour =>
         Channels.Where(channel => channel.FleetingHourActiveAtStart).Sum(channel => channel.Damage);
 
-    /// <summary>Effective healing every channel's bolts did.</summary>
-    public long TotalHealEffective => Channels.Sum(channel => channel.HealEffective);
+    /// <summary>Damage per channel aimed at an enemy.</summary>
+    public double AverageDamage => EnemyChannels > 0 ? (double)TotalDamage / EnemyChannels : 0;
 
-    /// <summary>Healing every channel's bolts overhealed.</summary>
-    public long TotalOverheal => Channels.Sum(channel => channel.Overheal);
+    /// <summary>Channels aimed at an enemy and started while Fleeting Hour was active.</summary>
+    public int EnemyChannelsUnderFleetingHour =>
+        Channels.Count(channel => channel.Target == BarrageTarget.Enemy && channel.FleetingHourActiveAtStart);
+
+    /// <summary>Damage per channel aimed at an enemy and started while Fleeting Hour was active.</summary>
+    public double AverageDamageUnderFleetingHour =>
+        EnemyChannelsUnderFleetingHour > 0 ? (double)DamageUnderFleetingHour / EnemyChannelsUnderFleetingHour : 0;
+
+    /// <summary>Effective healing the bolts of every channel aimed at an ally did.</summary>
+    public long DirectHealEffective => AimedAt(BarrageTarget.Ally).Sum(channel => channel.HealEffective);
+
+    /// <summary>Healing the bolts of every channel aimed at an ally overhealed.</summary>
+    public long DirectOverheal => AimedAt(BarrageTarget.Ally).Sum(channel => channel.Overheal);
+
+    /// <summary>Effective direct healing per channel aimed at an ally.</summary>
+    public double AverageDirectHealEffective => AllyChannels > 0 ? (double)DirectHealEffective / AllyChannels : 0;
+
+    /// <summary>Effective Deferred Fate: Relay healing across every channel aimed at an enemy.</summary>
+    public long RelayHealEffective => AimedAt(BarrageTarget.Enemy).Sum(channel => channel.HealEffective);
+
+    /// <summary>Deferred Fate: Relay healing overhealed across every channel aimed at an enemy.</summary>
+    public long RelayOverheal => AimedAt(BarrageTarget.Enemy).Sum(channel => channel.Overheal);
+
+    /// <summary>Effective Deferred Fate: Relay healing per channel aimed at an enemy.</summary>
+    public double AverageRelayHealEffective => EnemyChannels > 0 ? (double)RelayHealEffective / EnemyChannels : 0;
 
     /// <summary>Bolts struck across every channel.</summary>
     public int TotalBolts => Channels.Sum(channel => channel.Bolts);
 
     /// <summary>Channels aimed at an enemy.</summary>
-    public int EnemyChannels => Channels.Count(channel => channel.Target == BarrageTarget.Enemy);
+    public int EnemyChannels => AimedAt(BarrageTarget.Enemy).Count();
 
     /// <summary>Channels aimed at an ally.</summary>
-    public int AllyChannels => Channels.Count(channel => channel.Target == BarrageTarget.Ally);
+    public int AllyChannels => AimedAt(BarrageTarget.Ally).Count();
 
     /// <summary>Channels started while Fleeting Hour was active.</summary>
     public int ChannelsUnderFleetingHour => Channels.Count(channel => channel.FleetingHourActiveAtStart);
@@ -170,7 +204,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
     public int BoltsWhileFleetingHourActive =>
         Channels.Sum(channel => channel.BoltsWhileFleetingHourActive);
 
-    /// <summary>Stagger cleared off the ally target across every ally-aimed channel, in hit points.</summary>
+    /// <summary>Stagger Paradoxical Twist cleared off the ally target across every ally-aimed channel, in hit points.</summary>
     public int StaggerCleared => Channels.Sum(channel => channel.StaggerCleared ?? 0);
 
     [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.TemporalBarrage))]
@@ -197,9 +231,15 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
     {
         if (_current is not { } channel) return;
 
-        channel.AddHeal(e.Amount, e.Overheal ?? 0, e.TargetId);
+        channel.AddHeal(e.Amount, e.Overheal ?? 0, e.TargetId, e.Timestamp);
+        if (e.RelatedEvent<ResourceChangeEvent>(AeonaEventLinkNormalizer.BarrageStagger) is { PreviousResourceAmount: { } staggerBefore })
+            channel.AddStaggerBeforeBolt(e.TargetId, e.Timestamp, staggerBefore);
+
         RecordBolt(channel, e.Timestamp);
     }
+
+    private IEnumerable<BarrageChannel> AimedAt(BarrageTarget target) =>
+        Channels.Where(channel => channel.Target == target);
 
     private void RecordBolt(ChannelBuilder channel, int timestamp)
     {
@@ -234,8 +274,8 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
             HealTargets = builder.HealTargets,
             Target = target,
             PrimaryHealTargetId = primaryHealTarget,
-            StaggerCleared = target == BarrageTarget.Ally && primaryHealTarget is { } ally
-                ? MeasureStaggerCleared(ally, builder.Start, end)
+            StaggerCleared = ParadoxicalTwistTaken && target == BarrageTarget.Ally && primaryHealTarget is { } ally
+                ? MeasureStaggerCleared(builder.StaggerBeforeBoltsOn(ally))
                 : null,
             FleetingHourActiveAtStart = FleetingHourAnalyzer.IsBuffActiveAt(builder.Start),
             BoltsWhileFleetingHourActive = active,
@@ -245,18 +285,29 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         };
     }
 
-    private int? MeasureStaggerCleared(int unitId, int start, int end) =>
-        StaggerTracker.MeasureCleanseBetween(unitId, start, end, StaggerBracketToleranceMs) is
-            { HasInterveningEvent: false } cleanse
-            ? cleanse.ClearedAmount
-            : null;
+    private int? MeasureStaggerCleared(IReadOnlyList<StaggerBeforeBolt> bolts)
+    {
+        double? cleared = null;
+
+        foreach (var bolt in bolts)
+        {
+            if (!FleetingHourAnalyzer.IsBuffActiveAt(bolt.Timestamp)) continue;
+
+            cleared = (cleared ?? 0) + bolt.Stagger * ParadoxicalTwistStaggerClearedPerBolt;
+        }
+
+        return cleared is { } amount ? (int)Math.Round(amount) : null;
+    }
+
+    private readonly record struct StaggerBeforeBolt(int Timestamp, int Stagger);
 
     private sealed class ChannelBuilder(int start)
     {
         private readonly List<int> _boltTimestamps = [];
         private readonly List<int> _damageTargets = [];
         private readonly List<int> _healTargets = [];
-        private readonly Dictionary<int, int> _healCounts = [];
+        private readonly Dictionary<int, List<int>> _healTimestamps = [];
+        private readonly Dictionary<int, List<StaggerBeforeBolt>> _staggerBeforeBolts = [];
 
         public int Start { get; } = start;
 
@@ -296,17 +347,35 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
                 _damageTargets.Add(targetId);
         }
 
-        public void AddHeal(long effective, long overheal, int targetId)
+        public void AddHeal(long effective, long overheal, int targetId, int timestamp)
         {
             HealEffective += effective;
             Overheal += overheal;
             if (!_healTargets.Contains(targetId))
                 _healTargets.Add(targetId);
 
-            _healCounts[targetId] = _healCounts.GetValueOrDefault(targetId) + 1;
+            if (!_healTimestamps.TryGetValue(targetId, out var timestamps))
+                _healTimestamps[targetId] = timestamps = [];
+
+            if (timestamps.Count == 0 || timestamps[^1] != timestamp)
+                timestamps.Add(timestamp);
         }
 
         public void AddCooldownReduction(int effectiveMs) => CooldownReducedMs += effectiveMs;
+
+        public void AddStaggerBeforeBolt(int targetId, int timestamp, int stagger)
+        {
+            if (!_staggerBeforeBolts.TryGetValue(targetId, out var bolts))
+                _staggerBeforeBolts[targetId] = bolts = [];
+
+            bolts.Add(new StaggerBeforeBolt(timestamp, stagger));
+        }
+
+        public IReadOnlyList<StaggerBeforeBolt> StaggerBeforeBoltsOn(int targetId) =>
+            _staggerBeforeBolts.TryGetValue(targetId, out var bolts) ? bolts : [];
+
+        public IReadOnlyList<int> HealTimestampsOn(int targetId) =>
+            _healTimestamps.TryGetValue(targetId, out var timestamps) ? timestamps : [];
 
         public int? PrimaryHealTarget()
         {
@@ -315,7 +384,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
 
             foreach (var targetId in _healTargets)
             {
-                var count = _healCounts.GetValueOrDefault(targetId);
+                var count = HealTimestampsOn(targetId).Count;
                 if (count <= bestCount) continue;
 
                 best = targetId;

@@ -10,14 +10,11 @@
             <ChildContent>
                 @foreach (var cdr in CooldownReductions)
                 {
-                    <StatRow Value="@Seconds(cdr.CooldownReduction.Effective)"
-                             Tooltip="@($"{Seconds(cdr.CooldownReduction.Total)} generated, {Seconds(cdr.CooldownReduction.Wasted)} wasted")">
-                        <SpellLink Spell="cdr.Spell" /> reduction, @Pct(cdr.CooldownReduction.Efficiency) of @Seconds(cdr.CooldownReduction.Total) generated
+                    <StatRow Value="@TimeFormat.Seconds(cdr.CooldownReduction.Effective, 1)"
+                             Tooltip="@($"{TimeFormat.Seconds(cdr.CooldownReduction.Total, 1)} generated, {TimeFormat.Seconds(cdr.CooldownReduction.Wasted, 1)} wasted")">
+                        <SpellLink Spell="cdr.Spell" /> reduction, @NumberFormat.Percent(cdr.CooldownReduction.Efficiency) of @TimeFormat.Seconds(cdr.CooldownReduction.Total, 1) generated
                     </StatRow>
                 }
             </ChildContent>
         </StatCard>;
-
-    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
-    private static string Pct(double ratio) => $"{ratio * 100:F0}%";
 }

@@ -37,7 +37,8 @@ public class GraphQLMapperTests
         int? Difficulty,
         IReadOnlyList<int?>? FriendlyPlayers,
         bool? InProgress,
-        double? FightPercentage)
+        double? FightPercentage,
+        IReadOnlyList<int?>? Modifiers = null)
         : IGetReportMasterData_ReportData_Report_Fights;
 
     private sealed record StubTargetDungeon(
@@ -106,6 +107,14 @@ public class GraphQLMapperTests
         preload.ReportInfo.Dungeons.Select(d => d.Id).ShouldBe([10, 20, 30]);
         preload.ReportInfo.Dungeons.Single(d => d.Id == 20).DungeonPulls!.Single().Name.ShouldBe("First");
         preload.ReportInfo.Dungeons.Where(d => d.Id != 20).ShouldAllBe(d => d.DungeonPulls == null);
+    }
+
+    [Fact]
+    public void MapDungeon_CarriesTheDungeonModifiers()
+    {
+        var mapped = (Dungeon(10) with { Modifiers = [4, null, 16] }).MapDungeon();
+
+        mapped.Modifiers.ShouldBe([4, 16]);
     }
 
     [Fact]

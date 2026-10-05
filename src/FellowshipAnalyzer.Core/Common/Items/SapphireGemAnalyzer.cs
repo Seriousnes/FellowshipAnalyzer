@@ -9,7 +9,8 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// Measures what the player's Sapphire gem contributed. Two of its five traits leave a trace in the log:
 /// Ancestral Surge, a primary attribute buff active during Heroism whose windows the log records, and
 /// Resonating Soul, a passive damage reduction that scales with missing health and is estimated from the
-/// player's health at each hit they took. The remaining traits raise spirit and extend Heroism.
+/// player's health at each hit they took. The remaining traits raise spirit, which
+/// <see cref="PassiveBonusTracker"/> adds to the player's stats, and extend Heroism.
 /// </summary>
 public sealed partial class SapphireGemAnalyzer : Analyzer, IGemAnalyzer
 {

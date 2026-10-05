@@ -67,6 +67,7 @@ public sealed record MaidenOfDeathWindow
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<EnergyComboPointTracker>]
+[Dependency<Abilities>]
 public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 {
     public const int ComboPointsPerGenerator = 6;
@@ -192,10 +193,13 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 
     private static int Held(int gapMs) => RechargeMs <= 0 ? 0 : Math.Max(0, gapMs - RechargeMs);
 
-    private static MaidenCastRole RoleOf(int abilityId) =>
-        Array.IndexOf(Generators, abilityId) >= 0 ? MaidenCastRole.Generator
-        : Array.IndexOf(Spenders, abilityId) >= 0 ? MaidenCastRole.Spender
-        : MaidenCastRole.Other;
+    private MaidenCastRole RoleOf(int abilityId)
+    {
+        var primary = Abilities.PrimarySpellIdOf(abilityId);
+        return Array.IndexOf(Generators, primary) >= 0 ? MaidenCastRole.Generator
+            : Array.IndexOf(Spenders, primary) >= 0 ? MaidenCastRole.Spender
+            : MaidenCastRole.Other;
+    }
 
     private List<MaidenOfDeathWindow> Build()
     {

@@ -34,7 +34,7 @@
                             {
                                 <tr>
                                     <td><SpellLink Spell="ability.SpellId" /></td>
-                                    <td class="glorious-purpose-recovered">@Seconds(ability.RecoveredMs)</td>
+                                    <td class="glorious-purpose-recovered">@TimeFormat.Seconds(ability.RecoveredMs, 1)</td>
                                 </tr>
                             }
                         </tbody>
@@ -54,6 +54,4 @@
             "Windows",
             "Glorious Purpose windows."),
     ];
-
-    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
 }

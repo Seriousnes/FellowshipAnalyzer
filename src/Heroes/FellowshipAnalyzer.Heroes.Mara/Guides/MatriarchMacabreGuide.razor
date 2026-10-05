@@ -53,7 +53,7 @@
         var stats = new[]
         {
             new PerCastStat(
-                FormatSeconds(window.DurationMs),
+                TimeFormat.Seconds(window.DurationMs, 1),
                 "Window",
                 "How long the Matriarch Macabre buff was active."),
             new PerCastStat(
@@ -82,14 +82,8 @@
 
     private static string BuildWindowNote(MatriarchMacabreWindow window) =>
         window.FinisherCasts == 0
-            ? $"This {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it."
-            : $"{Count(window.FinisherCasts, "finisher")} cast in this {FormatSeconds(window.DurationMs)} window.";
-
-    private static string Count(int value, string noun) =>
-        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
-
-    private static string FormatSeconds(int milliseconds) =>
-        $"{milliseconds / 1000d:0.#}s";
+            ? $"This {TimeFormat.Seconds(window.DurationMs, 1)} window expired with no Queen's Fang or Arachnid Assault in it."
+            : $"{window.FinisherCasts} {Plural(window.FinisherCasts, "finisher", "finishers")} cast in this {TimeFormat.Seconds(window.DurationMs, 1)} window.";
 
     private static QualitativePerformance? FinisherTier(double finishers, int windows) =>
         windows == 0 ? null : PerformanceTiers.FromThresholds(finishers, 4, 3, 2);

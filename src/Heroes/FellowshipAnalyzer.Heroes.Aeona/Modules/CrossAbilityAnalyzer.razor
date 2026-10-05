@@ -33,18 +33,16 @@
                 }
                 @if (SkyboltWasCast)
                 {
-                    <StatRow Value="@FormatSeconds(SkyboltTimeAtMaxChargesMs)" Tooltip="@($"{SkyboltTimeAtMaxChargesShare:P1} of combat.")">
+                    <StatRow Value="@TimeFormat.Seconds(SkyboltTimeAtMaxChargesMs, 1)" Tooltip="@($"{SkyboltTimeAtMaxChargesShare:P1} of combat.")">
                         <SpellLink Spell="CoreItems.TwilightSkybolt" /> at maximum charges
                     </StatRow>
                 }
                 @if (UnfoldingDoomOverwrittenMs > 0)
                 {
-                    <StatRow Value="@FormatSeconds(UnfoldingDoomOverwrittenMs)" Tooltip="@($"Across {UnfoldingDoomReapplications} reapplications.")">
+                    <StatRow Value="@TimeFormat.Seconds(UnfoldingDoomOverwrittenMs, 1)" Tooltip="@($"Across {UnfoldingDoomReapplications} reapplications.")">
                         <SpellLink Spell="Spells.UnfoldingDoom" /> duration overwritten
                     </StatRow>
                 }
             </ChildContent>
         </StatCard>;
-
-    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

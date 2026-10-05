@@ -36,10 +36,10 @@
                 "Time Shards cast toward an enemy with Echoes of Ruin active, out of every Time Shard cast.",
                 casts > 0 ? MissTier(missed, casts) : null),
             new OverviewStat(
-                FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReducedMs)),
+                TimeFormat.Seconds(analyzers.Sum(analyzer => analyzer.CooldownReducedMs), 1),
                 "Temporal Barrage Cooldown Reduced"),
             new OverviewStat(
-                FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReductionWastedMs)),
+                TimeFormat.Seconds(analyzers.Sum(analyzer => analyzer.CooldownReductionWastedMs), 1),
                 "Reduction While Available",
                 "Reduction that your Time Shards granted while Temporal Barrage was available, or beyond its remaining cooldown."),
         ];
@@ -63,10 +63,10 @@
                     "Time Shards cast toward an enemy with Echoes of Ruin active, out of every Time Shard cast in this pull.",
                     performance),
                 new PerCastStat(
-                    FormatSeconds(analyzer.CooldownReducedMs),
+                    TimeFormat.Seconds(analyzer.CooldownReducedMs, 1),
                     "Cooldown Reduced"),
                 new PerCastStat(
-                    FormatSeconds(analyzer.CooldownReductionWastedMs),
+                    TimeFormat.Seconds(analyzer.CooldownReductionWastedMs, 1),
                     "Reduction While Available",
                     "Reduction that your Time Shards granted in this pull while Temporal Barrage was available, or beyond its remaining cooldown."),
             ],
@@ -75,6 +75,4 @@
 
     private static QualitativePerformance MissTier(int missed, int casts) =>
         PerformanceTiers.FromThresholds(1 - (double)missed / casts, 1.0, 0.9, 0.75);
-
-    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

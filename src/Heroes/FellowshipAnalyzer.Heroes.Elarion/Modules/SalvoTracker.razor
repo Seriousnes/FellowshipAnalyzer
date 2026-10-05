@@ -15,21 +15,14 @@
                 <StatRow Value="@EruptHits.ToString("N0")">
                     <SpellLink Spell="Spells.LunarlightMarkAoeDamage" /> hits
                 </StatRow>
-                <StatRow Value="@Compact(TotalMarkDamage)"
+                <StatRow Value="@NumberFormat.Compact(TotalMarkDamage)"
                          Tooltip="Salvo and Erupt damage.">
                     damage from the mark
                 </StatRow>
                 <StatRow Value="@($"{DamageShare * 100:0.#}%")"
-                         Tooltip="@($"{Compact(TotalMarkDamage)} of {Compact(TotalPlayerDamage)} total damage dealt.")">
+                         Tooltip="@($"{NumberFormat.Compact(TotalMarkDamage)} of {NumberFormat.Compact(TotalPlayerDamage)} total damage dealt.")">
                     of all damage dealt
                 </StatRow>
             </ChildContent>
         </StatCard>;
-
-    private static string Compact(long amount) => amount switch
-    {
-        >= 1_000_000 => $"{amount / 1_000_000d:0.##}M",
-        >= 1_000 => $"{amount / 1_000d:0.#}k",
-        _ => amount.ToString("N0"),
-    };
 }

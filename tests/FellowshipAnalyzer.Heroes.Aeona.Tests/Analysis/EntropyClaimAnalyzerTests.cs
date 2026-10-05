@@ -123,7 +123,7 @@ public sealed class EntropyClaimAnalyzerTests
     [Fact]
     public async Task EachWaitForACharge_HasAnEntry()
     {
-        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
+        var analyzer = await Analyze(Info(Burst, AeonaLegendaries.MassEntropy),
             Completion(5_000, Spells.EntropyClaim),
             ApplyDebuff(5_000, Spells.EntropyClaimDot),
             Completion(6_500, Spells.EntropyClaim, SecondEnemyId),
@@ -135,10 +135,14 @@ public sealed class EntropyClaimAnalyzerTests
         analyzer.DelaysAfterReady.Count.ShouldBe(2);
     }
 
-    [Fact]
-    public async Task WithoutMassEntropy_ThereIsNoAnalyzer()
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public async Task WithoutBothMassEntropyAndEntropicBurst_ThereIsNoAnalyzer(bool massEntropy, bool entropicBurst)
     {
-        var parser = await AeonaLog.Analyze(BossPull(), Info(Burst), Completion(1_000, Spells.EntropyClaim));
+        int[] talents = entropicBurst ? Burst : [];
+        var info = massEntropy ? Info(talents, AeonaLegendaries.MassEntropy) : Info(talents);
+        var parser = await AeonaLog.Analyze(BossPull(), info, Completion(1_000, Spells.EntropyClaim));
 
         parser.EntropyClaimAnalyzers.ShouldBeEmpty();
     }

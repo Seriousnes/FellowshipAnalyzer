@@ -177,19 +177,19 @@
 
         var below = analyzer.Finishers.Count - analyzer.FinishersAtThreshold;
         if (below > 0)
-            notes.Add($"{Count(below, "finisher")} cast under their combo-point threshold");
+            notes.Add($"{below} {Plural(below, "finisher", "finishers")} cast under their combo-point threshold");
 
         if (analyzer.QueenFangAboveTargetThreshold > 0)
-            notes.Add($"{Count(analyzer.QueenFangAboveTargetThreshold, "Queen's Fang cast")} with {analyzer.ArachnidAssaultTargetThreshold} or more enemies alive");
+            notes.Add($"{analyzer.QueenFangAboveTargetThreshold} {Plural(analyzer.QueenFangAboveTargetThreshold, "Queen's Fang cast", "Queen's Fang casts")} with {analyzer.ArachnidAssaultTargetThreshold} or more enemies alive");
 
         if (analyzer.ArachnidAssaultBelowTargetThreshold > 0)
-            notes.Add($"{Count(analyzer.ArachnidAssaultBelowTargetThreshold, "Arachnid Assault cast")} with fewer than {analyzer.ArachnidAssaultTargetThreshold} enemies alive");
+            notes.Add($"{analyzer.ArachnidAssaultBelowTargetThreshold} {Plural(analyzer.ArachnidAssaultBelowTargetThreshold, "Arachnid Assault cast", "Arachnid Assault casts")} with fewer than {analyzer.ArachnidAssaultTargetThreshold} enemies alive");
 
         if (analyzer.GeneratorOvercapCasts > 0)
-            notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} at six combo points");
+            notes.Add($"{analyzer.GeneratorOvercapCasts} {Plural(analyzer.GeneratorOvercapCasts, "generator cast", "generator casts")} at six combo points");
 
         if (analyzer.EnergyCappedCasts > 0)
-            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} at full Energy ({energyCapRate}%)");
+            notes.Add($"{analyzer.EnergyCappedCasts} {Plural(analyzer.EnergyCappedCasts, "cast", "casts")} at full Energy ({energyCapRate}%)");
 
         if (notes.Count > 0)
             return $"{string.Join("; ", notes)}.";
@@ -201,9 +201,6 @@
             ? "Every finisher met its combo-point threshold and matched the enemies alive, with no Energy or combo-point overcap."
             : "Every finisher met its combo-point threshold with no Energy or combo-point overcap.";
     }
-
-    private static string Count(int value, string noun) =>
-        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
 
     private static string FinisherName(int abilityId) =>
         abilityId == Spells.QueenFang.Id ? Spells.QueenFang.Name

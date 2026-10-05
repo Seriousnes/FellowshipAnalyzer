@@ -1,0 +1,69 @@
+@inherits GuideComponent<XavianCombatLogParser>
+
+<GuideSection Title="Omega Reprieval">
+    <LeftPanel>
+        <p>
+            Cast <SpellLink Spell="Spells.OmegaReprieval" /> whenever it is ready.
+            Spend every stack on <SpellLink Spell="Spells.BrilliantFlash" /> before it expires.
+        </p>
+        <p>
+            Cast <SpellLink Spell="Spells.Omnistrike" /> while <SpellLink Spell="Spells.GoldenHour" /> is up.
+            It grants another stack.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Omega Reprieval By Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Parser.OmegaReprievalAnalyzers.Any(entry => entry.Analyzer.StacksGained > 0);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.OmegaReprievalAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var spent = analyzers.Sum(analyzer => analyzer.StacksSpent);
+        var expired = analyzers.Sum(analyzer => analyzer.StacksExpired);
+        var procs = analyzers.Sum(analyzer => analyzer.GoldenHourProcs);
+        var consumed = analyzers.Sum(analyzer => analyzer.GoldenHourConsumed);
+
+        var stats = new List<OverviewStat>
+        {
+            new($"{analyzers.Sum(analyzer => analyzer.Casts)}", "Casts"),
+            new($"{spent}/{spent + expired}", "Stacks Spent", Performance: SpentTier(spent, expired)),
+        };
+
+        if (procs > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{consumed}/{procs}",
+                "GH Used",
+                "Golden Hour procs consumed by Omnistrike. Each one grants 1 Omega Reprieval stack.",
+                PerformanceTiers.FromThresholds((double)consumed / procs * 100, 98, 95, 90)));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.OmegaReprievalAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = SpentTier(analyzer.StacksSpent, analyzer.StacksExpired),
+            Stats =
+            [
+                new PerCastStat($"{analyzer.Casts}", "Casts"),
+                new PerCastStat($"{analyzer.StacksSpent}/{analyzer.StacksSpent + analyzer.StacksExpired}", "Stacks Spent"),
+                new PerCastStat($"{analyzer.GoldenHourConsumed}/{analyzer.GoldenHourProcs}", "GH Used"),
+            ],
+            Details = analyzer.StacksExpired > 0 ? BuildDetails(analyzer) : null,
+        });
+
+    private static RenderFragment BuildDetails(OmegaReprievalAnalyzer analyzer) =>
+        @<ul>
+            <li>@analyzer.StacksExpired <SpellLink Spell="Spells.OmegaReprievalBuff" /> stacks expired unspent.</li>
+        </ul>;
+
+    private static QualitativePerformance? SpentTier(int spent, int expired) =>
+        spent + expired == 0 ? null : PerformanceTiers.FromThresholds((double)spent / (spent + expired) * 100, 98, 95, 90);
+}

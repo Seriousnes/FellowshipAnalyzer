@@ -281,6 +281,23 @@ public sealed class EventLinkNormalizerTests
     }
 
     [Fact]
+    public void Normalize_APairFailingTheAdditionalCondition_IsNotLinked()
+    {
+        var cast = Cast(GrimCarve, 1_000);
+        var small = Damage(GrimCarve, 1_100, amount: 10);
+        var large = Damage(GrimCarve, 1_200, amount: 500);
+
+        Run(
+            [cast, small, large],
+            Link(forwardBufferMs: 1_000) with
+            {
+                AdditionalCondition = (_, referenced) => referenced is DamageEvent { Amount: > 100 },
+            });
+
+        Assert.Equal([large], cast.RelatedEvents<DamageEvent>(Relation));
+    }
+
+    [Fact]
     public void Normalize_ReturnsEveryEventItWasGiven()
     {
         var cast = Cast(GrimCarve, 1_000);

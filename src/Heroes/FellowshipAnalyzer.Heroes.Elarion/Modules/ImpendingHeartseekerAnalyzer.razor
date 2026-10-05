@@ -19,8 +19,8 @@
                          Tooltip="@($"{WastedResets} of {Resets} resets arrived while Heartseeker Barrage was already available.")">
                     resets wasted
                 </StatRow>
-                <StatRow Value="@Seconds(AverageRecoveredMs)"
-                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {RecoveredResets} resets arriving on a running cooldown.")">
+                <StatRow Value="@TimeFormat.Seconds(AverageRecoveredMs, 1)"
+                         Tooltip="@($"{TimeFormat.Seconds(RecoveredMs, 1)} of Heartseeker Barrage cooldown removed across {RecoveredResets} resets arriving on a running cooldown.")">
                     average cooldown removed
                 </StatRow>
             </ChildContent>
@@ -31,6 +31,4 @@
             : WastedShare < 0.1 ? QualitativePerformance.Good
             : WastedShare < 0.2 ? QualitativePerformance.Ok
             : QualitativePerformance.Fail;
-
-    private static string Seconds(double milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 
 <ItemThroughput Icon="bolt" Accent="damage" Approximate="Approximate"
-                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} DPS")"
+                Rate="@($"{NumberFormat.Compact(Throughput.PerSecond(Amount))} DPS")"
                 Detail="@Detail" />
 
 @code {
@@ -18,6 +18,6 @@
     [Parameter] public bool ShowShare { get; set; } = true;
 
     private string? Detail => ShowShare
-        ? $"{ThroughputFormat.Share(Throughput.ShareOfDamage(Amount))} of total"
+        ? $"{NumberFormat.Percent(Throughput.ShareOfDamage(Amount))} of total"
         : null;
 }

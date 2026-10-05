@@ -57,7 +57,7 @@
                 $"{name} Casts",
                 $"{name} casts across every pull."));
             stats.Add(new OverviewStat(
-                FormatDuration(heldMs),
+                TimeFormat.Timestamp(heldMs),
                 $"{name} Held",
                 $"Time {name} spent off cooldown and unused ({heldShare:F0}% of pull time).",
                 HeldTier(heldShare)));
@@ -181,10 +181,4 @@
         RimeMajorCooldown.FlightOfTheNavir => Spells.FlightOfTheNavir.Name,
         _ => Spells.WrathOfWinter.Name,
     };
-
-    private static string FormatDuration(int milliseconds)
-    {
-        var totalSeconds = milliseconds / 1000;
-        return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
-    }
 }

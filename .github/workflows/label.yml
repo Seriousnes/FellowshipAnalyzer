@@ -1,0 +1,58 @@
+name: Label
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Label hero and core changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Apply hero and core labels
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const labels = new Set();
+            for (const { filename } of files) {
+              if (filename.startsWith('src/FellowshipAnalyzer.Core/')) {
+                labels.add('Core');
+                continue;
+              }
+              const hero = filename.match(/^src\/Heroes\/FellowshipAnalyzer\.Heroes\.([^/]+)\//);
+              if (hero) {
+                labels.add(hero[1]);
+              }
+            }
+
+            if (labels.size === 0) {
+              core.info('No hero or core changes.');
+              return;
+            }
+
+            core.info(`Applying labels: ${[...labels].join(', ')}`);
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: [...labels],
+            });

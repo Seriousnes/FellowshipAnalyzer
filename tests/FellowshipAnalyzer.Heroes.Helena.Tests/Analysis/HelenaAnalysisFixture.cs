@@ -41,7 +41,21 @@ internal static class HelenaAnalysisFixture
     /// modules are constructed. Without them a talent-gated module never exists and its metrics read a
     /// silent zero.
     /// </summary>
-    public static async Task<HelenaCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events)
+    public static Task<HelenaCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events) =>
+        AnalyzeAs(Combatant(talents), events);
+
+    /// <summary>Runs the parser for the player <paramref name="combatant"/> describes, gear included.</summary>
+    public static Task<HelenaCombatLogParser> AnalyzeAs(CombatantInfoEvent combatant, params Event[] events) =>
+        AnalyzeIn(BossDungeon, combatant, events);
+
+    /// <summary>
+    /// Runs the parser over <paramref name="dungeon"/> instead of <see cref="BossDungeon"/>, for behaviour that
+    /// needs more than one pull, such as state carried from one pull into the next.
+    /// </summary>
+    public static Task<HelenaCombatLogParser> AnalyzeIn(ReportDungeon dungeon, params Event[] events) =>
+        AnalyzeIn(dungeon, Combatant(), events);
+
+    private static async Task<HelenaCombatLogParser> AnalyzeIn(ReportDungeon dungeon, CombatantInfoEvent combatant, Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -52,7 +66,7 @@ internal static class HelenaAnalysisFixture
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<HelenaCombatLogParser>();
-        await parser.Analyze([Combatant(talents), .. events], PlayerId, BossDungeon);
+        await parser.Analyze([combatant, .. events], PlayerId, dungeon);
         return parser;
     }
 

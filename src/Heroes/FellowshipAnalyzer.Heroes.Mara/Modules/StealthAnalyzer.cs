@@ -21,6 +21,7 @@ public sealed record StealthWindow
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
+[Dependency<Abilities>]
 public sealed partial class StealthAnalyzer : Analyzer
 {
     public const int PoisonLinkWindowMs = 1000;
@@ -65,15 +66,19 @@ public sealed partial class StealthAnalyzer : Analyzer
         _openSpan = null;
     }
 
-    [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.Backstab), nameof(Spells.WidowBite), nameof(Spells.SkitteringBlades)])]
+    [On<CastEvent>(By = Actor.Player, Spells = [
+        nameof(Spells.Backstab), nameof(Spells.BackstabStealth),
+        nameof(Spells.WidowBite),
+        nameof(Spells.SkitteringBlades), nameof(Spells.SkitteringBladesStealth)])]
     private void OnBuilderCast(CastEvent castEvent)
     {
         if (castEvent.Fake) return;
         if (_openSpan is not { ConvertingAbilityId: null } span) return;
 
-        span.ConvertingAbilityId = castEvent.Ability.Id;
+        var builder = Abilities.PrimarySpellIdOf(castEvent.Ability.Id);
+        span.ConvertingAbilityId = builder;
         span.ConvertingCastAt = castEvent.Timestamp;
-        span.ExpectedPoisonEffectId = PoisonOf(castEvent.Ability.Id);
+        span.ExpectedPoisonEffectId = PoisonOf(builder);
         _lastConverted = span;
     }
 

@@ -70,11 +70,11 @@
         if (timeShard > 0)
         {
             stats.Add(new OverviewStat(
-                FormatAmount(analyzers.Sum(analyzer => analyzer.TimeShardDamage) / (double)timeShard),
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.TimeShardDamage) / (double)timeShard),
                 "Time Shard Damage per Cast",
                 "Average damage per enhanced Time Shard."));
             stats.Add(new OverviewStat(
-                FormatAmount(analyzers.Sum(analyzer => analyzer.TimeShardEffectiveHealing) / (double)timeShard),
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.TimeShardEffectiveHealing) / (double)timeShard),
                 "Time Shard Effective Healing per Cast",
                 $"Average effective healing per enhanced Time Shard, against {analyzers.Sum(analyzer => analyzer.TimeShardOverheal):N0} overheal."));
             stats.Add(new OverviewStat(
@@ -115,7 +115,7 @@
         switch (window.Spend)
         {
             case ContinuumShiftSpend.TimeShard:
-                stats.Add(new PerCastStat(FormatAmount(window.Damage), "Damage"));
+                stats.Add(new PerCastStat(NumberFormat.Compact(window.Damage), "Damage"));
                 stats.Add(new PerCastStat(
                     $"{window.EffectiveHealing:N0}",
                     "Effective Healing",
@@ -149,7 +149,7 @@
                 break;
         }
 
-        stats.Add(new PerCastStat(FormatSeconds(window.DurationMs), "Held"));
+        stats.Add(new PerCastStat(TimeFormat.Seconds(window.DurationMs, 1), "Held"));
 
         return new PerCastRow
         {
@@ -170,11 +170,4 @@
 
     private static QualitativePerformance SpendTier(int justified, int closed) =>
         PerformanceTiers.FromThresholds((double)justified / closed, 0.95, 0.85, 0.7);
-
-    private static string FormatAmount(double amount) =>
-        amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"
-        : amount >= 1_000 ? $"{amount / 1_000:0.#}k"
-        : $"{amount:0}";
-
-    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

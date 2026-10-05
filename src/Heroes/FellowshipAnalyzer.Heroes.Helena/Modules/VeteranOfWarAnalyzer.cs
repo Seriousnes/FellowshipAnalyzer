@@ -6,8 +6,13 @@ using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
+/// <summary>
+/// Reports, for one pull, what the Veteran of War casts made during it generated and wasted, reading each cast's
+/// outcome from <see cref="VeteranOfWar"/>, which applies the reductions for the whole dungeon.
+/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
+[Dependency<VeteranOfWar>]
 public sealed partial class VeteranOfWarAnalyzer : Analyzer
 {
     private readonly Dictionary<(int Source, int Target), Contribution> _contributions = [];
@@ -15,39 +20,6 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     private readonly Dictionary<int, int> _castableSince = [];
     private readonly Dictionary<int, int> _idleSince = [];
     private readonly List<HoldTheLineCast> _holdTheLineCasts = [];
-
-    private bool _ultimateActive;
-    private int _punishingStrikesStacks;
-
-    public static List<CooldownCombo> Combos { get; } =
-    [
-        new(Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID, 2000),
-        new(Spells.MeasuredStrike.FSLID, Spells.ShieldThrow.FSLID, 2000),
-        new(Spells.PowerStrike.FSLID, Spells.ShieldSlam.FSLID, 2000),
-        new(Spells.PowerStrike.FSLID, Spells.ShieldThrow.FSLID, 2000),
-        new(Spells.ShieldSlam.FSLID, Spells.Shockwave.FSLID, 3000),
-        new(Spells.ShieldThrow.FSLID, Spells.Shockwave.FSLID, 3000),
-        new(Spells.Shockwave.FSLID, Spells.ShieldsUp.FSLID, 6000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldSlam.FSLID, 10000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldThrow.FSLID, 10000),
-        new(Spells.HoldTheLine.FSLID, Spells.Shockwave.FSLID, 10000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldsUp.FSLID, 10000),
-    ];
-
-    public const double ActiveUltimateScaler = 2.0;
-
-    public const double PunishingStrikesScaler = 2.0;
-
-    public const int PunishingStrikesStacksAtProc = 2;
-
-    public static List<int> HoldTheLineTargets { get; } =
-    [
-        .. Combos.Where(combo => combo.SourceSpellId == Spells.HoldTheLine.FSLID)
-            .Select(combo => combo.TargetSpellId),
-    ];
-
-    public static List<int> ReductionTargets { get; } =
-        [.. Combos.Select(combo => combo.TargetSpellId).Distinct()];
 
     public List<HoldTheLineCast> HoldTheLineCasts => _holdTheLineCasts;
 
@@ -64,41 +36,17 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     public int PunishingStrikesCasts { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateApplied()
-    {
-        _ultimateActive = true;
-        UltimateWasActive = true;
-    }
+    private void OnUltimateApplied() => UltimateWasActive = true;
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateRefreshed()
-    {
-        _ultimateActive = true;
-        UltimateWasActive = true;
-    }
-
-    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateRemoved() => _ultimateActive = false;
-
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesApplied() =>
-        _punishingStrikesStacks = PunishingStrikesStacksAtProc;
-
-    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesStacked(ApplyBuffStackEvent buffEvent) =>
-        _punishingStrikesStacks = buffEvent.Stack;
-
-    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesStackRemoved(RemoveBuffStackEvent buffEvent) =>
-        _punishingStrikesStacks = buffEvent.Stack;
-
-    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesRemoved() => _punishingStrikesStacks = 0;
+    private void OnUltimateRefreshed() => UltimateWasActive = true;
 
     [On<PullStartEvent>]
     private void OnPullStart(PullStartEvent pullStart)
     {
-        foreach (var target in HoldTheLineTargets)
+        UltimateWasActive = VeteranOfWar.UltimateActive;
+
+        foreach (var target in VeteranOfWar.HoldTheLineTargets)
         {
             if (SpellUsable.IsAvailable(target)) _castableSince[target] = pullStart.Timestamp;
             if (!SpellUsable.IsOnCooldown(target)) _idleSince[target] = pullStart.Timestamp;
@@ -128,32 +76,16 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
         nameof(Spells.HoldTheLine)])]
     private void OnComboSource(CastEvent castEvent)
     {
+        if (VeteranOfWar.LastCast is not { } cast || !ReferenceEquals(cast.Cast, castEvent)) return;
+
         _sourceCasts[castEvent.Ability.Id] = _sourceCasts.GetValueOrDefault(castEvent.Ability.Id) + 1;
 
-        var availability = castEvent.Ability.Id == Spells.HoldTheLine.FSLID
-            ? CaptureHoldTheLineAvailability(castEvent.Timestamp)
-            : null;
+        if (VeteranOfWar.UltimateActive) UltimateWasActive = true;
+        if (cast.UnderPunishingStrikes) PunishingStrikesCasts++;
 
-        var scaler = _ultimateActive ? ActiveUltimateScaler : 1.0;
-
-        if (_punishingStrikesStacks > 0)
+        foreach (var (target, reduction) in cast.Reductions)
         {
-            scaler *= PunishingStrikesScaler;
-            PunishingStrikesCasts++;
-        }
-
-        var castReductions = availability is null ? null : new Dictionary<int, CooldownReductionResult>();
-
-        foreach (var combo in Combos)
-        {
-            if (combo.SourceSpellId != castEvent.Ability.Id) continue;
-
-            var requested = (int)Math.Round(combo.ReductionMs * scaler);
-            var reduction = SpellUsable.ReduceCooldown(combo.TargetSpellId, requested, castEvent.Timestamp);
-
-            castReductions?.Add(combo.TargetSpellId, reduction);
-
-            var key = (combo.SourceSpellId, combo.TargetSpellId);
+            var key = ((int)castEvent.Ability.Id, target);
             if (!_contributions.TryGetValue(key, out var contribution))
                 _contributions[key] = contribution = new Contribution();
 
@@ -161,31 +93,22 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
             contribution.Events++;
         }
 
-        if (availability is null) return;
+        if (cast.TargetsAvailable is not { } targetsAvailable) return;
 
         _holdTheLineCasts.Add(new HoldTheLineCast(
             castEvent.Timestamp,
-            [.. availability.Select(entry => new HoldTheLineTarget(
-                entry.SpellId,
-                entry.AvailableForMs,
-                castReductions!.GetValueOrDefault(entry.SpellId)))]));
+            [.. VeteranOfWar.HoldTheLineTargets.Select(target => new HoldTheLineTarget(
+                target,
+                AvailableFor(target, targetsAvailable[target], castEvent.Timestamp),
+                cast.Reductions.GetValueOrDefault(target)))]));
     }
 
-    private List<(int SpellId, int? AvailableForMs)> CaptureHoldTheLineAvailability(int timestamp)
+    private int? AvailableFor(int target, bool available, int timestamp)
     {
-        var targets = new List<(int SpellId, int? AvailableForMs)>(HoldTheLineTargets.Count);
-        foreach (var target in HoldTheLineTargets)
-        {
-            var resets = target == Spells.ShieldSlam.FSLID;
-            var available = resets ? SpellUsable.IsAvailable(target) : !SpellUsable.IsOnCooldown(target);
-            var since = resets ? _castableSince : _idleSince;
+        if (!available) return null;
 
-            targets.Add((
-                target,
-                available ? Math.Max(0, timestamp - since.GetValueOrDefault(target, Pull.StartTime)) : null));
-        }
-
-        return targets;
+        var since = target == Spells.ShieldSlam.FSLID ? _castableSince : _idleSince;
+        return Math.Max(0, timestamp - since.GetValueOrDefault(target, Pull.StartTime));
     }
 
     private Computed Result => field ??= Compute();
@@ -246,8 +169,6 @@ public sealed record HoldTheLineTarget(
 {
     public bool WasAvailable => AvailableForMs.HasValue;
 }
-
-public sealed record CooldownCombo(int SourceSpellId, int TargetSpellId, int ReductionMs);
 
 public sealed record CooldownContribution(
     int SourceSpellId,

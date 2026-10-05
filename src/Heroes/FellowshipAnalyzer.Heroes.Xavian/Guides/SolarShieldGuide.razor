@@ -1,0 +1,66 @@
+@inherits GuideComponent<XavianCombatLogParser>
+
+<GuideSection Title="Solar Shield">
+    <LeftPanel>
+        <p>
+            Cast <SpellLink Spell="Spells.SolarShield" /> on yourself whenever it is ready.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Solar Shield By Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts > 0);
+
+    private IEnumerable<SolarShieldAnalyzer> Analyzers =>
+        Parser.SolarShieldAnalyzers.Select(entry => entry.Analyzer).OfType<SolarShieldAnalyzer>();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var pullMs = Parser.SolarShieldAnalyzers.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
+        if (pullMs == 0) return [];
+
+        var analyzers = Analyzers.ToList();
+        var uptime = analyzers.Sum(analyzer => (long)analyzer.ActiveMs) / (double)pullMs * 100;
+        var casts = analyzers.Sum(analyzer => analyzer.Casts);
+        var onSelf = analyzers.Sum(analyzer => analyzer.CastsOnSelf);
+
+        var stats = new List<OverviewStat>
+        {
+            new($"{uptime:F1}%", "Uptime", Performance: UptimeTier(uptime)),
+            new($"{casts / (pullMs / 60_000d):F1}", "Casts/Min"),
+            new($"{onSelf}/{casts}", "On Self"),
+        };
+
+        if (analyzers.Any(analyzer => analyzer.MagicWardTaken))
+        {
+            var magicWard = analyzers.Sum(analyzer => (long)analyzer.MagicWardActiveMs) / (double)pullMs * 100;
+            stats.Add(new OverviewStat(
+                $"{magicWard:F1}%",
+                "MW Uptime",
+                "Share of pull time Magic Ward cut your magic damage taken by 30%."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.SolarShieldAnalyzers.ToPullRows(Parser, (surface, pull) => surface is SolarShieldAnalyzer analyzer
+            ? new PerCastRow
+            {
+                Performance = UptimeTier(analyzer.Uptime * 100),
+                Stats =
+                [
+                    new PerCastStat($"{analyzer.Uptime * 100:F0}%", "Uptime"),
+                    new PerCastStat($"{analyzer.CastsPerMinute:F1}", "Casts/Min"),
+                    new PerCastStat($"{analyzer.CastsOnSelf}/{analyzer.Casts}", "On Self"),
+                ],
+            }
+            : throw new InvalidOperationException($"Unexpected {surface.GetType().Name}"));
+
+    private static QualitativePerformance UptimeTier(double uptime) =>
+        PerformanceTiers.FromThresholds(uptime, 90, 85, 75);
+}

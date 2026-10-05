@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 
 <ItemThroughput Icon="heart" Accent="heal" Approximate="Approximate"
-                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} HPS")"
+                Rate="@($"{NumberFormat.Compact(Throughput.PerSecond(Amount))} HPS")"
                 Detail="@Detail" />
 
 @code {
@@ -18,6 +18,6 @@
     [Parameter] public bool ShowShare { get; set; } = true;
 
     private string? Detail => ShowShare
-        ? $"{ThroughputFormat.Share(Throughput.ShareOfHealing(Amount))} of total"
+        ? $"{NumberFormat.Percent(Throughput.ShareOfHealing(Amount))} of total"
         : null;
 }

@@ -9,8 +9,8 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// <summary>
 /// Measures what the player's Amethyst gem contributed. Two of its five traits leave a trace in the log:
 /// Blessing of the Deathdealer, a passive critical power multiplier measured over the player's own crits,
-/// and Reaper's Reprieve, a heal-over-time with its own heal events. The remaining traits are flat critical
-/// strike rating and chance, which the log records only as already applied.
+/// and Reaper's Reprieve, a heal-over-time with its own heal events. The remaining traits are critical strike
+/// rating and chance, which <see cref="PassiveBonusTracker"/> adds to the player's stats.
 /// </summary>
 public sealed partial class AmethystGemAnalyzer : Analyzer, IGemAnalyzer
 {

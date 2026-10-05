@@ -34,7 +34,7 @@
                 "Held at End",
                 $"Blood Feathers still banked when the run ended, out of a maximum of {MaxBloodFeathers}."),
             new OverviewStat(
-                FormatSeconds(CappedMs),
+                TimeFormat.Seconds(CappedMs, 1),
                 "Time at Cap",
                 $"Time at {MaxBloodFeathers} Blood Feathers."),
         ];
@@ -48,6 +48,4 @@
         new StackedBarSegment("Held", Current, PerformanceColors.Neutral,
             $"Held: {Current} feathers banked at the end"),
     ];
-
-    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

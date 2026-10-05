@@ -255,14 +255,12 @@
     }
 
     private static string RemainingClause(SerratedEdgeGrant grant) =>
-        Join([.. grant.Readiness.Select(entry => $"{ConsumerName(entry.AbilityId)} {Remaining(entry.RemainingMs)}")]);
+        Join([.. grant.Readiness.Select(entry => $"{ConsumerName(entry.AbilityId)} {TimeFormat.Seconds(entry.RemainingMs, 1)}")]);
 
     private static string Join(List<string> parts) =>
         parts.Count <= 1
             ? string.Concat(parts)
             : $"{string.Join(", ", parts.Take(parts.Count - 1))} and {parts[^1]}";
-
-    private static string Remaining(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 
     private static bool IsFiller(SerratedEdgeOutcome outcome) =>
         outcome is SerratedEdgeOutcome.AvoidableFiller or SerratedEdgeOutcome.ForcedFiller;

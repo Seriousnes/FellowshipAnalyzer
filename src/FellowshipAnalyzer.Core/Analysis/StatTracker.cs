@@ -44,6 +44,12 @@ public sealed partial class StatTracker : Analyzer
 
     private readonly List<CooldownModifier> _cooldownAcceleration = [];
 
+    private readonly Dictionary<object, PassiveStatBonus> _passiveBonuses = [];
+
+    private readonly Dictionary<object, CooldownModifier> _passiveCooldownReductions = [];
+
+    private bool _seeded;
+
     /// <summary>5% base critical strike chance, added after diminishing returns.</summary>
     public const double BaseCritChance = 0.05;
 
@@ -67,6 +73,62 @@ public sealed partial class StatTracker : Analyzer
 
         foreach (var aura in combatant.Info.Auras)
             SetStackedBuff(aura.Ability, Math.Max(aura.Stacks, 1), e, ratingsAlreadyCounted: true);
+
+        _seeded = true;
+        foreach (var (source, bonus) in _passiveBonuses)
+            ApplyPassiveBonus(source, PassiveStatBonus.None, bonus, e);
+    }
+
+    /// <summary>
+    /// Sets the always-on contribution one <paramref name="source"/> makes, replacing whatever it set before:
+    /// a stat effect the player has without any apply or remove event marking it, such as a gem trait, a set
+    /// bonus, a dungeon modifier, or a talent's permanent bonus. Only the change from the source's previous
+    /// contribution is applied, so a source whose value moves (gem power raised for a while) is set again
+    /// with its new total. A contribution set before the dungeon starts is applied once the combatantinfo has
+    /// seeded the stats, so callers need no ordering against this tracker.
+    /// </summary>
+    /// <param name="source">Any object identifying the contributor; the same object replaces its own contribution.</param>
+    /// <param name="bonus">The contributor's full contribution, or <see cref="PassiveStatBonus.None"/> to withdraw it.</param>
+    /// <param name="trigger">The event the change happens at, or <c>null</c> for the dungeon start.</param>
+    public void SetPassiveBonus(object source, PassiveStatBonus bonus, Event? trigger = null)
+    {
+        var previous = _passiveBonuses.GetValueOrDefault(source, PassiveStatBonus.None);
+        if (previous == bonus) return;
+
+        if (bonus == PassiveStatBonus.None) _passiveBonuses.Remove(source);
+        else _passiveBonuses[source] = bonus;
+
+        if (_seeded) ApplyPassiveBonus(source, previous, bonus, trigger);
+    }
+
+    private void ApplyPassiveBonus(object source, PassiveStatBonus previous, PassiveStatBonus bonus, Event? trigger)
+    {
+        var delta = bonus - previous;
+        if (delta.HasStats)
+        {
+            var before = _currentStats.ToStats();
+            _currentStats.AdditionalCrit += delta.Crit;
+            _currentStats.AdditionalHaste += delta.Haste;
+            _currentStats.AdditionalExpertise += delta.Expertise;
+            _currentStats.AdditionalSpirit += delta.Spirit;
+            _currentStats.Crit += delta.CritRating * _multipliers.Crit;
+            _currentStats.Haste += delta.HasteRating * _multipliers.Haste;
+            _currentStats.Expertise += delta.ExpertiseRating * _multipliers.Expertise;
+            _currentStats.Spirit += delta.SpiritRating * _multipliers.Spirit;
+            var after = _currentStats.ToStats();
+            FabricateChangeStats(trigger, before, after - before, after);
+        }
+
+        if (delta.AbilityCooldownReduction == 0) return;
+
+        if (_passiveCooldownReductions.Remove(source, out var replaced))
+            RemoveCooldownModifier(CooldownPool.AbilityCooldownReduction, replaced, trigger, trigger?.Timestamp);
+
+        if (bonus.AbilityCooldownReduction == 0) return;
+
+        var reduction = new CooldownModifier(bonus.AbilityCooldownReduction);
+        _passiveCooldownReductions[source] = reduction;
+        AddCooldownModifier(CooldownPool.AbilityCooldownReduction, reduction, trigger, trigger?.Timestamp);
     }
 
     /// <summary>
@@ -266,8 +328,18 @@ public sealed partial class StatTracker : Analyzer
 
     /// <summary>The player's current Critical Strike chance: the converted rating, the 5% base chance, and every active flat percentage.</summary>
     public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true) + _currentStats.AdditionalCrit;
-    /// <summary>The player's current Haste percentage: the converted rating plus every active flat percentage.</summary>
-    public double CurrentHastePercentage => HastePercentage(CurrentHasteRating) + _currentStats.AdditionalHaste;
+    /// <summary>
+    /// The player's current Haste percentage: the converted rating plus every active flat percentage, with
+    /// the overall speed that gives, <c>1 + haste</c>, scaled by every active <see cref="HasteMultiplier"/>.
+    /// </summary>
+    public double CurrentHastePercentage
+    {
+        get
+        {
+            var additive = HastePercentage(CurrentHasteRating) + _currentStats.AdditionalHaste;
+            return additive + (1.0 + additive) * (_currentStats.HasteMultiplier - 1.0);
+        }
+    }
     /// <summary>The player's current Expertise percentage: the converted rating plus every active flat percentage.</summary>
     public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating) + _currentStats.AdditionalExpertise;
     /// <summary>The player's current Spirit percentage: the converted rating plus every active flat percentage.</summary>
@@ -277,6 +349,12 @@ public sealed partial class StatTracker : Analyzer
     public double AdditionalCrit => _currentStats.AdditionalCrit;
     /// <summary>The flat Haste active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
     public double AdditionalHaste => _currentStats.AdditionalHaste;
+    /// <summary>
+    /// The product of every active multiplier on the player's overall speed, <c>1 + haste</c>, which
+    /// <see cref="CurrentHastePercentage"/> applies after the rating and flat percentages are added; 1 when
+    /// none is active.
+    /// </summary>
+    public double HasteMultiplier => _currentStats.HasteMultiplier;
     /// <summary>The flat Expertise active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
     public double AdditionalExpertise => _currentStats.AdditionalExpertise;
     /// <summary>The flat Spirit active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
@@ -395,6 +473,7 @@ public sealed partial class StatTracker : Analyzer
         ResolveBuffVal(percentage?.ItemId, percentage?.Expertise, trigger),
         ResolveBuffVal(percentage?.ItemId, percentage?.Spirit, trigger),
         ResolveBuffVal(percentage?.ItemId, percentage?.CritPower, trigger),
+        percentage?.HasteMultiplier is { } hasteMultiplier ? ResolveBuffVal(percentage.ItemId, hasteMultiplier, trigger) : 1.0,
         ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger) * _multipliers.MainStat,
         ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger) * _multipliers.Stamina,
         ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger) * _multipliers.Armor,
@@ -410,6 +489,7 @@ public sealed partial class StatTracker : Analyzer
         _currentStats.AdditionalExpertise += amounts.AdditionalExpertise * stackDelta;
         _currentStats.AdditionalSpirit += amounts.AdditionalSpirit * stackDelta;
         _currentStats.AdditionalCritPower += amounts.AdditionalCritPower * stackDelta;
+        _currentStats.HasteMultiplier *= Math.Pow(amounts.HasteMultiplier, stackDelta);
 
         _currentStats.MainStat += amounts.MainStat * stackDelta;
         _currentStats.Stamina += amounts.Stamina * stackDelta;
@@ -426,6 +506,7 @@ public sealed partial class StatTracker : Analyzer
         double AdditionalExpertise,
         double AdditionalSpirit,
         double AdditionalCritPower,
+        double HasteMultiplier,
         double MainStat,
         double Stamina,
         double Armor,
@@ -544,7 +625,7 @@ public sealed partial class StatTracker : Analyzer
             {
                 var combatant = Owner.SelectedCombatant;
                 var item = itemId is int id ? combatant.GetItem(id) : null;
-                return func(new StatBuffContext(combatant, item, trigger));
+                return func(new StatBuffContext(combatant, item, trigger, CurrentSpiritPercentage));
             });
     }
 
@@ -570,14 +651,18 @@ public partial class BuffVal : OneOfBase<double, Func<StatBuffContext, double>>;
 /// <summary>
 /// What a function-valued <see cref="BuffVal"/> reads to size its contribution: the player's gear and
 /// talents, the item named by <see cref="StatBuff.ItemId"/> or <see cref="StatPercentageBuff.ItemId"/>,
-/// and the event that applied the buff. Effects whose magnitude depends on the player's state at the
-/// moment of application, such as a blessing that scales with current Spirit, read it off
-/// <see cref="Trigger"/>'s resources.
+/// the event that applied the buff, and the player's Spirit when it was applied. Effects whose magnitude
+/// depends on the player's resources at the moment of application read them off <see cref="Trigger"/>.
 /// </summary>
 /// <param name="Combatant">The selected player.</param>
 /// <param name="Item">The equipped item the buff is attached to, or <c>null</c> when it names none.</param>
 /// <param name="Trigger">The event that applied the buff, or <c>null</c> for a forced change.</param>
-public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Item, Event? Trigger)
+/// <param name="Spirit">
+/// The player's Spirit percentage as a fraction (0.30 = 30%) at the moment the buff was applied: the
+/// converted rating plus every active flat percentage, as <see cref="StatTracker.CurrentSpiritPercentage"/>
+/// reports it.
+/// </param>
+public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Item, Event? Trigger, double Spirit)
 {
     /// <summary>
     /// The player's own resources at <see cref="Trigger"/>, taken from whichever side of the event the
@@ -665,10 +750,10 @@ public sealed class StatMultiplierBuff
 }
 
 /// <summary>
-/// Describes a flat percentage stat buff. Every value is a fraction (0.30 = 30%) added to the
-/// rating-derived percentage rather than multiplied with it, and unset fields contribute 0.
-/// Set <see cref="PerStack"/> when the effect scales with its stack count, and <see cref="ItemId"/>
-/// when any value is item-level-dependent.
+/// Describes a flat percentage stat buff. Every value but <see cref="HasteMultiplier"/> is a fraction
+/// (0.30 = 30%) added to the rating-derived percentage rather than multiplied with it, and unset fields
+/// contribute 0. Set <see cref="PerStack"/> when the effect scales with its stack count, and
+/// <see cref="ItemId"/> when any value is item-level-dependent.
 /// </summary>
 public sealed class StatPercentageBuff
 {
@@ -682,6 +767,12 @@ public sealed class StatPercentageBuff
     public BuffVal? Spirit { get; init; }
     /// <summary>Flat critical strike power contributed while this buff is active.</summary>
     public BuffVal? CritPower { get; init; }
+    /// <summary>
+    /// Multiplier on the player's overall speed, <c>1 + haste</c>, while this buff is active (1.15 = 15%
+    /// faster). Unlike the flat values it is not added to the rating-derived percentage but applied to the
+    /// total after everything else is added.
+    /// </summary>
+    public BuffVal? HasteMultiplier { get; init; }
 
     /// <summary>
     /// Whether each value is contributed once per stack. When set, the tracked contribution follows the
@@ -709,6 +800,7 @@ internal sealed class PlayerStats
     public double AdditionalExpertise { get; set; }
     public double AdditionalSpirit { get; set; }
     public double AdditionalCritPower { get; set; }
+    public double HasteMultiplier { get; set; } = 1.0;
 
     public PlayerStats Clone() => (PlayerStats)MemberwiseClone();
 
@@ -726,6 +818,7 @@ internal sealed class PlayerStats
         AdditionalExpertise = AdditionalExpertise,
         AdditionalSpirit = AdditionalSpirit,
         AdditionalCritPower = AdditionalCritPower,
+        HasteMultiplier = HasteMultiplier,
     };
 }
 

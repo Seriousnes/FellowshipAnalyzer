@@ -1,4 +1,4 @@
-<div class="stat-tile" style="border-color: color-mix(in srgb, @Color 27%, transparent);" title="@Tooltip">
+<div class="stat-tile @(Fit ? "fit" : "")" style="border-color: color-mix(in srgb, @Color 27%, transparent);@FitStyle" title="@Tooltip">
     <div class="stat-tile-value" style="color: @Color;">@Value</div>
     <div class="stat-tile-divider" style="background: color-mix(in srgb, @Color 21%, transparent);"></div>
     <div class="stat-tile-label">@Label</div>
@@ -10,4 +10,18 @@
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string? Tooltip { get; set; }
+
+    /// <summary>
+    /// Scales the value and label text down so they fit the tile's width instead of overflowing.
+    /// The tile sizes from its container rather than its content, so set this only where the
+    /// container gives the tile a width, such as a grid cell.
+    /// </summary>
+    [Parameter] public bool Fit { get; set; }
+
+    private string FitStyle => Fit
+        ? $" --stat-value-chars: {Math.Max(1, Value.Length)}; --stat-label-chars: {Math.Max(1, LongestWordLength(Label))};"
+        : "";
+
+    private static int LongestWordLength(string text) =>
+        text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(w => w.Length).DefaultIfEmpty(0).Max();
 }

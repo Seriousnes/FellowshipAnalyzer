@@ -1,0 +1,102 @@
+@inherits GuideComponent<MeikoCombatLogParser>
+
+<GuideSection Title="Earthfall">
+    <LeftPanel>
+        <p>
+            Spend both <strong><SpellLink Spell="Spells.Earthfall" /></strong> stacks on
+            <SpellLink Spell="Spells.EarthfistBarrage" /> before you cast <SpellLink Spell="Spells.RisingEarth" /> again.
+            Cast Earthfist Barrage only while Earthfall is up.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Earthfall by Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.RisingEarthCasts.Count > 0 || analyzer.BarrageCasts.Count > 0);
+
+    private List<EarthfallAnalyzer> Analyzers => [.. Parser.EarthfallAnalyzers.Select(entry => entry.Analyzer)];
+
+    private static QualitativePerformance? WastedPerformance(int wasted, int granted) =>
+        granted == 0 ? null : PerformanceTiers.FromThresholds(100 - (100d * wasted / granted), 97, 90, 75);
+
+    private static QualitativePerformance? EmpoweredPerformance(int empowered, int casts) =>
+        casts == 0 ? null : PerformanceTiers.FromThresholds(100d * empowered / casts, 98, 95, 85);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var granted = analyzers.Sum(analyzer => analyzer.EarthfallGranted);
+        var wasted = analyzers.Sum(analyzer => analyzer.EarthfallOverwritten);
+        var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts.Count);
+        var empowered = analyzers.Sum(analyzer => analyzer.EmpoweredBarrages);
+        var healing = analyzers.Sum(analyzer => analyzer.BarrageHealing);
+        var earthfallHealing = analyzers.Sum(analyzer => analyzer.EarthfallHealing);
+
+        return
+        [
+            new OverviewStat(
+                $"{wasted}/{granted}",
+                "EF Wasted",
+                "Earthfall stacks you still held when Rising Earth replaced them.",
+                WastedPerformance(wasted, granted)),
+            new OverviewStat(
+                $"{empowered}/{barrages}",
+                "EB Empowered",
+                "Earthfist Barrage casts with an Earthfall stack to consume.",
+                EmpoweredPerformance(empowered, barrages)),
+            new OverviewStat(
+                barrages == 0 ? "-" : NumberFormat.Compact((double)healing / barrages),
+                "Healing / EB",
+                "Effective healing from each Earthfist Barrage cast."),
+            new OverviewStat(
+                NumberFormat.Compact(earthfallHealing),
+                "EF Healing",
+                "Effective healing Earthfall added to your Earthfist Barrage casts."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.EarthfallAnalyzers.ToPullRows(Parser, (analyzer, pull) =>
+        {
+            var wasted = WastedPerformance(analyzer.EarthfallOverwritten, analyzer.EarthfallGranted);
+            var empowered = EmpoweredPerformance(analyzer.EmpoweredBarrages, analyzer.BarrageCasts.Count);
+
+            return new PerCastRow
+            {
+                Performance = (wasted, empowered) switch
+                {
+                    ({ } a, { } b) => a < b ? a : b,
+                    ({ } a, null) => a,
+                    (null, var b) => b,
+                },
+                Stats =
+                [
+                    new PerCastStat($"{analyzer.EarthfallOverwritten}/{analyzer.EarthfallGranted}", "EF Wasted", Performance: wasted),
+                    new PerCastStat($"{analyzer.EmpoweredBarrages}/{analyzer.BarrageCasts.Count}", "EB Empowered", Performance: empowered),
+                    new PerCastStat(analyzer.HealingPerBarrage is { } perCast ? NumberFormat.Compact(perCast) : "-", "Healing / EB"),
+                    new PerCastStat(NumberFormat.Compact(analyzer.EarthfallHealing), "EF Healing"),
+                ],
+                Details = BuildDetails(analyzer),
+            };
+        });
+
+    private static RenderFragment? BuildDetails(EarthfallAnalyzer analyzer)
+    {
+        var bullets = new List<string>();
+        if (analyzer.RisingEarthOverwrites > 0)
+            bullets.Add($"{analyzer.RisingEarthOverwrites} Rising Earth casts replaced {analyzer.EarthfallOverwritten} unspent Earthfall stacks.");
+        if (analyzer.UnempoweredBarrages > 0)
+            bullets.Add($"{analyzer.UnempoweredBarrages} Earthfist Barrage casts had no Earthfall to consume.");
+        if (bullets.Count == 0) return null;
+
+        return @<ul>
+            @foreach (var bullet in bullets)
+            {
+                <li>@bullet</li>
+            }
+        </ul>;
+    }
+}

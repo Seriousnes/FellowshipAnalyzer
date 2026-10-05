@@ -27,10 +27,9 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// from the resource blocks on events.
 /// </para>
 /// <para>
-/// The reconstruction reads <see cref="Event.SourceResources"/> and <see cref="Event.TargetResources"/> on
-/// every event touching the selected player, and turns each change in a tracked resource's amount into a
-/// <see cref="ResourceEvent"/>. Those blocks are sparse, so the reconstruction never assumes an entry per
-/// event; it only compares consecutive ones.
+/// The reconstruction reads the amount on each of the selected player's <see cref="ResourceChangeEvent"/>s
+/// and turns each change in a tracked resource's amount into a <see cref="ResourceEvent"/>. The first
+/// change for a resource seeds its pool rather than counting as a gain.
 /// </para>
 /// </remarks>
 public sealed partial class ChronaTracker : ResourceTracker
@@ -308,37 +307,16 @@ public sealed partial class ChronaTracker : ResourceTracker
         return SpellRegistry.MaybeGet(e.Ability.FSLID)?.Cost(type);
     }
 
-    [On<Event>]
-    private void OnResourceSnapshot(Event e)
-    {
-        if (e is ResourceChangeEvent) return;
-
-        var resources = e switch
-        {
-            IHasSourceEvent source when Owner.ByPlayer(source) => e.SourceResources,
-            IHasTargetEvent target when Owner.ToPlayer(target) => e.TargetResources,
-            _ => null,
-        };
-
-        var isCast = e is BaseCastEvent;
-
-        if (resources?.Resources is { Count: > 0 } block)
-        {
-            var eventAbilityId = isCast ? 0 : (e as IAbilityEvent)?.Ability.Id ?? 0;
-
-            foreach (var resource in block)
-                if (IsTracked(resource.Type))
-                    Observe(resource, eventAbilityId, e.Timestamp);
-        }
-
-        if (e is CastEvent cast && Owner.ByPlayer(cast))
-            _lastSpenderId = cast.Ability.Id;
-    }
-
     [On<ResourceChangeEvent>(By = Actor.Player)]
     private void OnPlayerResourceChange(ResourceChangeEvent e)
     {
         if (!IsTracked(e.ResourceChangeType)) return;
+
+        if (e.ResourceAmount is { } amount)
+        {
+            Observe(e.ResourceChangeType, amount, e.ResourceMax ?? 0, e.Ability.Id, e.Timestamp);
+            return;
+        }
 
         var declaredWaste = (int)e.Waste;
         var gained = (int)e.ResourceChange - declaredWaste;
@@ -358,8 +336,11 @@ public sealed partial class ChronaTracker : ResourceTracker
             PerHit: true));
 
     [On<CastEvent>(By = Actor.Player)]
-    private void OnGeneratingCast(CastEvent e) =>
+    private void OnGeneratingCast(CastEvent e)
+    {
         _generators.Add(new GeneratorEvent(e.Timestamp, ResolveAbility(e.Ability.Id), Target: null, PerHit: false));
+        _lastSpenderId = e.Ability.Id;
+    }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ContinuumShift))]
     private void OnContinuumShiftApplied(ApplyBuffEvent e) => _continuumShiftOpenedAt ??= e.Timestamp;
@@ -465,25 +446,25 @@ public sealed partial class ChronaTracker : ResourceTracker
         return false;
     }
 
-    private void Observe(ClassResource resource, int eventAbilityId, int timestamp)
+    private void Observe(ResourceTypes type, int amount, int max, int eventAbilityId, int timestamp)
     {
-        var ledger = GetOrCreateLedger(resource.Type);
+        var ledger = GetOrCreateLedger(type);
 
-        if (resource.Max > 0)
-            ledger.Max = resource.Max;
+        if (max > 0)
+            ledger.Max = max;
 
         if (ledger.Seeded)
         {
-            var delta = resource.Amount - ledger.Amount;
+            var delta = amount - ledger.Amount;
             if (delta > 0)
-                RecordGain(ledger, resource.Type, eventAbilityId, delta, declaredWaste: 0, resource.Amount, timestamp);
+                RecordGain(ledger, type, eventAbilityId, delta, declaredWaste: 0, amount, timestamp);
             else if (delta < 0)
-                RecordSpend(ledger, resource.Type, -delta, resource.Amount, timestamp);
+                RecordSpend(ledger, type, -delta, amount, timestamp);
         }
         else
         {
             ledger.Seeded = true;
-            ledger.Amount = resource.Amount;
+            ledger.Amount = amount;
         }
 
         ledger.Samples.Add(new Sample(timestamp, ledger.Amount));

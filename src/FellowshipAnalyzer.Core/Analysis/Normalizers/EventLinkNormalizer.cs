@@ -77,6 +77,7 @@ public abstract class EventLinkNormalizer(List<EventLink> links) : IEventNormali
         if (!MatchesAbility(link.ReferencedAbilityIds, candidate)) return;
         if (!SourceMatches(link, linking, candidate)) return;
         if (!TargetMatches(link, linking, candidate)) return;
+        if (link.AdditionalCondition is { } condition && !condition(linking, candidate)) return;
         if (!claimed.Add(candidate)) return;
 
         linking.AddRelatedEvent(link.Relation, candidate);

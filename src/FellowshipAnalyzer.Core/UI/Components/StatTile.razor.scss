@@ -38,3 +38,20 @@
     line-height: 1.2;
     flex: 1;
 }
+
+.stat-tile.fit {
+    container-type: inline-size;
+    min-width: 0;
+
+    .stat-tile-value {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: min(var(--fa-fs-stat), calc((60cqi - 18px) / (var(--stat-value-chars) * 0.62)));
+    }
+
+    .stat-tile-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-size: min(var(--fa-fs-label), calc((40cqi - 16px) / (var(--stat-label-chars) * 0.8)));
+    }
+}

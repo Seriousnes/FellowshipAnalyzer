@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Utility;
 
 using SpellRegistry = FellowshipAnalyzer.Core.Common.Spells.SpellRegistry;
 
@@ -20,7 +21,7 @@ public static class CooldownReductionChecklist
         Label = Label(spellId),
         Pass = reduction.Wasted == 0,
         Note = Note(reduction),
-        Title = $"{Seconds(reduction.Total)} generated, {Seconds(reduction.Effective)} shortened a running cooldown",
+        Title = $"{TimeFormat.Seconds(reduction.Total, 1)} generated, {TimeFormat.Seconds(reduction.Effective, 1)} shortened a running cooldown",
     };
 
     /// <summary>
@@ -44,10 +45,8 @@ public static class CooldownReductionChecklist
     private static string? Note(CooldownReductionResult reduction) => reduction switch
     {
         { Effective: 0, Wasted: 0 } => null,
-        { Effective: 0 } => $"{Seconds(reduction.Wasted)} wasted",
-        { Wasted: 0 } => $"{Seconds(reduction.Effective)} effective",
-        _ => $"{Seconds(reduction.Effective)} effective, {Seconds(reduction.Wasted)} wasted",
+        { Effective: 0 } => $"{TimeFormat.Seconds(reduction.Wasted, 1)} wasted",
+        { Wasted: 0 } => $"{TimeFormat.Seconds(reduction.Effective, 1)} effective",
+        _ => $"{TimeFormat.Seconds(reduction.Effective, 1)} effective, {TimeFormat.Seconds(reduction.Wasted, 1)} wasted",
     };
-
-    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

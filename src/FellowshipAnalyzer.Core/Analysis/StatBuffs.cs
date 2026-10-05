@@ -2,7 +2,6 @@ using System.Collections.Frozen;
 
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -23,8 +22,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// pull from, so registering it would count it twice: across the report corpus a player's reported Crit,
 /// Haste, Expertise, and Spirit exceed the sum of their gear attributes by exactly their Amethyst, Topaz,
 /// Emerald, and Sapphire gem tier. A gear effect that adds a flat <em>percentage</em> is not in
-/// those totals, but it also never fires an apply or remove event, so an event-driven tracker has
-/// nothing to key on; resolving those from gem power, set piece counts, and blessing levels is separate work.
+/// those totals, but it also never fires an apply or remove event, so an event-driven table has
+/// nothing to key on; <see cref="PassiveBonusTracker"/> resolves those from gem power, set pieces, and the
+/// dungeon's modifiers, and <see cref="TheMonarchAnalyzer"/> from the blessing level.
 /// Effects scoped to a subset of a hero's abilities are out as well, because a global pool would apply them
 /// to every cast. Damage reduction and movement speed are out because the game expresses them as
 /// multipliers on damage taken and movement rate, which <c>CombatMath</c> owns and this additive channel
@@ -84,8 +84,15 @@ public static class StatBuffs
         [Spells.SpiritOfHeroismHealer.FSLID] = SpiritOfHeroism,
         [Spells.SpiritOfHeroismXavian.FSLID] = SpiritOfHeroism,
 
+        [Spells.RuneRush.FSLID] = new() { HasteMultiplier = 1.15 },
+        [Spells.ShadowsDefeat.FSLID] = new() { HasteMultiplier = 1.2 },
+        [Spells.EmpoweredMinionVictoryRush.FSLID] = new() { Haste = 0.20 },
+        [Spells.StormsFury.FSLID] = new() { Crit = 0.20 },
+
         [Items.AdrenalineRush.FSLID] = new() { Haste = 0.03 },
         [Items.AdrenalineRushII.FSLID] = new() { Haste = 0.09 },
+        [Items.EssenceOfTheVirtuoso.FSLID] = new() { Haste = 0.02 },
+        [Items.EssenceOfTheVirtuosoII.FSLID] = new() { Haste = 0.06 },
         [Items.FirstStrike.FSLID] = new() { Expertise = 0.05, PerStack = true },
         [Items.FirstStrikeII.FSLID] = new() { Expertise = 0.15 },
         [Items.HarmoniousSoul.FSLID] = HarmoniousSoul,
@@ -135,9 +142,10 @@ public static class StatBuffs
     };
 
     /// <summary>
-    /// The Philosopher grants the same value of Critical Strike, Haste, and Expertise, sized by the Spirit
-    /// the player held when a MAJOR ability applied it: 0.2% per whole step of Spirit, where the step
-    /// narrows with the blessing's level, and Spirit above half counts as half.
+    /// The Philosopher grants the same value of Critical Strike, Haste, and Expertise, sized by the player's
+    /// Spirit stat when a MAJOR ability applied it: 0.2% for each step of Spirit, where the step narrows with
+    /// the blessing's tier, and Spirit above half counts as half. It reads the Spirit stat rather than Spirit
+    /// Points, since the haste it grants holds steady however full the Spirit bar is.
     /// </summary>
     private static BuffVal ThePhilosopher => new((Func<StatBuffContext, double>)(context =>
     {
@@ -151,14 +159,13 @@ public static class StatBuffs
         };
 
         if (perStep <= 0) return 0.0;
-        return Math.Min(context.ResourceFraction(ResourceTypes.Spirit), 0.5) / perStep * 0.002;
+        return Math.Min(context.Spirit, 0.5) / perStep * 0.002;
     }));
 
     /// <summary>
-    /// Picks a blessing's magnitude from the level the player's gear reports. The blessing is matched on its
+    /// Picks a blessing's magnitude from the tier the player's gear adds up to. The blessing is matched on its
     /// name because a report's blessing id is a per-hero loadout node id, not an id for the blessing itself:
-    /// The Trickster is 4000033 on Gunde and 4000063 on Aeona. Only levels 1 and 2 appear anywhere in the
-    /// report corpus, so the level 3 and 4 values are from the game data alone.
+    /// The Trickster is 4000033 on Gunde and 4000063 on Aeona.
     /// </summary>
     private static BuffVal ByBlessingLevel(string blessing, double one, double two, double three, double four) =>
         new((Func<StatBuffContext, double>)(context => context.Combatant.BlessingLevel(blessing) switch
