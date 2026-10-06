@@ -1,0 +1,56 @@
+name: Clean up Static Web Apps preview environments
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: swa-environment-cleanup
+
+jobs:
+  cleanup:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    name: Delete environments of closed pull requests
+    steps:
+      - name: Sign in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Delete environments of closed pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          APP: FellowshipAnalyzer
+          RESOURCE_GROUP: FellowshipAnalyzer
+        run: |
+          set -euo pipefail
+          environments="$(az staticwebapp environment list -n "$APP" -g "$RESOURCE_GROUP" --query "[?name!='default'].name" -o tsv)"
+          if [ -z "$environments" ]; then
+            echo "No preview environments."
+            exit 0
+          fi
+          for environment in $environments; do
+            if ! [[ "$environment" =~ ^[0-9]+$ ]]; then
+              echo "Keeping $environment: not a pull request environment."
+              continue
+            fi
+            state="$(gh pr view "$environment" --repo "$REPO" --json state --jq .state)"
+            if [ "$state" = "OPEN" ]; then
+              echo "Keeping $environment: pull request is open."
+              continue
+            fi
+            echo "Deleting $environment: pull request is $state."
+            az staticwebapp environment delete -n "$APP" -g "$RESOURCE_GROUP" --environment-name "$environment" --yes
+          done
