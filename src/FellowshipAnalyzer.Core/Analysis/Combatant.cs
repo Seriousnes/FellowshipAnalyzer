@@ -28,6 +28,7 @@ public sealed class FullCombatant : Combatant
     private readonly Dictionary<GearSlot, Item> _gear;
     private readonly Dictionary<int, Item> _itemById;
 
+    private const int EmptySlotItemId = 0;
     private const int LegendaryQuality = 6;
     private const double StrandOfEternityAcceleration = 0.10;
     private const int BlessingTiers = 4;
@@ -39,9 +40,12 @@ public sealed class FullCombatant : Combatant
 
         _gear = info.Gear
             .Select((item, index) => (item, slot: (GearSlot)index))
+            .Where(x => x.item.Id != EmptySlotItemId)
             .ToDictionary(x => x.slot, x => x.item);
 
-        _itemById = _gear.Values.ToDictionary(i => i.Id);
+        _itemById = _gear.Values
+            .DistinctBy(i => i.Id)
+            .ToDictionary(i => i.Id);
 
         Legendary = info.Gear.SingleOrDefault(item => item.Quality >= LegendaryQuality);
         Stats = BuildStats(info);
