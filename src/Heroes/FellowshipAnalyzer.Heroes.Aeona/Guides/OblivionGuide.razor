@@ -49,6 +49,8 @@
 
     private bool UchroniaTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.Uchronia);
 
+    private bool ErasureTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.Erasure);
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers;
@@ -73,17 +75,41 @@
                 "Effective Healing per Cast",
                 "Average effective healing per Oblivion cast, for all allies together."));
 
+            if (ErasureTaken)
+            {
+                stats.Add(new OverviewStat(
+                    NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.ErasureEffectiveHealing) / (double)casts),
+                    "Erasure Healing",
+                    "Average effective healing from Erasure per Oblivion cast, for all allies together."));
+            }
+
             if (OblivionsEmbrace)
             {
                 stats.Add(new OverviewStat(
                     NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
                     "Shielding per Cast",
                     "Average shielding per Oblivion cast, for all allies together."));
+
+                if (ErasureTaken)
+                {
+                    stats.Add(new OverviewStat(
+                        NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.ErasureShieldApplied ?? 0) / (double)casts),
+                        "Erasure Shielding",
+                        "Average shielding from Erasure per Oblivion cast, for all allies together."));
+                }
             }
 
             stats.Add(new OverviewStat(
                 NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.Damage) / (double)casts),
                 "Damage per Cast"));
+
+            if (ErasureTaken)
+            {
+                stats.Add(new OverviewStat(
+                    NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.ErasureDamage) / (double)casts),
+                    "Erasure Damage",
+                    "Average damage from Erasure per Oblivion cast."));
+            }
         }
 
         var opportunities = analyzers.Sum(analyzer => analyzer.FreeCastOpportunities);
@@ -121,12 +147,28 @@
                 "Average effective healing per Oblivion cast in this pull, for all allies together."),
         };
 
+        if (analyzer.ErasureEffectiveHealingPerCast is { } erasureHealing)
+        {
+            stats.Add(new PerCastStat(
+                NumberFormat.Compact(erasureHealing),
+                "Erasure Healing",
+                "Average effective healing from Erasure per Oblivion cast in this pull, for all allies together."));
+        }
+
         if (analyzer.ShieldAppliedPerCast is { } shield)
         {
             stats.Add(new PerCastStat(
                 NumberFormat.Compact(shield),
                 "Shielding per Cast",
                 "Average shielding per Oblivion cast in this pull, for all allies together."));
+        }
+
+        if (analyzer.ErasureShieldAppliedPerCast is { } erasureShield)
+        {
+            stats.Add(new PerCastStat(
+                NumberFormat.Compact(erasureShield),
+                "Erasure Shielding",
+                "Average shielding from Erasure per Oblivion cast in this pull, for all allies together."));
         }
 
         stats.Add(new PerCastStat(
