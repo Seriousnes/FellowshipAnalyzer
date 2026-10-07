@@ -46,6 +46,7 @@ public sealed class StaggerCleanseAnalyzerTests
         var analyzer = await Analyze(Info([]),
             Activation(500, Spells.Oblivion),
             Heal(501, Spells.Oblivion, TankId, 3_000),
+            Damage(501, Spells.Oblivion, 6_000),
             TankStagger(900, staggerHitPoints: 10_000),
             Activation(1_000, Spells.AmendFate, TankId),
             Heal(1_000, Spells.AmendFate, TankId, 5_000),
@@ -69,11 +70,31 @@ public sealed class StaggerCleanseAnalyzerTests
     }
 
     [Fact]
+    public async Task TheOblivionValue_IncludesErasuresHealingAndShielding()
+    {
+        var analyzer = await Analyze(Info([AeonaTalents.OblivionsEmbrace, AeonaTalents.Erasure]),
+            Activation(500, Spells.Oblivion),
+            Heal(501, Spells.Oblivion, TankId, 2_000),
+            Damage(501, Spells.Oblivion, 6_000),
+            Heal(2_000, Spells.Oblivion, TankId, 600, 400),
+            ApplyBuff(2_000, Spells.OblivionAbsorbAbsorb, TankId, absorb: 100),
+            Damage(2_000, Spells.Erasure, 1_200, tick: true),
+            TankStagger(2_900, staggerHitPoints: 10_000),
+            Activation(3_000, Spells.AmendFate, TankId),
+            Heal(3_000, Spells.AmendFate, TankId, 2_500),
+            TankStagger(3_050, staggerHitPoints: 4_000));
+
+        analyzer.OblivionValuePerCast.ShouldNotBeNull().ShouldBe(2_700.0, 0.0001);
+        analyzer.Casts.ShouldHaveSingleItem().BelowOblivionValue.ShouldBe(true);
+    }
+
+    [Fact]
     public async Task ACastWhileTheTankIsAbove40Percent_IsNeverFlagged()
     {
         var analyzer = await Analyze(Info([]),
             Activation(500, Spells.Oblivion),
             Heal(501, Spells.Oblivion, TankId, 30_000),
+            Damage(501, Spells.Oblivion, 6_000),
             TankStagger(900, staggerHitPoints: 18_000),
             Activation(1_000, Spells.AmendFate, TankId),
             Heal(1_000, Spells.AmendFate, TankId, 1_000),
@@ -91,6 +112,7 @@ public sealed class StaggerCleanseAnalyzerTests
         var analyzer = await Analyze(Info([AeonaTalents.EchoesOfDivinity, AeonaTalents.Uchronia]),
             Activation(500, Spells.Oblivion),
             Heal(501, Spells.Oblivion, TankId, 30_000),
+            Damage(501, Spells.Oblivion, 6_000),
             ApplyBuff(600, Spells.Uchronia),
             TankStagger(900, staggerHitPoints: 1_000),
             Activation(1_000, Spells.RestoreContinuity, TankId),

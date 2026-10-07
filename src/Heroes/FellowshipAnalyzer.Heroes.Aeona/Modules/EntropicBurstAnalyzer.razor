@@ -1,0 +1,23 @@
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic => Ticks > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Talents.EntropicBurst" />
+            </Header>
+            <ChildContent>
+                @if (EffectiveHealing + Overheal > 0)
+                {
+                    <StatRow Value="@($"{EffectiveHealing:N0}")" Tooltip="@($"{HealingShare:P1} of Entropy's Claim's healing, Entropic Burst's included. {Overheal:N0} overhealed.")">
+                        healing done
+                    </StatRow>
+                }
+                <StatRow Value="@($"{Damage:N0}")" Tooltip="@($"{DamageShare:P1} of Entropy's Claim's damage, Entropic Burst's included.")">
+                    damage dealt
+                </StatRow>
+            </ChildContent>
+        </StatCard>;
+}
