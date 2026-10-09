@@ -4,6 +4,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 
 [HeroAnalyzer(HeroName.Aeona)]
 [AddNormalizer<Normalizers.AeonaEventLinkNormalizer>]
+[AddNormalizer<Normalizers.HitLinkNormalizer>]
 [AddModule<Modules.Abilities>]
 [AddModule<Modules.AeonaBuild>]
 [AddAnalyzer<Modules.AeonaStatBuffs>]
@@ -21,6 +22,8 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 [AddAnalyzer<Modules.TwilightSkyboltAnalyzer>]
 [AddAnalyzer<Modules.UnfoldingDoomAnalyzer>]
 [AddAnalyzer<Modules.EntropyClaimAnalyzer>]
+[AddAnalyzer<Modules.ErasureAnalyzer>]
+[AddAnalyzer<Modules.EntropicBurstAnalyzer>]
 [AddAnalyzer<Modules.FleetingHourAnalyzer>]
 [AddAnalyzer<Modules.TemporalBarrageAnalyzer>]
 public sealed partial class AeonaCombatLogParser : CombatLogParser

@@ -131,12 +131,13 @@ internal static class AeonaLog
         Ability = new Ability { Id = spell.FSLID },
     };
 
-    /// <summary>A buff removed from its target.</summary>
-    public static RemoveBuffEvent RemoveBuff(int timestamp, Spell spell, int targetId = PlayerId) => new()
+    /// <summary>A buff removed from its target, with the absorb left on it.</summary>
+    public static RemoveBuffEvent RemoveBuff(int timestamp, Spell spell, int targetId = PlayerId, int? absorb = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = targetId,
+        Absorb = absorb,
         Ability = new Ability { Id = spell.FSLID },
     };
 

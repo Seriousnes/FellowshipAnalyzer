@@ -1,0 +1,26 @@
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic => Ticks > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Talents.Erasure" />
+            </Header>
+            <ChildContent>
+                <StatRow Value="@($"{Damage:N0}")" Tooltip="@($"{DamageShare:P1} of Oblivion's damage, Erasure's included.")">
+                    damage dealt
+                </StatRow>
+                <StatRow Value="@($"{EffectiveHealing:N0}")" Tooltip="@($"{HealingShare:P1} of Oblivion's healing, Erasure's included. {Overheal:N0} overhealed.")">
+                    healing done
+                </StatRow>
+                @if (ShieldApplied is { } shield)
+                {
+                    <StatRow Value="@($"{shield:N0}")" Tooltip="@($"{ShieldShare:P1} of Oblivion's Embrace shielding.")">
+                        shielding applied
+                    </StatRow>
+                }
+            </ChildContent>
+        </StatCard>;
+}

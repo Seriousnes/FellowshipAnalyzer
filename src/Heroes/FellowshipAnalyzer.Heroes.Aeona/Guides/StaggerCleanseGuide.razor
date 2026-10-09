@@ -37,6 +37,8 @@
 
     private bool EchoesTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.EchoesOfDivinity);
 
+    private bool ErasureTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.Erasure);
+
     private List<EchoesOfDivinityUse> Echoes =>
         [.. Analyzers.Select(analyzer => analyzer.EchoesOfDivinity).OfType<EchoesOfDivinityUse>()];
 
@@ -75,7 +77,9 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.BelowOblivionValueCasts)}",
                 "Below an Oblivion",
-                "Casts with effective healing below an Oblivion cast's effective healing plus shielding."));
+                ErasureTaken
+                    ? "Casts with effective healing below an Oblivion cast's effective healing plus shielding, Erasure's included."
+                    : "Casts with effective healing below an Oblivion cast's effective healing plus shielding."));
         }
 
         AddCleansedStat(stats, analyzers, Spells.AmendFate.FSLID, "Stagger Cleansed by Amend Fate");

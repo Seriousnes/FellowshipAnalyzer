@@ -17,6 +17,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 public sealed class OblivionAnalyzerTests
 {
     private static readonly int[] Embrace = [AeonaTalents.OblivionsEmbrace];
+    private static readonly int[] EmbraceAndErasure = [AeonaTalents.OblivionsEmbrace, AeonaTalents.Erasure];
 
     [Fact]
     public async Task ACast_TakesItsHealsShieldsAndDamageFromTheNextMillisecond()
@@ -40,6 +41,67 @@ public sealed class OblivionAnalyzerTests
         cast.Damage.ShouldBe(4_808);
         analyzer.ValuePerCast.ShouldNotBeNull().ShouldBe(3_607.0, 0.0001);
         analyzer.ShieldAppliedPerCast.ShouldNotBeNull().ShouldBe(1_202.0, 0.0001);
+        analyzer.ErasureEffectiveHealingPerCast.ShouldBeNull();
+        analyzer.ErasureDamagePerCast.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AnErasureTickInsideTheAttributionWindow_IsCountedForErasureAndNotTheCast()
+    {
+        var analyzer = await Analyze(Info(EmbraceAndErasure),
+            Activation(1_000, Spells.Oblivion),
+            Heal(1_001, Spells.Oblivion, TankId, 2_000),
+            Damage(1_001, Spells.Oblivion, 5_000),
+            Heal(1_020, Spells.Oblivion, TankId, 300, 200),
+            RemoveBuff(1_020, Spells.OblivionAbsorbAbsorb, AllyId, absorb: 400),
+            ApplyBuff(1_020, Spells.OblivionAbsorbAbsorb, AllyId, absorb: 450),
+            Heal(1_020, Spells.Oblivion, AllyId, 0, 200),
+            Damage(1_020, Spells.Erasure, 1_000, tick: true));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.EffectiveHealing.ShouldBe(2_000);
+        cast.Overheal.ShouldBe(0);
+        cast.ShieldApplied.ShouldBe(0);
+        cast.Damage.ShouldBe(5_000);
+        analyzer.ErasureDamage.ShouldBe(1_000);
+        analyzer.ErasureEffectiveHealing.ShouldBe(300);
+        analyzer.ErasureOverheal.ShouldBe(400);
+        analyzer.ErasureShieldApplied.ShouldBe(50);
+        analyzer.ErasureEffectiveHealingPerCast.ShouldNotBeNull().ShouldBe(300.0, 0.0001);
+        analyzer.ErasureShieldAppliedPerCast.ShouldNotBeNull().ShouldBe(50.0, 0.0001);
+        analyzer.ErasureDamagePerCast.ShouldNotBeNull().ShouldBe(1_000.0, 0.0001);
+        analyzer.ValuePerCast.ShouldNotBeNull().ShouldBe(2_350.0, 0.0001);
+    }
+
+    [Fact]
+    public async Task AShieldReplacingARemainder_CountsOnlyTheAbsorbItAdds()
+    {
+        var analyzer = await Analyze(Info(Embrace),
+            Activation(1_000, Spells.Oblivion),
+            Heal(1_001, Spells.Oblivion, AllyId, 0, 2_000),
+            RemoveBuff(1_001, Spells.OblivionAbsorbAbsorb, AllyId, absorb: 900),
+            ApplyBuff(1_001, Spells.OblivionAbsorbAbsorb, AllyId, absorb: 1_400),
+            Heal(1_001, Spells.Oblivion, SecondAllyId, 0, 2_000),
+            RemoveBuff(1_001, Spells.OblivionAbsorbAbsorb, SecondAllyId, absorb: 1_500),
+            ApplyBuff(1_001, Spells.OblivionAbsorbAbsorb, SecondAllyId, absorb: 1_500),
+            Damage(1_001, Spells.Oblivion, 4_000));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.ShieldApplied.ShouldBe(500);
+        cast.AlliesShielded.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task HealsWithNoHitAfterThem_AreNotCredited()
+    {
+        var analyzer = await Analyze(Info(Embrace),
+            Activation(1_000, Spells.Oblivion),
+            Heal(1_001, Spells.Oblivion, TankId, 2_000),
+            Activation(3_000, Spells.Oblivion),
+            Heal(3_001, Spells.Oblivion, TankId, 1_000),
+            Damage(3_001, Spells.Oblivion, 4_000));
+
+        analyzer.Casts.Select(cast => cast.EffectiveHealing).ShouldBe([0L, 1_000L]);
     }
 
     [Fact]

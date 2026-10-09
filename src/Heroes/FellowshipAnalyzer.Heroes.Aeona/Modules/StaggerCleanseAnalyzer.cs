@@ -33,7 +33,7 @@ public sealed record CleanseHeal(
 /// <param name="AppliedEchoes">Whether this cast applied Echoes of Divinity to the tank.</param>
 /// <param name="OverwroteEchoes">Whether this cast refreshed Echoes of Divinity already running on the tank.</param>
 /// <param name="EchoesOverwrittenMs">Echoes of Divinity time the refresh discarded, in milliseconds. Null when the cast refreshed nothing.</param>
-/// <param name="OblivionValue">Effective healing plus shield absorb per Oblivion cast in this pull, or null with no Oblivion cast.</param>
+/// <param name="OblivionValue">Effective healing plus shield absorb per Oblivion cast in this pull, Erasure's included, or null with no Oblivion cast.</param>
 public sealed record CleanseCastEntry(
     int Timestamp,
     FSLID Ability,
@@ -110,8 +110,8 @@ public sealed record EchoesOfDivinityUse(
 /// </para>
 /// <para>
 /// The Oblivion value is effective healing plus Oblivion's Embrace absorb per Oblivion cast in this pull,
-/// from Oblivion's own heal and shield events, credited to the most recent Oblivion cast within
-/// <see cref="OblivionAnalyzer.AttributionMs"/>.
+/// Erasure's included: the heals and shields <see cref="Normalizers.HitLinkNormalizer"/> linked to every
+/// Oblivion and Erasure hit in the pull, over the pull's Oblivion casts.
 /// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -123,13 +123,15 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     public const int HealAttributionWindowMs = 500;
 
     private readonly List<PendingCleanse> _pending = [];
-    private readonly List<OblivionValueState> _oblivions = [];
     private readonly Dictionary<int, List<AuraWindow>> _echoesWindows = [];
     private readonly Dictionary<int, int> _echoesOpen = [];
     private readonly Dictionary<int, int> _echoesApplications = [];
     private readonly Dictionary<int, int> _echoesLastApplied = [];
     private readonly Dictionary<int, List<EchoesRefresh>> _echoesRefreshes = [];
     private readonly Dictionary<int, List<int>> _echoesFreshApplications = [];
+
+    private int _oblivionCasts;
+    private long _oblivionValue;
 
     /// <summary>Every Amend Fate and Restore Continuity cast in the pull, in cast order.</summary>
     public IReadOnlyList<CleanseCastEntry> Casts => field ??= BuildCasts();
@@ -167,9 +169,9 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     /// <summary>Free casts of any ability in the pull.</summary>
     public int FreeCastsInPull => FreeCastTracker.FreeCastsBetween(Pull.StartTime, Pull.EndTime).Count;
 
-    /// <summary>Effective healing plus shield absorb per Oblivion cast in the pull, or null with no Oblivion cast.</summary>
+    /// <summary>Effective healing plus shield absorb per Oblivion cast in the pull, Erasure's included, or null with no Oblivion cast.</summary>
     public double? OblivionValuePerCast =>
-        _oblivions.Count == 0 ? null : _oblivions.Sum(oblivion => oblivion.EffectiveHealing + oblivion.ShieldApplied) / (double)_oblivions.Count;
+        _oblivionCasts == 0 ? null : _oblivionValue / (double)_oblivionCasts;
 
     /// <summary>The party's tank, or null when the report names none.</summary>
     public int? TankId => StaggerTracker.TankId;
@@ -226,24 +228,13 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Oblivion))]
-    private void OnOblivionCast(CastEvent e) => _oblivions.Add(new OblivionValueState(e.Timestamp));
+    private void OnOblivionCast() => _oblivionCasts++;
 
-    [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.Oblivion))]
-    private void OnOblivionHeal(HealEvent e)
+    [On<DamageEvent>(By = Actor.Player, Spells = [nameof(Spells.Oblivion), nameof(Spells.OblivionDamage), nameof(Spells.Erasure)])]
+    private void OnOblivionHit(DamageEvent e)
     {
-        if (CurrentOblivion(e.Timestamp) is { } oblivion) oblivion.EffectiveHealing += e.Amount;
-    }
-
-    [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.OblivionAbsorbAbsorb))]
-    private void OnOblivionShieldApplied(ApplyBuffEvent e)
-    {
-        if (CurrentOblivion(e.Timestamp) is { } oblivion) oblivion.ShieldApplied += e.Absorb ?? 0;
-    }
-
-    [On<RefreshBuffEvent>(By = Actor.Player, Spell = nameof(Spells.OblivionAbsorbAbsorb))]
-    private void OnOblivionShieldRefreshed(RefreshBuffEvent e)
-    {
-        if (CurrentOblivion(e.Timestamp) is { } oblivion) oblivion.ShieldApplied += e.Absorb ?? 0;
+        var hit = HitYield.Of(e);
+        _oblivionValue += hit.EffectiveHealing + hit.ShieldApplied;
     }
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.EchoesOfDivinity))]
@@ -284,13 +275,6 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
 
         closed.Add(new AuraWindow(start, Math.Max(start, e.Timestamp)));
     }
-
-    private OblivionValueState? CurrentOblivion(int timestamp) =>
-        _oblivions.Count > 0
-        && timestamp >= _oblivions[^1].Timestamp
-        && timestamp - _oblivions[^1].Timestamp <= OblivionAnalyzer.AttributionMs
-            ? _oblivions[^1]
-            : null;
 
     /// <summary>How long one application of Echoes of Divinity runs: the longest window on the tank that closed on a removal with no refresh inside it. Null with no such window.</summary>
     private int? EchoesDurationMs
@@ -446,14 +430,5 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
         public int Ability { get; } = ability;
 
         public List<HealEvent> Heals { get; } = [];
-    }
-
-    private sealed class OblivionValueState(int timestamp)
-    {
-        public int Timestamp { get; } = timestamp;
-
-        public long EffectiveHealing { get; set; }
-
-        public long ShieldApplied { get; set; }
     }
 }

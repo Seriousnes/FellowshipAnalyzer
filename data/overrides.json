@@ -24,6 +24,10 @@
       "id": 2819,
       "kind": "effect"
     },
+    "Erasure": {
+      "id": 2735,
+      "kind": "effect"
+    },
     "ResonantFate": {
       "id": 2584,
       "kind": "effect"
