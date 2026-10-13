@@ -34,6 +34,15 @@ public class InsightValidationTests
     }
 
     [Fact]
+    public void Check_DropsInsightsNegatingAPromptNumber()
+    {
+        var result = InsightValidation.Check([new GuideInsight("Negative", "Stagger fell by -40%. Cast Oblivion.")], StaggerCleanse);
+
+        result.Accepted.ShouldBeEmpty();
+        result.Rejections.Select(rejection => (rejection.Reason, rejection.Detail)).ShouldBe([("number-not-in-prompt", "-40")]);
+    }
+
+    [Fact]
     public void ForbiddenTerms_ReadsOnlyTheQuotedList() =>
         InsightValidation.ForbiddenTerms(StaggerCleanse).ShouldBe(["reconstructed", "estimated", "recorded", "the log", "the data"]);
 }

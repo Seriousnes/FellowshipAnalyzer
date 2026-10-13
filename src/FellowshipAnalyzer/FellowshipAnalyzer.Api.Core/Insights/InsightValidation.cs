@@ -84,7 +84,7 @@ public static partial class InsightValidation
         if (IdPattern().Match(text) is { Success: true } id)
             return new InsightRejection(index, "id", id.Value);
         var offenders = Numbers(text)
-            .Where(value => !allowed.Any(a => Math.Abs(Math.Abs(a) - Math.Abs(value)) < 0.051))
+            .Where(value => !allowed.Any(a => value < 0 ? Math.Abs(a - value) < 0.051 : Math.Abs(Math.Abs(a) - value) < 0.051))
             .Select(value => value.ToString(CultureInfo.InvariantCulture))
             .ToList();
         return offenders.Count > 0 ? new InsightRejection(index, "number-not-in-prompt", string.Join(", ", offenders)) : null;
