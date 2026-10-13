@@ -101,7 +101,7 @@ public static class ArdeosDigestBuilder
             .Where(entry => entry.Analyzer.Casts.Count > 0)
             .Select(entry => new DetonatePull(
                 Kind(entry.Pull),
-                surge ? entry.Analyzer.SurgeStacksGained > entry.Analyzer.FreeCasts : null,
+                surge ? entry.Analyzer.SurgeStacksExpired > 0 : null,
                 [.. entry.Analyzer.Casts.Select(cast =>
                 {
                     var grade = DetonateEfficiencyGuide.CastPerformance(cast);
