@@ -120,6 +120,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// </summary>
     public virtual Type? GuideComponent => null;
 
+    /// <summary>The hero's digest and guides for AI insights, or <c>null</c> for a hero without them.</summary>
+    public virtual FellowshipAnalyzer.Core.Insights.HeroInsights? Insights => null;
+
     /// <summary>
     /// The hero this parser is for. Source-generated from <see cref="HeroAnalyzerAttribute"/>.
     /// Returns <c>null</c> for parsers without a <see cref="HeroAnalyzerAttribute"/> (e.g. test parsers).

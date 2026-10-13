@@ -1,6 +1,6 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
-<GuideSection Title="Oblivion">
+<GuideSection Insights="@Insights" Title="Oblivion">
     <LeftPanel>
         <p>
             Cast <strong><SpellLink Spell="Spells.Oblivion" /></strong> while the tank holds under 40% of its maximum
@@ -129,9 +129,7 @@
 
     private PerCastRow BuildPullRow(OblivionAnalyzer analyzer)
     {
-        var performance = analyzer.CastsRated > 0
-            ? PriorityTier(analyzer.CastsAtCleansePriority, analyzer.CastsRated)
-            : (QualitativePerformance?)null;
+        var performance = PullPerformance(analyzer);
 
         var stats = new List<PerCastStat>
         {
@@ -203,6 +201,9 @@
         Parser.ActorNames.GetValueOrDefault(unit.ActorId) is { } name
             ? unit.Instance is { } instance and > 0 ? $"{name} {instance}" : name
             : $"Enemy {unit.ActorId}";
+
+    internal static QualitativePerformance? PullPerformance(OblivionAnalyzer analyzer) =>
+        analyzer.CastsRated > 0 ? PriorityTier(analyzer.CastsAtCleansePriority, analyzer.CastsRated) : null;
 
     private static QualitativePerformance PriorityTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.98, 0.90, 0.75);

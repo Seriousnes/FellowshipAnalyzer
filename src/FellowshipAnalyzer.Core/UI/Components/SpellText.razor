@@ -1,0 +1,65 @@
+@using System.Runtime.CompilerServices
+@using System.Text.RegularExpressions
+@using FellowshipAnalyzer.Core.Common.Spells
+
+@foreach (var (text, spell) in Segments())
+{
+    if (spell is null)
+    {
+        @text
+    }
+    else
+    {
+        <SpellLink Spell="@spell" />
+    }
+}
+
+@code {
+    /// <summary>Plain text whose ability and talent names become <see cref="SpellLink"/>s.</summary>
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+
+    /// <summary>Abilities and talents to link, matched by exact name, longest name first.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Spell> Spells { get; set; } = [];
+
+    private static readonly ConditionalWeakTable<IReadOnlyList<Spell>, Matcher> Matchers = new();
+
+    private IEnumerable<(string Text, Spell? Spell)> Segments()
+    {
+        var matcher = Matchers.GetValue(Spells, spells => new Matcher(spells));
+        if (matcher.Pattern is null)
+        {
+            yield return (Text, null);
+            yield break;
+        }
+        var at = 0;
+        foreach (Match match in matcher.Pattern.Matches(Text))
+        {
+            if (match.Index > at)
+                yield return (Text[at..match.Index], null);
+            yield return (match.Value, matcher.ByName[match.Value]);
+            at = match.Index + match.Length;
+        }
+        if (at < Text.Length)
+            yield return (Text[at..], null);
+    }
+
+    private sealed class Matcher
+    {
+        public Matcher(IReadOnlyList<Spell> spells)
+        {
+            ByName = spells
+                .Where(spell => !string.IsNullOrWhiteSpace(spell.Name))
+                .GroupBy(spell => spell.Name, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+            Pattern = ByName.Count == 0
+                ? null
+                : new Regex(
+                    @"\b(?:" + string.Join("|", ByName.Keys.OrderByDescending(name => name.Length).Select(Regex.Escape)) + @")\b",
+                    RegexOptions.CultureInvariant);
+        }
+
+        public Dictionary<string, Spell> ByName { get; }
+
+        public Regex? Pattern { get; }
+    }
+}

@@ -9,7 +9,7 @@
     RenderFragment ef = @<SpellLink Spell="Spells.EngulfingFlames" />;
 }
 
-<GuideSection Title="Wildfire Burn Windows">
+<GuideSection Insights="@Insights" Title="Wildfire Burn Windows">
     <LeftPanel>
         <p>
             Apply as many DoTs as possible before @wf, ideally with at least two @ef instances. Once @wf is cast,
@@ -66,9 +66,7 @@
 
     private PerCastRow BuildWindowRow(WildfireComboAnalyzer.WildfireWindowEvaluation window)
     {
-        var perf = window.Successful ? QualitativePerformance.Perfect
-            : window.Partial ? QualitativePerformance.Ok
-            : QualitativePerformance.Fail;
+        var perf = WindowPerformance(window);
 
         var dotsPerf = window.DistinctDots >= WildfireComboAnalyzer.DistinctDotSuccessThreshold ? QualitativePerformance.Perfect
             : window.DistinctDots >= WildfireComboAnalyzer.PartialSetupFloor ? QualitativePerformance.Ok
@@ -212,6 +210,11 @@
 
     private static string Capitalise(string value) =>
         value.Length == 0 ? value : char.ToUpperInvariant(value[0]) + value[1..];
+
+    internal static QualitativePerformance WindowPerformance(WildfireComboAnalyzer.WildfireWindowEvaluation window) =>
+        window.Successful ? QualitativePerformance.Perfect
+        : window.Partial ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

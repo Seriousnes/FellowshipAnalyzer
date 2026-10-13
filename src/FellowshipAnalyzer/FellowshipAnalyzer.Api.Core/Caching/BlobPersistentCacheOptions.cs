@@ -16,11 +16,15 @@ public sealed class BlobPersistentCacheOptions
     /// <summary>Container for completed-dungeon event payloads (Cool tier).</summary>
     public string EventsContainer { get; set; } = "events";
 
+    /// <summary>Container for model insights responses (Hot tier).</summary>
+    public string InsightsContainer { get; set; } = "insights";
+
     internal string ContainerName(CachePartition partition) => partition switch
     {
         CachePartition.GameData => GameDataContainer,
         CachePartition.Metadata => MetadataContainer,
         CachePartition.Events => EventsContainer,
+        CachePartition.Insights => InsightsContainer,
         _ => throw new ArgumentOutOfRangeException(nameof(partition), partition, "Unknown cache partition.")
     };
 }

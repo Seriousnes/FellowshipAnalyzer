@@ -7,7 +7,7 @@
     RenderFragment wf = @<SpellLink Spell="Spells.Wildfire" />;
 }
 
-<GuideSection Title="Engulfing Flames Economy">
+<GuideSection Insights="@Insights" Title="Engulfing Flames Economy">
     <LeftPanel>
         <p>
             Pool @ef charges to have 2 available for an @wf window, but avoid sitting on capped charges for extended periods.
@@ -103,10 +103,7 @@
 
     private PerCastRow BuildWindowRow(EngulfingFlamesEconomyAnalyzer.ReadinessWindow window)
     {
-        var perf = window.EngulfingFlamesCastCount >= EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold
-            ? QualitativePerformance.Perfect
-            : window.EngulfingFlamesCastCount == 1 ? QualitativePerformance.Ok
-            : QualitativePerformance.Fail;
+        var perf = WindowPerformance(window);
 
         var stats = new[]
         {
@@ -152,6 +149,11 @@
 
         return "No Engulfing Flames was cast in the setup - pool both charges before Wildfire becomes available.";
     }
+
+    internal static QualitativePerformance WindowPerformance(EngulfingFlamesEconomyAnalyzer.ReadinessWindow window) =>
+        window.EngulfingFlamesCastCount >= EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold ? QualitativePerformance.Perfect
+        : window.EngulfingFlamesCastCount == 1 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

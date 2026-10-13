@@ -23,4 +23,6 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ArdeosGuide);
+
+    public override FellowshipAnalyzer.Core.Insights.HeroInsights? Insights => field ??= Ardeos.Insights.ArdeosDigestBuilder.Insights(this);
 }

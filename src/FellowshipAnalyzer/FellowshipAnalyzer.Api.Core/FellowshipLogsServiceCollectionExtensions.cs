@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Api.Core.Caching;
+using FellowshipAnalyzer.Api.Core.Insights;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -104,6 +105,13 @@ public static class FellowshipLogsServiceCollectionExtensions
         services.AddSingleton<FellowshipLogsRateLimiter>();
         services.AddSingleton<FellowshipLogsUpstreamRateLimiter>();
         services.AddScoped<FellowshipLogsApiHandler>();
+
+        var insightsOptions = configuration.GetSection(GuideInsightsOptions.SectionName).Get<GuideInsightsOptions>() ?? new GuideInsightsOptions();
+        insightsOptions.ApiKey ??= configuration["ClaudeApiKey"];
+        insightsOptions.WorkspaceId ??= configuration["ClaudeWorkspaceId"];
+        services.AddSingleton(insightsOptions);
+        services.AddSingleton<GuideInsightsService>();
+        services.AddScoped<GuideInsightsApiHandler>();
         services.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, FellowshipLogsApiStartupFilter>();
 
         return services;

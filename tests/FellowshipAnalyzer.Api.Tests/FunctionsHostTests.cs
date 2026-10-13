@@ -34,6 +34,33 @@ public sealed class FunctionsHostTests(FunctionsHost host) : IClassFixture<Funct
         body.ShouldContain($"'{parameter}'", customMessage: $"{function} body: {body}");
     }
 
+    /// <summary>Functions with a probe of their own below rather than a row of <see cref="Probes"/>.</summary>
+    private static readonly string[] InsightsFunctions = ["GetInsightsAvailability", "GetGuideInsights"];
+
+    [Fact]
+    public async Task GetInsightsAvailability_AnswersOff_WithoutTheSetting()
+    {
+        using var response = await host.Client.GetAsync("api/insights");
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.ShouldBe(
+            HttpStatusCode.OK,
+            $"GetInsightsAvailability answered with {(int)response.StatusCode}: {body}{Environment.NewLine}{host.Output}");
+        JsonDocument.Parse(body).RootElement.GetProperty("available").GetBoolean().ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task GetGuideInsights_AnswersNotAvailable_WithoutTheSetting()
+    {
+        using var response = await host.Client.PostAsync("api/insights/aeona/oblivion", new StringContent("{}"));
+        var body = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.ShouldBe(
+            HttpStatusCode.ServiceUnavailable,
+            $"GetGuideInsights answered with {(int)response.StatusCode}: {body}{Environment.NewLine}{host.Output}");
+        body.ShouldContain("not available");
+    }
+
     [Fact]
     public void EveryPublishedFunction_HasAProbe()
     {
@@ -42,6 +69,6 @@ public sealed class FunctionsHostTests(FunctionsHost host) : IClassFixture<Funct
             .Select(function => function.GetProperty("name").GetString())
             .ToList();
 
-        published.ShouldBe(Probes.Select(row => (string?)row[0]), ignoreOrder: true);
+        published.ShouldBe(Probes.Select(row => (string?)row[0]).Concat(InsightsFunctions), ignoreOrder: true);
     }
 }

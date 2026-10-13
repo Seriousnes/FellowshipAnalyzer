@@ -1,9 +1,9 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
-<GuideSection Title="Entropy's Claim and Entropic Burst">
+<GuideSection Insights="@Insights" Title="Entropy's Claim and Entropic Burst">
     <LeftPanel>
         <p>
-            Cast the next <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> 2 to 4 seconds before the active
+            Cast the next <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> @(EntropyClaimAnalyzer.LeadWindowShortestMs / 1000) to @(EntropyClaimAnalyzer.LeadWindowLongestMs / 1000) seconds before the active
             one expires. The next Entropy's Claim then expires while <SpellLink Spell="Spells.EntropicBurst" /> is
             still active, and the stack rolls over.
         </p>
@@ -94,7 +94,7 @@
 
     private PerCastRow BuildPullRow(EntropyClaimAnalyzer analyzer)
     {
-        var performance = analyzer.RolloverShare is { } share ? RolloverTier(share) : (QualitativePerformance?)null;
+        var performance = PullPerformance(analyzer);
 
         return new PerCastRow
         {
@@ -132,9 +132,7 @@
 
     private PerCastRow BuildCastRow(EntropyClaimCast cast)
     {
-        var performance = cast.RolledOver ? QualitativePerformance.Perfect
-            : cast.BurstApplications > 0 ? QualitativePerformance.Ok
-            : (QualitativePerformance?)null;
+        var performance = CastPerformance(cast);
 
         return new PerCastRow
         {
@@ -173,6 +171,14 @@
         var leads = analyzers.SelectMany(analyzer => analyzer.Casts).Where(cast => cast.LeadBeforeExpiryMs is not null).Select(cast => (long)cast.LeadBeforeExpiryMs!.Value).ToList();
         return leads.Count == 0 ? 0 : (long)leads.Average();
     }
+
+    internal static QualitativePerformance? PullPerformance(EntropyClaimAnalyzer analyzer) =>
+        analyzer.RolloverShare is { } share ? RolloverTier(share) : null;
+
+    internal static QualitativePerformance? CastPerformance(EntropyClaimCast cast) =>
+        cast.RolledOver ? QualitativePerformance.Perfect
+        : cast.BurstApplications > 0 ? QualitativePerformance.Ok
+        : null;
 
     private static QualitativePerformance RolloverTier(double share) => PerformanceTiers.FromThresholds(share, 0.9, 0.75, 0.5);
 

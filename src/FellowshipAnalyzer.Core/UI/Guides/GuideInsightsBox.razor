@@ -1,0 +1,29 @@
+@using FellowshipAnalyzer.Core.Insights
+
+@if (Status.Error is { } error)
+{
+    <TipBox Variant="TipBoxVariant.Warning" Title="AI insights">@error</TipBox>
+}
+else if (Status.Response is { } response)
+{
+    <TipBox Title="AI insights">
+        @if (response.Insights.Count == 0)
+        {
+            <p class="insight-text">No pattern stands out across the run.</p>
+        }
+        @foreach (var insight in response.Insights)
+        {
+            <div class="insight">
+                <div class="insight-title"><SpellText Text="@insight.Title" Spells="@Set.Spells" /></div>
+                <p class="insight-text"><SpellText Text="@insight.Insight" Spells="@Set.Spells" /></p>
+            </div>
+        }
+    </TipBox>
+}
+
+@code {
+    /// <summary>The guide's insights.</summary>
+    [Parameter, EditorRequired] public GuideInsightsStatus Status { get; set; } = null!;
+
+    [CascadingParameter] private GuideInsightsSet Set { get; set; } = null!;
+}

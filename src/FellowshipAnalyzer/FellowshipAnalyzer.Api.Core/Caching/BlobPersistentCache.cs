@@ -36,6 +36,7 @@ public sealed class BlobPersistentCache : IPersistentCache
             [CachePartition.GameData] = MakeLazy(CachePartition.GameData),
             [CachePartition.Metadata] = MakeLazy(CachePartition.Metadata),
             [CachePartition.Events] = MakeLazy(CachePartition.Events),
+            [CachePartition.Insights] = MakeLazy(CachePartition.Insights),
         };
     }
 

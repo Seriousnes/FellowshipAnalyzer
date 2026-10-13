@@ -97,7 +97,9 @@
                         <section class="guide-panel">
                             @if (_context.Analysis.GuideComponentType is { } guideType)
                             {
-                                <DynamicComponent Type="@guideType" @key="@_selectedPull" />
+                                <CascadingValue Value="@_context.GuideInsights">
+                                    <DynamicComponent Type="@guideType" @key="@_selectedPull" />
+                                </CascadingValue>
                             }
                             else
                             {

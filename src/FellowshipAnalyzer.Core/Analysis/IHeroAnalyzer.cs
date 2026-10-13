@@ -33,6 +33,9 @@ public interface IHeroAnalyzer
     /// </summary>
     Type? GuideComponent { get; }
 
+    /// <summary>The hero's digest and guides for AI insights, or <c>null</c> for a hero without them.</summary>
+    global::FellowshipAnalyzer.Core.Insights.HeroInsights? Insights { get; }
+
     /// <summary>
     /// Every ended pull in encounter order. Enumerated by the report header's pull-filter select.
     /// </summary>
