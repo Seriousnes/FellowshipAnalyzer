@@ -26,6 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\..\..\data\spelldb.json" LogicalName="spelldb.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\FellowshipAnalyzer.Core.Contracts\FellowshipAnalyzer.Core.Contracts.csproj" />
     <ProjectReference Include="..\FellowshipAnalyzer.Api.GraphQL\FellowshipAnalyzer.Api.GraphQL.csproj" />
   </ItemGroup>

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace FellowshipAnalyzer.Api.Core.Insights;
 
 /// <summary>
-/// Guide insights endpoints. The insights body is a <see cref="GuideInsightsRequest"/> the client builds from the
+/// Guide insights endpoints. The insights body is the guide's insight message, which the client builds from the
 /// parsed report; the response is a <see cref="GuideInsightsResponse"/>.
 /// </summary>
 public sealed class GuideInsightsApiHandler(
@@ -42,19 +42,19 @@ public sealed class GuideInsightsApiHandler(
             return Error(413, "The request is too large.");
         }
 
-        var request = await ReadRequestAsync(context.Request, insights.MaxRequestBytes, cancellationToken);
-        if (request is null)
+        var body = await ReadBodyAsync(context.Request, insights.MaxRequestBytes, cancellationToken);
+        if (body is null)
         {
-            return Error(400, "The body must be an insights request no larger than the limit.");
+            return Error(413, "The request is too large.");
         }
 
-        var outcome = await insights.GetAsync(hero, guide, request, cancellationToken);
+        var outcome = await insights.GetAsync(hero, guide, body, cancellationToken);
         return outcome.Response is { } response
             ? Results.Json(response, jsonOptions)
             : Error(outcome.StatusCode, outcome.Error ?? "Insights failed.");
     }
 
-    private async Task<GuideInsightsRequest?> ReadRequestAsync(HttpRequest request, long maxBytes, CancellationToken cancellationToken)
+    private static async Task<byte[]?> ReadBodyAsync(HttpRequest request, long maxBytes, CancellationToken cancellationToken)
     {
         using var buffer = new MemoryStream();
         var chunk = new byte[81920];
@@ -66,14 +66,7 @@ public sealed class GuideInsightsApiHandler(
             buffer.Write(chunk, 0, read);
         }
 
-        try
-        {
-            return JsonSerializer.Deserialize<GuideInsightsRequest>(buffer.ToArray(), jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return buffer.ToArray();
     }
 
     private IResult Error(int statusCode, string message) =>

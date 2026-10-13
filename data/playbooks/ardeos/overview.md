@@ -1,6 +1,0 @@
-## Ardeos
-
-The player is an Ardeos. The pattern worth the most is the one costing the most damage.
-
-Example change: "You spent long stretches at maximum Engulfing Flames charges in trash packs. Spend one
-whenever you are full, then save the next two for the setup before Wildfire."

@@ -4,33 +4,14 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Insights;
 
-/// <summary>Talent names and the legendary item name.</summary>
-public sealed record DigestBuild(List<string> Talents, string? Legendary);
-
-/// <summary>
-/// The user message of one guide's insights call. It holds no number, grade or pull name, so none can reach an
-/// insight.
-/// </summary>
-/// <param name="Guide">Guide name, as the hero's playbook names it.</param>
-/// <param name="Focus">One of <see cref="InsightFocus"/>'s values, from the guide's grades.</param>
-/// <param name="Build">Talents and legendary of the player.</param>
-/// <param name="Patterns">How often each of the guide's patterns showed, by kind of pull.</param>
-/// <param name="Pulls">The guide's facts on each pull with an item, in order.</param>
-public sealed record InsightMessage<TPull>(string Guide, string Focus, DigestBuild Build, List<DigestPattern> Patterns, List<TPull> Pulls);
-
-/// <summary>How often one of a guide's patterns showed.</summary>
-/// <param name="Pattern">The pattern, as the guide's playbook names it.</param>
-/// <param name="Often">
-/// <c>never</c>, <c>rarely</c>, <c>sometimes</c>, <c>mostly</c> or <c>always</c> for each kind of pull, over
-/// the items the pattern counts on that kind.
-/// </param>
-public sealed record DigestPattern(string Pattern, Dictionary<string, string> Often);
-
 /// <summary>The parts every hero's insight messages share.</summary>
 public static class Digest
 {
-    /// <summary>The <paramref name="tree"/> talents the player took, by name, and the equipped legendary.</summary>
-    public static DigestBuild Build(CombatLogParser parser, IEnumerable<Talent> tree)
+    /// <summary>
+    /// The <paramref name="tree"/> talents the player took, by name, and the power name of the equipped legendary
+    /// when it is one of <paramref name="legendaries"/>.
+    /// </summary>
+    public static DigestBuild Build(CombatLogParser parser, IEnumerable<Talent> tree, IEnumerable<Common.Items.Item> legendaries)
     {
         var combatant = parser.SelectedCombatant;
         var talents = tree
@@ -38,7 +19,7 @@ public static class Digest
             .Select(talent => talent.Name)
             .Order(StringComparer.Ordinal)
             .ToList();
-        return new DigestBuild(talents, combatant.Legendary is { Name.Length: > 0 } legendary ? legendary.Name : null);
+        return new DigestBuild(talents, legendaries.FirstOrDefault(legendary => legendary.Id == combatant.Legendary?.Id)?.Name);
     }
 
     /// <summary>
@@ -78,16 +59,16 @@ public static class Digest
     /// </summary>
     public static string Often(int shown, int total) => shown switch
     {
-        0 => "never",
-        _ when shown == total => "always",
-        _ when shown * 4 <= total => "rarely",
-        _ when shown * 2 <= total => "sometimes",
-        _ => "mostly",
+        0 => DigestValues.Never,
+        _ when shown == total => DigestValues.Always,
+        _ when shown * 4 <= total => DigestValues.Rarely,
+        _ when shown * 2 <= total => DigestValues.Sometimes,
+        _ => DigestValues.Mostly,
     };
 
     /// <summary><c>boss</c>, <c>trash pack</c> or <c>single enemy</c>.</summary>
     public static string Kind(PullStartEvent pull) =>
-        pull.IsBoss ? "boss" : pull.Targets == PullKind.Multi ? "trash pack" : "single enemy";
+        pull.IsBoss ? DigestValues.Boss : pull.Targets == PullKind.Multi ? DigestValues.TrashPack : DigestValues.SingleEnemy;
 
     /// <summary>
     /// <c>full</c> for <see cref="QualitativePerformance.Perfect"/>, <c>low</c> for
@@ -95,8 +76,8 @@ public static class Digest
     /// </summary>
     public static string Level(QualitativePerformance tier) => tier switch
     {
-        QualitativePerformance.Perfect => "full",
-        QualitativePerformance.Fail => "low",
-        _ => "partial",
+        QualitativePerformance.Perfect => DigestValues.Full,
+        QualitativePerformance.Fail => DigestValues.Low,
+        _ => DigestValues.Partial,
     };
 }

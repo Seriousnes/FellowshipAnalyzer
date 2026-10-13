@@ -1,12 +1,14 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
+using FellowshipAnalyzer.Api.Core.Insights;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Insights;
+using FellowshipAnalyzer.Core.Insights.Ardeos;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 using FellowshipAnalyzer.Heroes.Ardeos.Insights;
 
@@ -30,7 +32,7 @@ public sealed class ArdeosDigestBuilderTests
     {
         var parser = await AnalyzeAsync(CleanWindow());
 
-        var message = ArdeosDigestBuilder.Wildfire(parser, Digest.Build(parser, []))!;
+        var message = ArdeosDigestBuilder.Wildfire(parser, Digest.Build(parser, [], []))!;
 
         message.Focus.ShouldBe(InsightFocus.Strengths);
         var window = message.Pulls.ShouldHaveSingleItem().Windows.ShouldHaveSingleItem();
@@ -46,7 +48,7 @@ public sealed class ArdeosDigestBuilderTests
     {
         var parser = await AnalyzeAsync(CleanWindow());
 
-        var message = ArdeosDigestBuilder.Detonate(parser, Digest.Build(parser, []))!;
+        var message = ArdeosDigestBuilder.Detonate(parser, Digest.Build(parser, [], []))!;
 
         var casts = message.Pulls.ShouldHaveSingleItem().Casts;
         casts.Count.ShouldBe(3);
@@ -64,7 +66,7 @@ public sealed class ArdeosDigestBuilderTests
         events.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
         var parser = await AnalyzeAsync(events);
 
-        var message = ArdeosDigestBuilder.EngulfingFlames(parser, Digest.Build(parser, []))!;
+        var message = ArdeosDigestBuilder.EngulfingFlames(parser, Digest.Build(parser, [], []))!;
 
         message.Pulls.ShouldHaveSingleItem().Setups.ShouldHaveSingleItem().Setup.ShouldBe("full");
     }
@@ -82,6 +84,28 @@ public sealed class ArdeosDigestBuilderTests
             Regex.IsMatch(Regex.Unescape(json), @"\d").ShouldBeFalse(json);
             foreach (var grade in new[] { "Perfect", "Good", "\"Ok\"", "Bad", "grade" })
                 json.ShouldNotContain(grade, Case.Insensitive);
+        }
+    }
+
+    [Fact]
+    public void EveryCastableSpellName_IsANameTheServerKnows() =>
+        FellowshipAnalyzer.Core.Common.Spells.SpellRegistry.All.Values
+            .Where(spell => spell is not FellowshipAnalyzer.Core.Common.Spells.Effect && spell.Name.Length > 0)
+            .Select(spell => spell.Name)
+            .Where(name => !SpellNames.All.Contains(name))
+            .ShouldBeEmpty();
+
+    [Fact]
+    public async Task Messages_PassTheServerCheckUnchanged()
+    {
+        var parser = await AnalyzeAsync(CleanWindow());
+
+        foreach (var (guide, message) in ArdeosDigestBuilder.Messages(parser))
+        {
+            var (accepted, failure) = InsightRequestValidation.Check(ArdeosGuides.Hero, guide, message);
+
+            failure.ShouldBeNull();
+            accepted!.User.ShouldBe(Encoding.UTF8.GetString(message));
         }
     }
 

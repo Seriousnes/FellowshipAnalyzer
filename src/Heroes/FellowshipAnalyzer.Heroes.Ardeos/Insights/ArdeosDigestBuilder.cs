@@ -5,12 +5,14 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Insights;
+using FellowshipAnalyzer.Core.Insights.Ardeos;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 using FellowshipAnalyzer.Heroes.Ardeos.Guides;
 using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using static FellowshipAnalyzer.Core.Insights.Digest;
 
+using ArdeosLegendaryItems = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Legendaries;
 using ArdeosTalentTree = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Talents;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells;
 
@@ -25,10 +27,10 @@ public static class ArdeosDigestBuilder
     public static HeroInsights Insights(ArdeosCombatLogParser parser) => new(
         new Dictionary<string, Type>
         {
-            ["wildfireCombo"] = typeof(WildfireComboGuide),
-            ["engulfingFlamesEconomy"] = typeof(EngulfingFlamesEconomyGuide),
-            ["detonateEfficiency"] = typeof(DetonateEfficiencyGuide),
-            ["searingBlaze"] = typeof(SearingBlazeGuide),
+            [ArdeosGuides.WildfireCombo] = typeof(WildfireComboGuide),
+            [ArdeosGuides.EngulfingFlamesEconomy] = typeof(EngulfingFlamesEconomyGuide),
+            [ArdeosGuides.DetonateEfficiency] = typeof(DetonateEfficiencyGuide),
+            [ArdeosGuides.SearingBlaze] = typeof(SearingBlazeGuide),
         },
         [.. Spells.Kit, .. ArdeosTalentTree.All],
         () => Messages(parser));
@@ -36,7 +38,7 @@ public static class ArdeosDigestBuilder
     /// <summary>UTF-8 JSON message of each guide with a row, keyed by guide name.</summary>
     public static Dictionary<string, byte[]> Messages(ArdeosCombatLogParser parser)
     {
-        var build = Digest.Build(parser, ArdeosTalentTree.All);
+        var build = Digest.Build(parser, ArdeosTalentTree.All, ArdeosLegendaryItems.All);
         var context = ArdeosDigestJsonContext.Default;
         var messages = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         Add(messages, Wildfire(parser, build), context.InsightMessageWildfirePull);
@@ -68,7 +70,7 @@ public static class ArdeosDigestBuilder
                     [.. casts.Where(cast => cast.Timestamp >= window.StartTimestamp).Select(cast => SpellName(cast.Ability.Id))]);
             })]))
             .ToList();
-        return Message("wildfireCombo", grades, build, pulls, WildfirePatterns);
+        return Message(ArdeosGuides.WildfireCombo, grades, build, pulls, WildfirePatterns);
     }
 
     /// <summary>Engulfing Flames charges and setups of every pull, with the guide's focus.</summary>
@@ -87,7 +89,7 @@ public static class ArdeosDigestBuilder
                     return new EngulfingFlamesSetupFacts(Level(grade), window.ChargesAtReady >= Spells.EngulfingFlames.Charges);
                 })]))
             .ToList();
-        return Message("engulfingFlamesEconomy", grades, build, pulls, EngulfingFlamesPatterns);
+        return Message(ArdeosGuides.EngulfingFlamesEconomy, grades, build, pulls, EngulfingFlamesPatterns);
     }
 
     /// <summary>Detonate casts of every pull, with the guide's focus.</summary>
@@ -110,7 +112,7 @@ public static class ArdeosDigestBuilder
                         surge ? cast.Free : null);
                 })]))
             .ToList();
-        return Message("detonateEfficiency", grades, build, pulls, DetonatePatterns);
+        return Message(ArdeosGuides.DetonateEfficiency, grades, build, pulls, DetonatePatterns);
     }
 
     /// <summary>Searing Blaze uptime and spread of every pull, with the guide's focus.</summary>
@@ -134,7 +136,7 @@ public static class ArdeosDigestBuilder
                     break;
             }
         }
-        return Message("searingBlaze", grades, build, pulls, SearingBlazePatterns);
+        return Message(ArdeosGuides.SearingBlaze, grades, build, pulls, SearingBlazePatterns);
     }
 
     private static IEnumerable<DigestPattern> WildfirePatterns(List<WildfirePull> pulls)
@@ -151,13 +153,13 @@ public static class ArdeosDigestBuilder
     private static IEnumerable<DigestPattern> EngulfingFlamesPatterns(List<EngulfingFlamesPull> pulls)
     {
         yield return Pattern("wasted charges", pulls.Select(pull => (pull.Kind, pull.WastedCharges)));
-        yield return Pattern("setup short of both charges", pulls.SelectMany(pull => pull.Setups.Select(setup => (pull.Kind, setup.Setup != "full"))));
+        yield return Pattern("setup short of both charges", pulls.SelectMany(pull => pull.Setups.Select(setup => (pull.Kind, setup.Setup != DigestValues.Full))));
     }
 
     private static IEnumerable<DigestPattern> DetonatePatterns(List<DetonatePull> pulls)
     {
         var casts = pulls.SelectMany(pull => pull.Casts.Select(cast => (pull.Kind, Cast: cast))).ToList();
-        yield return Pattern("short of a full stack", casts.Select(entry => (entry.Kind, entry.Cast.DotStack != "full")));
+        yield return Pattern("short of a full stack", casts.Select(entry => (entry.Kind, entry.Cast.DotStack != DigestValues.Full)));
         foreach (var dot in casts.SelectMany(entry => entry.Cast.DotsMissing).Distinct(StringComparer.Ordinal))
             yield return Pattern($"{dot} missing", casts.Select(entry => (entry.Kind, entry.Cast.DotsMissing.Contains(dot))));
         if (pulls.Any(pull => pull.SurgeStacksExpired is not null))
@@ -170,11 +172,11 @@ public static class ArdeosDigestBuilder
         var packs = pulls.Where(pull => pull.Spread is not null).ToList();
         if (bosses.Count > 0)
         {
-            yield return Pattern("uptime short of full", bosses.Select(pull => (pull.Kind, pull.Uptime != "full")));
+            yield return Pattern("uptime short of full", bosses.Select(pull => (pull.Kind, pull.Uptime != DigestValues.Full)));
             yield return Pattern("dropped off", bosses.Select(pull => (pull.Kind, pull.DroppedOff == true)));
         }
         if (packs.Count > 0)
-            yield return Pattern("spread short of full", packs.Select(pull => (pull.Kind, pull.Spread != "full")));
+            yield return Pattern("spread short of full", packs.Select(pull => (pull.Kind, pull.Spread != DigestValues.Full)));
     }
 
     private static InsightMessage<TPull>? Message<TPull>(string guide, List<QualitativePerformance?> grades, DigestBuild build, List<TPull> pulls, Func<List<TPull>, IEnumerable<DigestPattern>> patterns) =>
@@ -186,7 +188,9 @@ public static class ArdeosDigestBuilder
             messages[message.Guide] = JsonSerializer.SerializeToUtf8Bytes(message, type);
     }
 
-    private static string DotName(Dot dot) => dot.Cast?.Name ?? dot.Effect.Name;
+    private static string DotName(Dot dot) => Named(dot.Cast?.Name ?? dot.Effect.Name);
 
-    private static string SpellName(int id) => SpellRegistry.MaybeGet(id)?.Name ?? "an unknown spell";
+    private static string SpellName(int id) => Named(SpellRegistry.MaybeGet(id)?.Name);
+
+    private static string Named(string? name) => string.IsNullOrEmpty(name) ? DigestValues.UnknownSpell : name;
 }

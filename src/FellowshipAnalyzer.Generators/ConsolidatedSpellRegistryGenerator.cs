@@ -1021,6 +1021,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                           Literal(entry.PowerName) + ", " + Literal(entry.Icon) + ");");
             sb.AppendLine();
         }
+        sb.AppendLine("    /// <summary>Every " + hero + " legendary.</summary>");
+        sb.AppendLine("    public static global::System.Collections.Generic.IReadOnlyList<" + ItemTypeGlobalName + "> All { get; } = [" +
+                      string.Join(", ", entries.Select(entry => entry.Member)) + "];");
         sb.AppendLine("}");
 
         spc.AddSource(HintName(ns, "Legendaries"), sb.ToString());

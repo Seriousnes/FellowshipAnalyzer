@@ -70,6 +70,7 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Spells.Aeona;");
         gen.ShouldContain("public static partial class Legendaries");
         gen.ShouldContain("public static global::FellowshipAnalyzer.Core.Common.Items.Item MassEntropy { get; } = new(5226, \"Mass Entropy\", \"Tex_bracelets_cl_01_bg\");");
+        gen.ShouldContain("public static global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Common.Items.Item> All { get; } = [MassEntropy];");
         gen.ShouldContain("public static class AeonaLegendaries");
         gen.ShouldContain("public const int MassEntropy = 5226;");
     }

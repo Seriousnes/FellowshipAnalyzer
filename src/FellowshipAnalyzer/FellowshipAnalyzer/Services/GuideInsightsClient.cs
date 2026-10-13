@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -7,7 +8,7 @@ using FellowshipAnalyzer.Core.Serialization;
 
 namespace FellowshipAnalyzer.Services;
 
-/// <summary>Posts guide insights requests to <c>api/insights/{hero}/{guide}</c>.</summary>
+/// <summary>Posts guide insight messages to <c>api/insights/{hero}/{guide}</c>.</summary>
 public sealed class GuideInsightsClient : IGuideInsightsClient
 {
     private readonly HttpClient _http;
@@ -23,12 +24,13 @@ public sealed class GuideInsightsClient : IGuideInsightsClient
 
     public Task<bool> Available { get; }
 
-    public async Task<GuideInsightsResponse> GetAsync(string hero, string guide, GuideInsightsRequest request, CancellationToken cancellationToken = default)
+    public async Task<GuideInsightsResponse> GetAsync(string hero, string guide, byte[] message, CancellationToken cancellationToken = default)
     {
-        using var response = await _http.PostAsJsonAsync(
+        using var content = new ByteArrayContent(message);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        using var response = await _http.PostAsync(
             $"api/insights/{Uri.EscapeDataString(hero.ToLowerInvariant())}/{Uri.EscapeDataString(guide)}",
-            request,
-            _jsonContext.GuideInsightsRequest,
+            content,
             cancellationToken);
         if (!response.IsSuccessStatusCode)
         {

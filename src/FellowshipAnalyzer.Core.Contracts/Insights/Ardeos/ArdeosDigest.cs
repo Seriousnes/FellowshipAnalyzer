@@ -1,4 +1,4 @@
-namespace FellowshipAnalyzer.Heroes.Ardeos.Insights;
+namespace FellowshipAnalyzer.Core.Insights.Ardeos;
 
 /// <summary>Wildfire windows of one pull.</summary>
 /// <param name="Kind"><c>boss</c>, <c>trash pack</c> or <c>single enemy</c>.</param>

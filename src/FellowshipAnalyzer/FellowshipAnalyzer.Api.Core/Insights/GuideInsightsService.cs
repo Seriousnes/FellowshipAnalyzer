@@ -23,8 +23,9 @@ public sealed record GuideInsightsOutcome(int StatusCode, GuideInsightsResponse?
 }
 
 /// <summary>
-/// Sends a checked <see cref="GuideInsightsRequest"/> to the model with the configured key, model and effort,
-/// and keeps each answer in <see cref="CachePartition.Insights"/>.
+/// Sends a checked insight message to the model with its guide's system prompt and the configured key, model
+/// and effort, drops the insights <see cref="InsightValidation"/> refuses, and keeps each answer in
+/// <see cref="CachePartition.Insights"/>.
 /// </summary>
 public sealed class GuideInsightsService : IDisposable
 {
@@ -53,30 +54,31 @@ public sealed class GuideInsightsService : IDisposable
     /// <summary>Largest request body the endpoint reads, in bytes.</summary>
     public long MaxRequestBytes => _options.MaxRequestBytes;
 
-    /// <summary>Insights on <paramref name="guide"/> of a <paramref name="hero"/> run.</summary>
-    public async Task<GuideInsightsOutcome> GetAsync(string hero, string guide, GuideInsightsRequest? request, CancellationToken cancellationToken)
+    /// <summary>Insights on <paramref name="guide"/> of a <paramref name="hero"/> run, from the insight message <paramref name="body"/>.</summary>
+    public async Task<GuideInsightsOutcome> GetAsync(string hero, string guide, byte[] body, CancellationToken cancellationToken)
     {
-        if (InsightRequestValidation.Check(hero, guide, request, _options.MaxRequestBytes) is { } failure)
-            return GuideInsightsOutcome.Fail(failure.StatusCode, failure.Error);
+        var (request, failure) = InsightRequestValidation.Check(hero, guide, body);
+        if (request is null)
+            return GuideInsightsOutcome.Fail(failure!.StatusCode, failure.Error);
 
-        var key = CacheKey(hero.ToLowerInvariant(), guide, request!);
+        var key = CacheKey(request);
         if (await ReadCachedAsync(key, cancellationToken) is { } cached)
-            return new GuideInsightsOutcome(200, cached, null);
+            return new GuideInsightsOutcome(200, cached with { Insights = InsightValidation.Check(cached.Insights, request.Guide).Accepted }, null);
 
-        var result = await GuideInsights.RunAsync(_chat.Value, _options.Model, _options.Effort, request!.System, request.User, cancellationToken);
+        var result = await GuideInsights.RunAsync(_chat.Value, _options.Model, _options.Effort, request.Guide.System, request.User, cancellationToken);
         if (result.Parsed?["insights"] is not JsonArray insights)
         {
             _logger.LogWarning("Insights {Hero} {Guide} failed: {Error}", hero, guide, result.Error);
             return GuideInsightsOutcome.Fail(502, result.Error ?? "The model returned no insights.");
         }
 
-        var response = new GuideInsightsResponse(
-            hero.ToLowerInvariant(),
-            guide,
-            [.. insights.OfType<JsonObject>().Select(insight => new GuideInsight((string?)insight["title"] ?? "", (string?)insight["insight"] ?? ""))]);
+        var validation = InsightValidation.Check(
+            [.. insights.OfType<JsonObject>().Select(insight => new GuideInsight((string?)insight["title"] ?? "", (string?)insight["insight"] ?? ""))],
+            request.Guide);
+        var response = new GuideInsightsResponse(request.Guide.Hero, request.Guide.Guide, validation.Accepted);
         _logger.LogInformation(
-            "Insights {Hero} {Guide}: {Insights} insights, ${Cost} in {Latency}s",
-            hero, guide, response.Insights.Count, result.CostUsd, Math.Round(result.Latency.TotalSeconds, 2));
+            "Insights {Hero} {Guide}: {Insights} insights, {Refused} refused, ${Cost} in {Latency}s",
+            hero, guide, response.Insights.Count, validation.Rejections.Count, result.CostUsd, Math.Round(result.Latency.TotalSeconds, 2));
 
         await _cache.SetAsync(
             CachePartition.Insights,
@@ -102,10 +104,10 @@ public sealed class GuideInsightsService : IDisposable
         return await JsonSerializer.DeserializeAsync<GuideInsightsResponse>(content, _jsonOptions, cancellationToken);
     }
 
-    private string CacheKey(string hero, string guide, GuideInsightsRequest request)
+    private string CacheKey(InsightRequestValidation.Accepted request)
     {
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\n\u0000", _options.Model, _options.Effort, request.System, request.User)));
-        return $"{hero}/{guide}/{Convert.ToHexString(hash).ToLowerInvariant()}.json";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\n\u0000", _options.Model, _options.Effort, request.Guide.System, request.User)));
+        return $"{request.Guide.Hero}/{request.Guide.Guide}/{Convert.ToHexString(hash).ToLowerInvariant()}.json";
     }
 
     private IChatClient CreateChatClient()

@@ -1,5 +1,3 @@
-using System.Text;
-
 using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.Core.Insights;
@@ -29,27 +27,20 @@ public sealed class GuideInsightsSet
     /// <summary>Requests insights on every guide of <paramref name="insights"/> with a message at once and waits for all of them.</summary>
     public static async Task<GuideInsightsSet> LoadAsync(string hero, HeroInsights insights, IGuideInsightsClient client, CancellationToken cancellationToken = default)
     {
-        var playbook = Playbook.Load(hero);
         var messages = insights.Messages();
         var requests = insights.Guides
-            .Where(guide => playbook is not null && playbook.Guides.ContainsKey(guide.Key) && messages.ContainsKey(guide.Key))
-            .Select(async guide => (guide.Value, await RequestAsync(hero, guide.Key, playbook!, messages[guide.Key], client, cancellationToken)))
+            .Where(guide => messages.ContainsKey(guide.Key))
+            .Select(async guide => (guide.Value, await RequestAsync(hero, guide.Key, messages[guide.Key], client, cancellationToken)))
             .ToList();
         var statuses = await Task.WhenAll(requests);
         return new GuideInsightsSet(insights.Spells, statuses.ToDictionary(entry => entry.Item1, entry => entry.Item2));
     }
 
-    /// <summary>The request for <paramref name="guide"/>: its playbook and <paramref name="message"/>.</summary>
-    public static GuideInsightsRequest Request(Playbook playbook, string guide, byte[] message) =>
-        new(playbook.For(guide), Encoding.UTF8.GetString(message));
-
-    private static async Task<GuideInsightsStatus> RequestAsync(string hero, string guide, Playbook playbook, byte[] message, IGuideInsightsClient client, CancellationToken cancellationToken)
+    private static async Task<GuideInsightsStatus> RequestAsync(string hero, string guide, byte[] message, IGuideInsightsClient client, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await client.GetAsync(hero, guide, Request(playbook, guide, message), cancellationToken);
-            var validation = InsightValidation.Check(response.Insights, playbook, guide);
-            return new GuideInsightsStatus(response with { Insights = validation.Accepted }, null);
+            return new GuideInsightsStatus(await client.GetAsync(hero, guide, message, cancellationToken), null);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

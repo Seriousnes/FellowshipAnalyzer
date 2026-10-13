@@ -20,6 +20,7 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Heroes\FellowshipAnalyzer.Heroes.Aeona\FellowshipAnalyzer.Heroes.Aeona.csproj" />
+		<ProjectReference Include="..\..\src\FellowshipAnalyzer\FellowshipAnalyzer.Api.Core\FellowshipAnalyzer.Api.Core.csproj" />
 	</ItemGroup>
 	
 </Project>

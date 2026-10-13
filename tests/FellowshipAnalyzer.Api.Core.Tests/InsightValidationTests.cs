@@ -1,14 +1,16 @@
+using FellowshipAnalyzer.Api.Core.Insights;
 using FellowshipAnalyzer.Core.Insights;
+using FellowshipAnalyzer.Core.Insights.Aeona;
 
 using Shouldly;
 
 using Xunit;
 
-namespace FellowshipAnalyzer.Core.Tests.Insights;
+namespace FellowshipAnalyzer.Api.Core.Tests;
 
 public class InsightValidationTests
 {
-    private static readonly Playbook Aeona = Playbook.Load("Aeona")!;
+    private static readonly InsightGuide StaggerCleanse = InsightGuides.Find(AeonaGuides.Hero, AeonaGuides.StaggerCleanse)!;
 
     [Fact]
     public void Check_DropsInsightsWithNumbersIdsOrForbiddenTermsAndKeepsThree()
@@ -24,14 +26,14 @@ public class InsightValidationTests
             new("Fourth", "Cast Oblivion."),
         ];
 
-        var result = InsightValidation.Check(insights, Aeona, "staggerCleanse");
+        var result = InsightValidation.Check(insights, StaggerCleanse);
 
         result.Accepted.Select(insight => insight.Title).ShouldBe(["Cleanses on thin Stagger", "Second", "Third"]);
         result.Rejections.Select(rejection => (rejection.Index, rejection.Reason)).ShouldBe(
-            [(1, "number-not-in-playbook"), (2, "forbidden-term"), (3, "id"), (6, "beyond-limit")]);
+            [(1, "number-not-in-prompt"), (2, "forbidden-term"), (3, "id"), (6, "beyond-limit")]);
     }
 
     [Fact]
     public void ForbiddenTerms_ReadsOnlyTheQuotedList() =>
-        InsightValidation.ForbiddenTerms(Aeona).ShouldBe(["reconstructed", "estimated", "recorded", "the log", "the data"]);
+        InsightValidation.ForbiddenTerms(StaggerCleanse).ShouldBe(["reconstructed", "estimated", "recorded", "the log", "the data"]);
 }

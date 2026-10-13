@@ -3,6 +3,7 @@ using System.Text.Json.Serialization.Metadata;
 
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Insights;
+using FellowshipAnalyzer.Core.Insights.Aeona;
 using FellowshipAnalyzer.Heroes.Aeona.Analysis;
 using FellowshipAnalyzer.Heroes.Aeona.Guides;
 using FellowshipAnalyzer.Heroes.Aeona.Modules;
@@ -10,6 +11,7 @@ using FellowshipAnalyzer.Heroes.Aeona.Modules;
 using static FellowshipAnalyzer.Core.Insights.Digest;
 
 using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
+using AeonaLegendaryItems = FellowshipAnalyzer.Core.Common.Spells.Aeona.Legendaries;
 using AeonaTalentTree = FellowshipAnalyzer.Core.Common.Spells.Aeona.Talents;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Aeona.Spells;
 
@@ -24,11 +26,11 @@ public static class AeonaDigestBuilder
     public static HeroInsights Insights(AeonaCombatLogParser parser) => new(
         new Dictionary<string, Type>
         {
-            ["entropyClaim"] = typeof(EntropyClaimGuide),
-            ["oblivion"] = typeof(OblivionGuide),
-            ["staggerCleanse"] = typeof(StaggerCleanseGuide),
-            ["continuumShift"] = typeof(ContinuumShiftGuide),
-            ["kindRewind"] = typeof(KindRewindGuide),
+            [AeonaGuides.EntropyClaim] = typeof(EntropyClaimGuide),
+            [AeonaGuides.Oblivion] = typeof(OblivionGuide),
+            [AeonaGuides.StaggerCleanse] = typeof(StaggerCleanseGuide),
+            [AeonaGuides.ContinuumShift] = typeof(ContinuumShiftGuide),
+            [AeonaGuides.KindRewind] = typeof(KindRewindGuide),
         },
         [.. Spells.Kit, .. AeonaTalentTree.All],
         () => Messages(parser));
@@ -36,7 +38,7 @@ public static class AeonaDigestBuilder
     /// <summary>UTF-8 JSON message of each guide with a row, keyed by guide name.</summary>
     public static Dictionary<string, byte[]> Messages(AeonaCombatLogParser parser)
     {
-        var build = Digest.Build(parser, AeonaTalentTree.All);
+        var build = Digest.Build(parser, AeonaTalentTree.All, AeonaLegendaryItems.All);
         var context = AeonaDigestJsonContext.Default;
         var messages = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         Add(messages, EntropyClaim(parser, build), context.InsightMessageEntropyClaimPull);
@@ -62,7 +64,7 @@ public static class AeonaDigestBuilder
                 analyzer.LapsesWithChargeAvailable > 0,
                 [.. analyzer.Casts.Select(cast => new EntropyClaimCastFacts(Timing(cast.LeadBeforeExpiryMs), cast.RolledOver))]));
         }
-        return Message("entropyClaim", grades, build, pulls, EntropyClaimPatterns);
+        return Message(AeonaGuides.EntropyClaim, grades, build, pulls, EntropyClaimPatterns);
     }
 
     /// <summary>Oblivion casts of every pull, with the guide's focus.</summary>
@@ -78,12 +80,12 @@ public static class AeonaDigestBuilder
             grades.Add(grade);
             pulls.Add(new OblivionPull(Kind(pull), grade switch
             {
-                QualitativePerformance.Perfect or null => "never",
-                QualitativePerformance.Fail => "often",
-                _ => "sometimes",
+                QualitativePerformance.Perfect or null => DigestValues.Never,
+                QualitativePerformance.Fail => AeonaDigestValues.Often,
+                _ => DigestValues.Sometimes,
             }));
         }
-        return Message("oblivion", grades, build, pulls, OblivionPatterns);
+        return Message(AeonaGuides.Oblivion, grades, build, pulls, OblivionPatterns);
     }
 
     /// <summary>Amend Fate and Restore Continuity casts of every pull, with the guide's focus.</summary>
@@ -98,7 +100,12 @@ public static class AeonaDigestBuilder
                 grades.Add(StaggerCleanseGuide.CastPerformance(cast));
                 return new CleanseCastFacts(
                     cast.Ability == Spells.AmendFate.FSLID ? Spells.AmendFate.Name : Spells.RestoreContinuity.Name,
-                    cast.FreeCastSource?.ToString(),
+                    cast.FreeCastSource switch
+                    {
+                        FreeCastSource.Uchronia => Spells.Uchronia.Name,
+                        FreeCastSource.EpochBreak => Spells.EpochBreak.Name,
+                        _ => null,
+                    },
                     cast.TankStaggerFraction is { } tank ? tank < OblivionAnalyzer.CleansePriorityStaggerFraction : null,
                     cast.BelowStaggerRemoved,
                     cast.BelowOblivionValue,
@@ -106,7 +113,7 @@ public static class AeonaDigestBuilder
                     echoes ? cast.OverwroteEchoes : null);
             })]))
             .ToList();
-        return Message("staggerCleanse", grades, build, pulls, StaggerCleansePatterns);
+        return Message(AeonaGuides.StaggerCleanse, grades, build, pulls, StaggerCleansePatterns);
     }
 
     /// <summary>Continuum Shift windows of every pull, with the guide's focus.</summary>
@@ -129,15 +136,15 @@ public static class AeonaDigestBuilder
                         ContinuumShiftSpend.TimeShard => Spells.TimeShard.Name,
                         ContinuumShiftSpend.EchoesOfRuin => Spells.EchoesOfRuin.Name,
                         ContinuumShiftSpend.EntropyClaim => Spells.EntropyClaim.Name,
-                        ContinuumShiftSpend.Lost => "nothing",
-                        _ => "open at pull end",
+                        ContinuumShiftSpend.Lost => AeonaDigestValues.Nothing,
+                        _ => AeonaDigestValues.OpenAtPullEnd,
                     },
                     echoes && window.TankHealthFraction is { } health ? health <= ContinuumShiftAnalyzer.TankDangerHealthFraction : null,
                     echoes && analyzer.EdgeOfRuinTaken ? window.FleetingHourFollowed : null,
                     timeShard ? window.ChronaOvercapped > 0 : null);
             })]));
         }
-        return Message("continuumShift", grades, build, pulls, ContinuumShiftPatterns);
+        return Message(AeonaGuides.ContinuumShift, grades, build, pulls, ContinuumShiftPatterns);
     }
 
     /// <summary>Time Shards with Kind Rewind of every pull, with the guide's focus.</summary>
@@ -154,7 +161,7 @@ public static class AeonaDigestBuilder
                 Kind(pull),
                 analyzer.CastsWithEchoesOfRuin < analyzer.CastCount));
         }
-        return Message("kindRewind", grades, build, pulls, KindRewindPatterns);
+        return Message(AeonaGuides.KindRewind, grades, build, pulls, KindRewindPatterns);
     }
 
     /// <summary>
@@ -164,10 +171,10 @@ public static class AeonaDigestBuilder
     /// </summary>
     public static string Timing(int? leadBeforeExpiryMs) => leadBeforeExpiryMs switch
     {
-        null => "none active",
-        > EntropyClaimAnalyzer.LeadWindowLongestMs => "early",
-        < EntropyClaimAnalyzer.LeadWindowShortestMs => "late",
-        _ => "in window",
+        null => AeonaDigestValues.NoneActive,
+        > EntropyClaimAnalyzer.LeadWindowLongestMs => AeonaDigestValues.Early,
+        < EntropyClaimAnalyzer.LeadWindowShortestMs => AeonaDigestValues.Late,
+        _ => AeonaDigestValues.InWindow,
     };
 
     private static IEnumerable<DigestPattern> EntropyClaimPatterns(List<EntropyClaimPull> pulls)
@@ -181,7 +188,7 @@ public static class AeonaDigestBuilder
 
     private static IEnumerable<DigestPattern> OblivionPatterns(List<OblivionPull> pulls)
     {
-        yield return Pattern("Oblivion cast while a cleanse was due", pulls.Select(pull => (pull.Kind, pull.CastWhileCleanseDue != "never")));
+        yield return Pattern("Oblivion cast while a cleanse was due", pulls.Select(pull => (pull.Kind, pull.CastWhileCleanseDue != DigestValues.Never)));
     }
 
     private static IEnumerable<DigestPattern> StaggerCleansePatterns(List<StaggerCleansePull> pulls)
@@ -195,15 +202,16 @@ public static class AeonaDigestBuilder
         {
             yield return Pattern("refreshed running Echoes of Divinity", casts.Select(entry => (entry.Kind, entry.Cast.RefreshedRunningEchoes == true)));
             yield return Pattern("Uchronia spent on Amend Fate",
-                casts.Where(entry => entry.Cast.Free == nameof(FreeCastSource.Uchronia)).Select(entry => (entry.Kind, entry.Cast.Spell == Spells.AmendFate.Name)));
+                casts.Where(entry => entry.Cast.Free == Spells.Uchronia.Name).Select(entry => (entry.Kind, entry.Cast.Spell == Spells.AmendFate.Name)));
         }
     }
 
     private static IEnumerable<DigestPattern> ContinuumShiftPatterns(List<ContinuumShiftPull> pulls)
     {
         var shifts = pulls.SelectMany(pull => pull.Shifts.Select(shift => (pull.Kind, Shift: shift))).ToList();
-        yield return Pattern("ended unspent", shifts.Select(entry => (entry.Kind, entry.Shift.SpentOn == "nothing")));
+        yield return Pattern("ended unspent", shifts.Select(entry => (entry.Kind, entry.Shift.SpentOn == AeonaDigestValues.Nothing)));
         yield return Pattern("spent on Entropy's Claim", shifts.Select(entry => (entry.Kind, entry.Shift.SpentOn == Spells.EntropyClaim.Name)));
+        yield return Pattern("spent on Echoes of Ruin", shifts.Select(entry => (entry.Kind, entry.Shift.SpentOn == Spells.EchoesOfRuin.Name)));
         yield return Pattern("Echoes of Ruin with the tank out of danger",
             shifts.Select(entry => (entry.Kind, entry.Shift is { TankInDanger: false, FleetingHourFollowed: not true })));
         yield return Pattern("Chrona overcapped",

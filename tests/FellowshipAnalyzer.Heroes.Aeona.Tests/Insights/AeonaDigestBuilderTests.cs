@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
+using FellowshipAnalyzer.Api.Core.Insights;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Insights;
+using FellowshipAnalyzer.Core.Insights.Aeona;
 using FellowshipAnalyzer.Heroes.Aeona.Insights;
 
 using Shouldly;
@@ -31,7 +33,7 @@ public sealed class AeonaDigestBuilderTests
             Heal(3_100, Spells.TimeShard, TankId, 4_000, 1_000),
             RemoveBuff(3_100, Spells.ContinuumShift));
 
-        var message = AeonaDigestBuilder.ContinuumShift(parser, Digest.Build(parser, []))!;
+        var message = AeonaDigestBuilder.ContinuumShift(parser, Digest.Build(parser, [], []))!;
 
         message.Focus.ShouldBe(InsightFocus.Strengths);
         var pull = message.Pulls.ShouldHaveSingleItem();
@@ -54,7 +56,7 @@ public sealed class AeonaDigestBuilderTests
             ApplyDebuff(3_050, Spells.EchoesOfRuinDot, SecondEnemyId),
             RemoveBuff(3_050, Spells.ContinuumShift));
 
-        var message = AeonaDigestBuilder.ContinuumShift(parser, Digest.Build(parser, []))!;
+        var message = AeonaDigestBuilder.ContinuumShift(parser, Digest.Build(parser, [], []))!;
 
         message.Focus.ShouldBe(InsightFocus.Mixed);
         var shift = message.Pulls.ShouldHaveSingleItem().Shifts.ShouldHaveSingleItem();
@@ -88,6 +90,24 @@ public sealed class AeonaDigestBuilderTests
             Regex.IsMatch(Regex.Unescape(json), @"\d").ShouldBeFalse(json);
             foreach (var grade in new[] { "Perfect", "Good", "\"Ok\"", "Bad", "grade" })
                 json.ShouldNotContain(grade, Case.Insensitive);
+        }
+    }
+
+    [Fact]
+    public async Task Messages_PassTheServerCheckUnchanged()
+    {
+        var parser = await Analyze(TrashPull(),
+            Info(Shift),
+            ApplyBuff(1_000, Spells.ContinuumShift),
+            Completion(3_000, Spells.TimeShard),
+            RemoveBuff(3_100, Spells.ContinuumShift));
+
+        foreach (var (guide, message) in AeonaDigestBuilder.Messages(parser))
+        {
+            var (accepted, failure) = InsightRequestValidation.Check(AeonaGuides.Hero, guide, message);
+
+            failure.ShouldBeNull();
+            accepted!.User.ShouldBe(Encoding.UTF8.GetString(message));
         }
     }
 }

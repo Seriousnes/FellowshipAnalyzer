@@ -6,8 +6,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\data\playbooks\**\*.md" LogicalName="playbooks/%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
 </Project>

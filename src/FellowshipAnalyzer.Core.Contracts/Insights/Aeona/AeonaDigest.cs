@@ -1,4 +1,4 @@
-namespace FellowshipAnalyzer.Heroes.Aeona.Insights;
+namespace FellowshipAnalyzer.Core.Insights.Aeona;
 
 /// <summary>Entropy's Claim casts and Entropic Burst on one pull.</summary>
 /// <param name="Kind"><c>boss</c>, <c>trash pack</c> or <c>single enemy</c>.</param>

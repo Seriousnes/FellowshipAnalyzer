@@ -26,7 +26,7 @@ public enum CachePartition
     Events,
 
     /// <summary>
-    /// Model insights for one guide, keyed by a hash of the model, effort, playbook and digest.
+    /// Model insights for one guide, keyed by a hash of the model, effort, system prompt and user message.
     /// Maps to the <c>insights</c> container (Hot tier).
     /// </summary>
     Insights,

@@ -1,16 +1,15 @@
 using System.Text.Json.Serialization;
 
-using FellowshipAnalyzer.Core.Insights;
-
-namespace FellowshipAnalyzer.Heroes.Aeona.Insights;
+namespace FellowshipAnalyzer.Core.Insights.Aeona;
 
 /// <summary>
-/// Serializes each Aeona guide's <see cref="InsightMessage{TPull}"/> with camel-case names and without null
-/// members, the shape the playbooks in <c>data/playbooks/aeona</c> name.
+/// Reads and writes each Aeona guide's <see cref="InsightMessage{TPull}"/> with camel-case names and without null
+/// members. Reading refuses a member the records do not declare.
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow)]
 [JsonSerializable(typeof(InsightMessage<EntropyClaimPull>))]
 [JsonSerializable(typeof(InsightMessage<OblivionPull>))]
 [JsonSerializable(typeof(InsightMessage<StaggerCleansePull>))]
