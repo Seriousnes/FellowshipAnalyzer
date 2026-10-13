@@ -74,13 +74,13 @@ public static class AeonaDigestBuilder
         var pulls = new List<OblivionPull>();
         foreach (var (pull, entry) in parser.OblivionAnalyzers)
         {
-            if (entry is not OblivionAnalyzer { CastCount: > 0 } analyzer)
+            if (entry is not OblivionAnalyzer { CastsRated: > 0 } analyzer)
                 continue;
             var grade = OblivionGuide.PullPerformance(analyzer);
             grades.Add(grade);
             pulls.Add(new OblivionPull(Kind(pull), grade switch
             {
-                QualitativePerformance.Perfect or null => DigestValues.Never,
+                QualitativePerformance.Perfect => DigestValues.Never,
                 QualitativePerformance.Fail => AeonaDigestValues.Often,
                 _ => DigestValues.Sometimes,
             }));
