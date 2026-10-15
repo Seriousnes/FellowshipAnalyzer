@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Codex.FellowshipAnalyzer.SDK" />
+    <PackageReference Include="FellowshipAnalyzer.Codex.SDK" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FellowshipAnalyzer.Core.Contracts\FellowshipAnalyzer.Core.Contracts.csproj" />

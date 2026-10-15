@@ -23,7 +23,7 @@
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.SassCompiler" />
 		<PackageReference Include="Blazor-ApexCharts" />
-		<PackageReference Include="Codex.FellowshipAnalyzer.SDK" />
+		<PackageReference Include="FellowshipAnalyzer.Codex.SDK" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
