@@ -21,6 +21,8 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     private int _surgeStacks;
 
+    private readonly List<(int Timestamp, int Stacks)> _surgeRemovals = [];
+
     public List<DetonateCast> Casts => _casts;
 
     public int TotalCasts => _casts.Count;
@@ -67,6 +69,10 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     public int SurgeStacksWasted => Math.Max(0, SurgeStacksGained - FreeCasts);
 
+    public int SurgeStacksExpired => _surgeRemovals
+        .Where(removal => !_casts.Any(cast => Math.Abs(cast.Timestamp - removal.Timestamp) <= SurgeBufferMs))
+        .Sum(removal => removal.Stacks);
+
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Detonate))]
     private void OnDetonate(CastEvent e)
     {
@@ -109,10 +115,18 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     }
 
     [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeRemoveStack(RemoveBuffStackEvent e) => _surgeStacks = e.Stack;
+    private void OnSurgeRemoveStack(RemoveBuffStackEvent e)
+    {
+        _surgeRemovals.Add((e.Timestamp, _surgeStacks - e.Stack));
+        _surgeStacks = e.Stack;
+    }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeRemove() => _surgeStacks = 0;
+    private void OnSurgeRemove(RemoveBuffEvent e)
+    {
+        _surgeRemovals.Add((e.Timestamp, _surgeStacks));
+        _surgeStacks = 0;
+    }
 
     public sealed class DetonateCast
     {

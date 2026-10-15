@@ -3,6 +3,7 @@ using System.Diagnostics;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Insights;
 using FellowshipAnalyzer.Core.Serialization;
 
 
@@ -26,7 +27,8 @@ public sealed record ReportAnalysisContext(
     HeroAnalysisResult? Analysis,
     IHeroAnalyzer Analyzer,
     int DungeonStartTime,
-    int DungeonEndTime
+    int DungeonEndTime,
+    GuideInsightsSet? GuideInsights = null
 )
 {
     /// <summary>
@@ -49,6 +51,7 @@ public sealed class ReportAnalysisService(
     IReportCacheService reportCache,
     FellowshipAnalyzerJsonContext jsonContext,
     ReportNavigationState navState,
+    IGuideInsightsClient insightsClient,
     ILogger<ReportAnalysisService> logger)
 {
     public async Task<ReportAnalysisContext> RunAsync(
@@ -100,6 +103,9 @@ public sealed class ReportAnalysisService(
                 dungeonStartTime,
                 dungeonEndTime);
         }
+
+        var insights = analyzer.Insights is not null && await insightsClient.Available ? analyzer.Insights : null;
+        loadingTracker.IncludesInsights = insights is not null;
 
         var sw = Stopwatch.StartNew();
         logger.LogInformation(
@@ -156,6 +162,15 @@ public sealed class ReportAnalysisService(
         analyzer.Actors = reportInfo.Actors;
         var result = await analyzer.Analyze(events, playerId, dungeon);
 
+        GuideInsightsSet? guideInsights = null;
+        if (insights is not null)
+        {
+            loadingTracker.InsightsState = ReportLoadingTracker.StepState.Loading;
+            await Task.Yield();
+            guideInsights = await GuideInsightsSet.LoadAsync(hero.Id, insights, insightsClient);
+            loadingTracker.InsightsState = ReportLoadingTracker.StepState.Ok;
+        }
+
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
@@ -178,7 +193,8 @@ public sealed class ReportAnalysisService(
             result,
             analyzer,
             dungeonStartTime,
-            dungeonEndTime);
+            dungeonEndTime,
+            guideInsights);
     }
 
     private async Task<EventsResult> DeserializeEventsResultAsync(byte[] jsonBytes)

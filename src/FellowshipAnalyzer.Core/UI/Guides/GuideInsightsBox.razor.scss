@@ -1,0 +1,21 @@
+.insight {
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: var(--fa-border-width) solid var(--fa-edge);
+
+    &:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+}
+
+.insight-title {
+    font-weight: 700;
+    color: var(--fa-fg);
+    margin-bottom: 4px;
+}
+
+.insight-text {
+    margin: 0;
+}

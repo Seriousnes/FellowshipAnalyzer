@@ -1,5 +1,7 @@
 using FellowshipAnalyzer.ServiceDefaults;
 
+using Microsoft.Extensions.Http.Resilience;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -7,6 +9,15 @@ builder.AddServiceDefaults();
 builder.Services.AddHttpClient("DevApi", client =>
 {
     client.BaseAddress = new Uri("https+http://fellowshipanalyzerapi/");
+    client.Timeout = Timeout.InfiniteTimeSpan;
+})
+.RemoveAllResilienceHandlers()
+.AddStandardResilienceHandler(options =>
+{
+    options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(3);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(4);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(6);
+    options.Retry.DisableForUnsafeHttpMethods();
 });
 
 builder.Services.AddSassCompiler();

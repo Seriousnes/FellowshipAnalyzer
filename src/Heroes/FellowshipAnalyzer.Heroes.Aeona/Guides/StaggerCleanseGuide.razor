@@ -1,6 +1,6 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
-<GuideSection Title="Amend Fate and Restore Continuity">
+<GuideSection Insights="@Insights" Title="Amend Fate and Restore Continuity">
     <LeftPanel>
         <p>
             Cast <strong><SpellLink Spell="Spells.AmendFate" /></strong> or
@@ -124,9 +124,7 @@
 
     private PerCastRow BuildRow(CleanseCastEntry cast)
     {
-        var performance = cast.Flagged ? QualitativePerformance.Fail
-            : cast.Rated ? QualitativePerformance.Perfect
-            : (QualitativePerformance?)null;
+        var performance = CastPerformance(cast);
 
         var stats = new List<PerCastStat>();
 
@@ -273,6 +271,11 @@
     private static int AlliesCleansed(CleanseCastEntry cast) => cast.Heals.Count(heal => heal.StaggerCleansed is not null);
 
     private static string Count(int count, string singular, string plural) => $"{count} {(count == 1 ? singular : plural)}";
+    internal static QualitativePerformance? CastPerformance(CleanseCastEntry cast) =>
+        cast.Flagged ? QualitativePerformance.Fail
+        : cast.Rated ? QualitativePerformance.Perfect
+        : null;
+
     private static QualitativePerformance FlagTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.95, 0.85, 0.7);
 }

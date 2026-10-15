@@ -27,6 +27,8 @@ public sealed class ReportLoadingTracker
     private StepState _normalizeState;
     private StepState _analyzeState;
     private StepState _prepareDisplayState;
+    private StepState _insightsState;
+    private bool _includesInsights;
     private int _deserializedEventCount;
     private int _totalDeserializeEventCount;
     private int _analyzedEventCount;
@@ -79,6 +81,20 @@ public sealed class ReportLoadingTracker
     {
         get => _analyzeState;
         set => SetStepState(ref _analyzeState, value);
+    }
+
+    /// <summary>Whether this load requests AI insights, adding <see cref="InsightsState"/> to its steps.</summary>
+    public bool IncludesInsights
+    {
+        get => _includesInsights;
+        set => Set(ref _includesInsights, value);
+    }
+
+    /// <summary>Requesting every guide's AI insights.</summary>
+    public StepState InsightsState
+    {
+        get => _insightsState;
+        set => SetStepState(ref _insightsState, value);
     }
 
     /// <summary>Preparing the display / rendering results.</summary>
@@ -149,14 +165,15 @@ public sealed class ReportLoadingTracker
 
     /// <summary>
     /// Overall loading progress, 0-1.
-    /// Each of the 5 steps contributes 20%; Normalize and Analyze use sub-progress while in progress.
+    /// Each step contributes an equal share; Normalize and Analyze use sub-progress while in progress.
     /// </summary>
     public double Progress
     {
         get
         {
-            const double stepWeight = 0.2;
+            var stepWeight = _includesInsights ? 1.0 / 6 : 1.0 / 5;
             var p = 0.0;
+            if (_includesInsights && _insightsState == StepState.Ok) p += stepWeight;
             if (_fetchEventsState == StepState.Ok) p += stepWeight;
             if (_deserializeState == StepState.Ok)
                 p += stepWeight;
@@ -183,6 +200,8 @@ public sealed class ReportLoadingTracker
         _normalizeState = StepState.Waiting;
         _analyzeState = StepState.Waiting;
         _prepareDisplayState = StepState.Waiting;
+        _insightsState = StepState.Waiting;
+        _includesInsights = false;
         _deserializedEventCount = 0;
         _totalDeserializeEventCount = 0;
         _analyzedEventCount = 0;

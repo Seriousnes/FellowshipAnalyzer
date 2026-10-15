@@ -362,22 +362,8 @@ public sealed class FellowshipLogsApiHandler(
         }
     }
 
-    private async ValueTask<IResult?> TryApplyRateLimitAsync(HttpContext context, CancellationToken cancellationToken)
-    {
-        var partitionKey = GetRateLimitPartitionKey(context);
-        using var lease = await rateLimiter.AcquireAsync(partitionKey, cancellationToken);
-        if (lease.IsAcquired)
-        {
-            return null;
-        }
-
-        if (lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
-        }
-
-        return Results.Json(new { error = "Rate limit exceeded." }, jsonOptions, statusCode: 429);
-    }
+    private ValueTask<IResult?> TryApplyRateLimitAsync(HttpContext context, CancellationToken cancellationToken) =>
+        RateLimitResults.TryApplyAsync(rateLimiter, context, jsonOptions, cancellationToken);
 
     /// <summary>
     /// Global upstream cap. Checked only on the cache-miss path, immediately before a FellowshipLogs
@@ -511,23 +497,6 @@ public sealed class FellowshipLogsApiHandler(
     private static TimeSpan PositiveDuration(TimeSpan value, TimeSpan fallback)
     {
         return value > TimeSpan.Zero ? value : fallback;
-    }
-
-    private static string GetRateLimitPartitionKey(HttpContext context)
-    {
-        var forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
-        if (!string.IsNullOrWhiteSpace(forwardedFor))
-        {
-            var forwardedClient = forwardedFor.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(forwardedClient))
-            {
-                return forwardedClient;
-            }
-        }
-
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
     /// <summary>

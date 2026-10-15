@@ -12,6 +12,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
+using FellowshipAnalyzer.Core.Insights;
 using Microsoft.AspNetCore.Components.Web;
 
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -60,5 +61,6 @@ builder.Services.AddScoped<ReportAnalysisService>();
 builder.Services.AddScoped<TimelineConfigService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<ChartPalette>();
+builder.Services.AddSingleton<IGuideInsightsClient>(new GuideInsightsClient(new HttpClient { BaseAddress = hostBaseAddress }, jsonContext));
 
 await builder.Build().RunAsync();

@@ -24,4 +24,10 @@ public enum CachePartition
     /// Maps to the <c>events</c> container (Cool tier).
     /// </summary>
     Events,
+
+    /// <summary>
+    /// Model insights for one guide, keyed by a hash of the model, effort, system prompt and user message.
+    /// Maps to the <c>insights</c> container (Hot tier).
+    /// </summary>
+    Insights,
 }

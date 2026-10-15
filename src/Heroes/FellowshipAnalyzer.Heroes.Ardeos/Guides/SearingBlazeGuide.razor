@@ -2,7 +2,7 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inherits GuideComponent<ArdeosCombatLogParser>
 
-<GuideSection Title="Searing Blaze">
+<GuideSection Insights="@Insights" Title="Searing Blaze">
     <LeftPanel>
         <p>
             <SpellLink Spell="Spells.SearingBlaze" /> should never drop off a boss, and should be applied to every
@@ -70,7 +70,7 @@
 
     private PerCastRow BuildBossRow(SearingBlazeUptimeAnalyzer analyzer)
     {
-        var uptimePercent = (int)Math.Round(analyzer.Uptime * 100);
+        var uptimePercent = UptimePercent(analyzer);
         var perf = UptimeTier(uptimePercent);
 
         var stats = new[]
@@ -153,10 +153,12 @@
         return $"Searing Blaze spread to only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep it spread across the pack.";
     }
 
-    private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>
+    internal static int UptimePercent(SearingBlazeUptimeAnalyzer analyzer) => (int)Math.Round(analyzer.Uptime * 100);
+
+    internal static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>
         analyzer.DistinctTargets == 0 ? 0 : (int)Math.Round(analyzer.Coverage * 100);
 
-    private static QualitativePerformance UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
+    internal static QualitativePerformance UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
 
-    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+    internal static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

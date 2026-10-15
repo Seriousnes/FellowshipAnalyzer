@@ -909,6 +909,10 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                           typeName + " { " + string.Join(", ", member.InitLines) + " };");
             sb.AppendLine();
         }
+        var allType = "global::" + SpellsNamespace + "." + members[0].TypeName;
+        sb.AppendLine("    /// <summary>Every talent in " + hero + "'s tree, in member order.</summary>");
+        sb.AppendLine("    public static global::System.Collections.Generic.IReadOnlyList<" + allType + "> All { get; } = [" +
+                      string.Join(", ", members.Select(member => member.Name)) + "];");
         sb.AppendLine("}");
 
         spc.AddSource(HintName(ns, "Talents"), sb.ToString());
@@ -1017,6 +1021,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                           Literal(entry.PowerName) + ", " + Literal(entry.Icon) + ");");
             sb.AppendLine();
         }
+        sb.AppendLine("    /// <summary>Every " + hero + " legendary.</summary>");
+        sb.AppendLine("    public static global::System.Collections.Generic.IReadOnlyList<" + ItemTypeGlobalName + "> All { get; } = [" +
+                      string.Join(", ", entries.Select(entry => entry.Member)) + "];");
         sb.AppendLine("}");
 
         spc.AddSource(HintName(ns, "Legendaries"), sb.ToString());
@@ -1069,6 +1076,14 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("public partial class " + registry.ClassName + " : global::" + SpellsNamespace + ".ISpellRegistry");
         sb.AppendLine("{");
         AppendMembers(sb, registry.Members);
+        var abilities = registry.Members.Where(member => member.TypeName == "Spell").Select(member => member.Name).ToList();
+        if (abilities.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("    /// <summary>Every ability in this registry, in member order. Effects are not abilities.</summary>");
+            sb.AppendLine("    public static global::System.Collections.Generic.IReadOnlyList<global::" + SpellsNamespace + ".Spell> Kit { get; } = [" +
+                          string.Join(", ", abilities) + "];");
+        }
         sb.AppendLine("}");
 
         spc.AddSource(HintName(registry.Namespace, registry.ClassName), sb.ToString());

@@ -1,11 +1,18 @@
+@using FellowshipAnalyzer.Core.Insights
 <section class="guide-section">
     <header class="guide-section-header">
         <h3>@Title</h3>
     </header>
     <div class="guide-section-body" style="--left-panel-pct: @(LeftPanelPercent)%;">
-        @if (LeftPanel is not null)
+        @if (LeftPanel is not null || Insights is not null)
         {
-            <div class="guide-section-left-panel">@LeftPanel</div>
+            <div class="guide-section-left-panel">
+                @LeftPanel
+                @if (Insights is not null)
+                {
+                    <GuideInsightsBox Status="@Insights" />
+                }
+            </div>
         }
         <div class="guide-section-right-panel">
             @RightPanel
@@ -18,4 +25,7 @@
     [Parameter] public RenderFragment? LeftPanel { get; set; }
     [Parameter] public RenderFragment? RightPanel { get; set; }
     [Parameter] public int LeftPanelPercent { get; set; } = 40;
+
+    /// <summary>The guide's AI insights, rendered after <see cref="LeftPanel"/>.</summary>
+    [Parameter] public GuideInsightsStatus? Insights { get; set; }
 }

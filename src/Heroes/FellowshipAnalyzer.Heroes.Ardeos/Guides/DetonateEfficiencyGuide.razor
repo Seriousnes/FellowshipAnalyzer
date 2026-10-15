@@ -5,7 +5,7 @@
 @inherits GuideComponent<ArdeosCombatLogParser>
 @inject ChartPalette Palette
 
-<GuideSection Title="Detonate">
+<GuideSection Insights="@Insights" Title="Detonate">
     <LeftPanel>
         <p>
             Cast <SpellLink Spell="Spells.Detonate" /> with as many DoTs active as possible, or cast it early
@@ -177,7 +177,7 @@
 
     private PerCastRow BuildCastRow(DetonateCast cast)
     {
-        var perf = AverageTier(cast.AverageInstances);
+        var perf = CastPerformance(cast);
 
         var stats = new List<PerCastStat>
         {
@@ -256,6 +256,8 @@
         }
         return builder.ToString();
     }
+
+    internal static QualitativePerformance CastPerformance(DetonateCast cast) => AverageTier(cast.AverageInstances);
 
     private static QualitativePerformance AverageTier(double average) => PerformanceTiers.FromThresholds(average, 4, 3, 2);
 

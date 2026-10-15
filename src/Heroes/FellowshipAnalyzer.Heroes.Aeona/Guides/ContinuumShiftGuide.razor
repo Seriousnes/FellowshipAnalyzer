@@ -1,6 +1,6 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
-<GuideSection Title="Continuum Shift">
+<GuideSection Insights="@Insights" Title="Continuum Shift">
     <LeftPanel>
         <p>
             Spend every <strong><SpellLink Spell="Talents.ContinuumShift" /></strong> on <SpellLink Spell="Spells.TimeShard" />.
@@ -98,14 +98,7 @@
 
     private PerCastRow BuildRow(ContinuumShiftWindow window)
     {
-        var performance = window.Spend switch
-        {
-            ContinuumShiftSpend.TimeShard => QualitativePerformance.Perfect,
-            ContinuumShiftSpend.EchoesOfRuin => window.Justified ? QualitativePerformance.Good : QualitativePerformance.Ok,
-            ContinuumShiftSpend.EntropyClaim => QualitativePerformance.Fail,
-            ContinuumShiftSpend.Lost => QualitativePerformance.Fail,
-            _ => (QualitativePerformance?)null,
-        };
+        var performance = WindowPerformance(window);
 
         var stats = new List<PerCastStat>
         {
@@ -166,6 +159,15 @@
         ContinuumShiftSpend.EntropyClaim => "Entropy's Claim",
         ContinuumShiftSpend.Lost => "Lost",
         _ => "Unspent at pull end",
+    };
+
+    internal static QualitativePerformance? WindowPerformance(ContinuumShiftWindow window) => window.Spend switch
+    {
+        ContinuumShiftSpend.TimeShard => QualitativePerformance.Perfect,
+        ContinuumShiftSpend.EchoesOfRuin => window.Justified ? QualitativePerformance.Good : QualitativePerformance.Ok,
+        ContinuumShiftSpend.EntropyClaim => QualitativePerformance.Fail,
+        ContinuumShiftSpend.Lost => QualitativePerformance.Fail,
+        _ => null,
     };
 
     private static QualitativePerformance SpendTier(int justified, int closed) =>

@@ -29,4 +29,6 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 public sealed partial class AeonaCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(AeonaGuide);
+
+    public override FellowshipAnalyzer.Core.Insights.HeroInsights? Insights => field ??= Aeona.Insights.AeonaDigestBuilder.Insights(this);
 }

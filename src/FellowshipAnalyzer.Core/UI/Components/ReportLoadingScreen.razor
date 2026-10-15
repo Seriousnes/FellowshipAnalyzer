@@ -77,6 +77,13 @@
                 </div>
             }
         </div>
+        @if (Tracker.IncludesInsights)
+        {
+            <div class="loading-row">
+                <span class="loading-label">Generating AI insights</span>
+                <span class="loading-status @StatusClass(Tracker.InsightsState)">@StatusText(Tracker.InsightsState)</span>
+            </div>
+        }
         <div class="loading-row">
             <span class="loading-label">Preparing display</span>
             <span class="loading-status @StatusClass(Tracker.PrepareDisplayState)">@StatusText(Tracker.PrepareDisplayState)</span>

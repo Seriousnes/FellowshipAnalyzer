@@ -93,6 +93,12 @@ public sealed record EntropicBurstLapse(int Timestamp, int Units, int PeakStacks
 [Dependency<AeonaBuild>]
 public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEntropyClaimAnalyzer
 {
+    /// <summary>Most milliseconds before the active Entropy's Claim expires at which the next cast belongs.</summary>
+    public const int LeadWindowLongestMs = 4000;
+
+    /// <summary>Fewest milliseconds before the active Entropy's Claim expires at which the next cast belongs.</summary>
+    public const int LeadWindowShortestMs = 2000;
+
     /// <summary>Milliseconds between an Entropy's Claim completion and the dot application credited to it.</summary>
     public const int CastLinkToleranceMs = 100;
 
