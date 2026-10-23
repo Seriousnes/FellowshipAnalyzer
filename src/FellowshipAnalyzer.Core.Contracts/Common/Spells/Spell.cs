@@ -48,6 +48,12 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// <summary>The base cooldown in seconds; <c>null</c> when the spell has no cooldown.</summary>
     public double? Cooldown { get; init; }
 
+    /// <summary>
+    /// <c>true</c> when haste shortens the cooldown, as <c>Cooldown / (1 + haste)</c>: the game-data export
+    /// lists Haste among the stats the cooldown duration scales off. <c>null</c> when it does not.
+    /// </summary>
+    public bool? CooldownScalesWithHaste { get; init; }
+
     /// <summary>Seconds removed from this ability's remaining cooldown when a target it has debuffed dies, per qualifying window.</summary>
     public double? CooldownReductionOnTargetDeath { get; init; }
 
