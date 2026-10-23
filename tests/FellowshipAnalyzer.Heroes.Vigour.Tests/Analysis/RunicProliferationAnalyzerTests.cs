@@ -56,6 +56,30 @@ public sealed class RunicProliferationAnalyzerTests
     }
 
     [Fact]
+    public async Task DawnbreakerOrbInsideTheWindowIsASpenderCreditedWithEveryUnitItReached()
+    {
+        var parser = await Analyze(
+            Cast(PullStart + 1_000, Spells.RunicProliferation, PlayerId, runes: 2),
+            ApplyBuff(PullStart + 1_000, Spells.RunicProliferationBuff, PlayerId),
+            Cast(PullStart + 2_000, Spells.DawnbreakerOrb),
+            Heal(PullStart + 2_500, Spells.DawnbreakerOrb, TankId),
+            Cast(PullStart + 3_000, Spells.RuneOfRenewal, AllyId),
+            ApplyBuff(PullStart + 3_000, Spells.RuneOfRenewalBuff, AllyId),
+            Heal(PullStart + 3_500, Spells.DawnbreakerOrb, AllyId),
+            Damage(PullStart + 4_000, Spells.DawnbreakerOrb, EnemyId),
+            RemoveBuff(PullStart + 9_000, Spells.RunicProliferationBuff, PlayerId),
+            Damage(PullStart + 11_000, Spells.DawnbreakerOrb, SecondEnemyId));
+
+        var cast = parser.RunicProliferationAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.SpenderCount.ShouldBe(2);
+        cast.OtherCasts.ShouldBe(0);
+        cast.Spenders[0].SpellId.ShouldBe(Spells.DawnbreakerOrb.FSLID.Value);
+        cast.Spenders[0].Targets.ShouldBe(3);
+        cast.Spenders[1].Targets.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task ACastWithoutARuneSnapshotHasNoRunesLost()
     {
         var parser = await Analyze(

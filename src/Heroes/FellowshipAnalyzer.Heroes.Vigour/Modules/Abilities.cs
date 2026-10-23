@@ -38,14 +38,12 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.LuminousBarrierAbsorb],
             Category = SpellCategory.Healing,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.RadiantBlast,
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -53,7 +51,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.MeticulousRunesmithAbsorb],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -61,7 +58,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.CeremonyOfLightBuff],
             Category = SpellCategory.Healing,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -82,7 +78,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.RunicProliferationBuff],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -91,7 +86,6 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -99,21 +93,18 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.RemoveMagicDispel],
             Category = SpellCategory.Utility,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.ThrowBook,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.Levitate,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
     ];
 }
