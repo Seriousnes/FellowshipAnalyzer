@@ -240,8 +240,8 @@ public partial class SpellUsable(
         }
         else
         {
-            var nextEnd = ts + cd.RechargeDuration;
-            cd = cd with { ChargeStart = ts, ExpectedEnd = nextEnd, Held = false };
+            var nextDuration = RechargeDuration(spellId);
+            cd = cd with { ChargeStart = ts, ExpectedEnd = ts + nextDuration, RechargeDuration = nextDuration, Rate = EffectiveRate(spellId), Held = false };
             _cooldowns[spellId] = cd;
             FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
             RefreshPendingEnd(spellId);
@@ -395,11 +395,14 @@ public partial class SpellUsable(
         }
 
         var restoreTs = e.Timestamp;
+        var nextDuration = RechargeDuration(spellId);
         _cooldowns[spellId] = cd with
         {
             ChargesAvailable = cd.ChargesAvailable + 1,
             ChargeStart = restoreTs,
-            ExpectedEnd = restoreTs + cd.RechargeDuration,
+            ExpectedEnd = restoreTs + nextDuration,
+            RechargeDuration = nextDuration,
+            Rate = EffectiveRate(spellId),
             PendingEnd = null,
         };
         RefreshPendingEnd(spellId);
@@ -416,7 +419,7 @@ public partial class SpellUsable(
         }
         else
         {
-            ApplyPendingEndState(cd.PendingEnd, cd);
+            ApplyPendingEndState(spellId, cd.PendingEnd, cd);
             Owner.EventEmitter.Reschedule(cd.PendingEnd);
         }
     }
@@ -424,7 +427,7 @@ public partial class SpellUsable(
     private UpdateSpellUsableEvent CreatePendingEnd(int spellId, CooldownInfo cd)
     {
         var e = NewPendingUpdate(spellId);
-        ApplyPendingEndState(e, cd);
+        ApplyPendingEndState(spellId, e, cd);
         return e;
     }
 
@@ -441,14 +444,13 @@ public partial class SpellUsable(
         };
     }
 
-    private static void ApplyPendingEndState(UpdateSpellUsableEvent e, CooldownInfo cd)
+    private void ApplyPendingEndState(int spellId, UpdateSpellUsableEvent e, CooldownInfo cd)
     {
         var endTs = cd.ExpectedEnd;
         var chargesAfter = cd.ChargesAvailable + 1;
 
         e.Timestamp = endTs;
         e.OverallStartTimestamp = cd.OverallStart;
-        e.ExpectedRechargeDuration = cd.RechargeDuration;
         e.MaxCharges = cd.MaxCharges;
         e.ChargesAvailable = chargesAfter;
 
@@ -459,14 +461,17 @@ public partial class SpellUsable(
             e.IsAvailable = true;
             e.ChargeStartTimestamp = cd.ChargeStart;
             e.ExpectedRechargeTimestamp = endTs;
+            e.ExpectedRechargeDuration = cd.RechargeDuration;
         }
         else
         {
+            var nextDuration = RechargeDuration(spellId);
             e.UpdateType = UpdateSpellUsableType.RestoreCharge;
             e.IsOnCooldown = true;
             e.IsAvailable = true;
             e.ChargeStartTimestamp = endTs;
-            e.ExpectedRechargeTimestamp = endTs + cd.RechargeDuration;
+            e.ExpectedRechargeTimestamp = endTs + nextDuration;
+            e.ExpectedRechargeDuration = nextDuration;
         }
     }
 
@@ -498,11 +503,7 @@ public partial class SpellUsable(
             / rate);
 
     [On<ChangeCooldownModifierEvent>]
-    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
-    {
-        if (e.Pool != CooldownPool.CooldownAcceleration) return;
-        RescaleChangedCooldowns(e.Timestamp);
-    }
+    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e) => RescaleChangedCooldowns(e.Timestamp);
 
     [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent e) => RescaleChangedCooldowns(e.Timestamp);
@@ -516,9 +517,10 @@ public partial class SpellUsable(
             if (cd.Held) continue;
 
             var newRate = EffectiveRate(spellId);
-            if (newRate <= 0 || newRate == cd.Rate) continue;
-
-            HandleChangeRate(spellId, newRate, timestamp);
+            if (newRate > 0 && newRate != cd.Rate)
+                HandleChangeRate(spellId, newRate, timestamp);
+            else if (!cd.HasIndependentTimers)
+                RefreshPendingEnd(spellId);
         }
     }
 
@@ -593,7 +595,7 @@ public partial class SpellUsable(
         }
         else if (cd.ChargesAvailable > 0)
         {
-            ChargeTimer[] timers = [.. cd.Timers, StartTimer(spellId, ts, cd.RechargeDuration)];
+            ChargeTimer[] timers = [.. cd.Timers, StartTimer(spellId, ts, RechargeDuration(spellId))];
             _cooldowns[spellId] = WithTimers(cd with { ChargesAvailable = cd.ChargesAvailable - 1 }, timers);
             FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, _cooldowns[spellId]);
             RefreshTimers(spellId);

@@ -31,6 +31,8 @@ public sealed partial class SpellUsableTests
     private const int SpellD = 104;
     private const int SpellE = 105;
     private const int SpellF = 106;
+    private const int SpellG = 107;
+    private const int CdSecondsG = 10;
     private const int CdSecondsA = 10;
     private const int CdSecondsB = 20;
     private const int CdSecondsC = 10;
@@ -570,9 +572,15 @@ public sealed partial class SpellUsableTests
                 PrimarySpell = new Spell { Id = SpellE, Name = "Spell E", Cooldown = (double)CdSecondsE, Charges = 2 },
                 Category = SpellCategory.Rotational,
                 IndependentCharges = true,
-            },            new SpellbookAbility
+            },
+            new SpellbookAbility
             {
                 PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownHaste = CooldownHasteScaling.Duration },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownHaste = CooldownHasteScaling.Duration },
                 Category = SpellCategory.Rotational,
             },
         ];
