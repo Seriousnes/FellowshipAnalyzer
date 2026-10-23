@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Vigour;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
@@ -75,6 +76,13 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.RunicProliferationBuff],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
+        },
+        new()
+        {
+            PrimarySpell = CoreItems.RepositoryOfFrozenLight,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.AncientIceshapersTome.Id) == true,
         },
         new()
         {
