@@ -406,6 +406,7 @@
       "icon": "T_Lisa_Barrage",
       "abilityCategory": "Core",
       "cooldown": 15,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.5,
@@ -1379,6 +1380,7 @@
       "icon": "Gunde_Frontal",
       "abilityCategory": "Core",
       "cooldown": 9,
+      "cooldownScalesWithHaste": true,
       "range": 700,
       "radius": 700
     },
@@ -1480,6 +1482,7 @@
       "icon": "T_Gunde_Sawblade",
       "abilityCategory": "Power",
       "cooldown": 15,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "radius": 850
     },
@@ -1496,6 +1499,7 @@
       "icon": "T_Gunde_Cleave",
       "abilityCategory": "Core",
       "cooldown": 12,
+      "cooldownScalesWithHaste": true,
       "range": 500
     },
     "HeartSplitterDamage": {
@@ -1586,6 +1590,7 @@
       "icon": "Gunde_AOESwing_01",
       "abilityCategory": "Basic",
       "cooldown": 5,
+      "cooldownScalesWithHaste": true,
       "range": 700,
       "radius": 700
     },
@@ -1839,6 +1844,7 @@
       "icon": "T_Warmaster_FatalBlow",
       "abilityCategory": "Basic",
       "cooldown": 6,
+      "cooldownScalesWithHaste": true,
       "range": 500
     },
     "PowerStrikeCleaveDamage": {
@@ -1952,6 +1958,7 @@
       "icon": "T_Warmaster_Shieldthrow",
       "abilityCategory": "Core",
       "cooldown": 21,
+      "cooldownScalesWithHaste": true,
       "range": 3000
     },
     "ShieldThrowDamage": {
@@ -2003,6 +2010,7 @@
       "icon": "T_Warmaster_shockwave",
       "abilityCategory": "Power",
       "cooldown": 30,
+      "cooldownScalesWithHaste": true,
       "radius": 1000
     },
     "ShockwaveDamage": {
@@ -2832,7 +2840,8 @@
       "name": "Serenity",
       "icon": "T_Meiko_Selfheal",
       "abilityCategory": "Utility",
-      "cooldown": 10
+      "cooldown": 10,
+      "cooldownScalesWithHaste": true
     },
     "SerenityHealBonusTracker": {
       "kind": "effect",
@@ -4047,6 +4056,7 @@
       "icon": "T_Ink_ChainLightning",
       "abilityCategory": "Core",
       "cooldown": 8,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "resourceGeneration": {
         "resource": "primary",
@@ -4079,6 +4089,7 @@
       "icon": "T_Ink_Cullingstrike",
       "abilityCategory": "Power",
       "cooldown": 6,
+      "cooldownScalesWithHaste": true,
       "range": 550
     },
     "CullingStrikeDamage": {
@@ -4106,6 +4117,7 @@
       "icon": "T_Ink_Facebreaker",
       "abilityCategory": "Basic",
       "cooldown": 6,
+      "cooldownScalesWithHaste": true,
       "range": 550,
       "resourceGeneration": {
         "resource": "primary",
@@ -4132,6 +4144,7 @@
       "icon": "T_Ink_Facebreaker",
       "abilityCategory": "Basic",
       "cooldown": 9,
+      "cooldownScalesWithHaste": true,
       "range": 550
     },
     "FaceBreakerOldCost": {
@@ -4212,6 +4225,7 @@
       "icon": "T_Ink_TimerAbility",
       "abilityCategory": "Core",
       "cooldown": 8,
+      "cooldownScalesWithHaste": true,
       "range": 550,
       "radius": 800,
       "resourceGeneration": {
@@ -4269,6 +4283,7 @@
       "icon": "T_Ink_Leap",
       "abilityCategory": "Movement",
       "cooldown": 20,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "radius": 500
     },
@@ -4394,6 +4409,7 @@
       "name": "Taunt",
       "icon": "T_Ink_Taunt",
       "cooldown": 15,
+      "cooldownScalesWithHaste": true,
       "range": 4000
     },
     "TauntDebuff": {
@@ -4515,6 +4531,7 @@
       "icon": "T_Vigor_AoEHeal",
       "abilityCategory": "Core",
       "cooldown": 15,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "costs": {
@@ -4540,6 +4557,7 @@
       "icon": "T_Vigor_DawnSphere",
       "abilityCategory": "Power",
       "cooldown": 10,
+      "cooldownScalesWithHaste": true,
       "costs": {
         "primary": 2
       }
@@ -4677,6 +4695,7 @@
       "icon": "T_Vigor_Shield",
       "abilityCategory": "Power",
       "cooldown": 20,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.2,
       "costs": {
@@ -4720,6 +4739,7 @@
       "icon": "T_Vigor_Cone",
       "abilityCategory": "Core",
       "cooldown": 10,
+      "cooldownScalesWithHaste": true,
       "radius": 3000,
       "costs": {
         "mana": 37
@@ -4969,6 +4989,7 @@
       "icon": "T_Sune_Blindingslash",
       "abilityCategory": "Basic",
       "cooldown": 6,
+      "cooldownScalesWithHaste": true,
       "range": 500
     },
     "BlindingSlashDamage": {
@@ -5127,6 +5148,7 @@
       "icon": "T_Sune_Omnistrike",
       "abilityCategory": "Core",
       "cooldown": 18,
+      "cooldownScalesWithHaste": true,
       "radius": 800,
       "resourceGeneration": {
         "resource": "spirit",
@@ -5219,6 +5241,7 @@
       "icon": "T_Sune_SolarBlades",
       "abilityCategory": "Core",
       "cooldown": 9,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "costs": {
@@ -5244,6 +5267,7 @@
       "icon": "T_Sune_Solarshield",
       "abilityCategory": "Defensive",
       "cooldown": 15,
+      "cooldownScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 182

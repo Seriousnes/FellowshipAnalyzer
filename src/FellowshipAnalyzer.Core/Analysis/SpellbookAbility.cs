@@ -53,9 +53,17 @@ public sealed record SpellbookAbility
     public AbilityCategory? AbilityCategory => PrimarySpell.AbilityCategory;
 
     /// <summary>
-    /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.
+    /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>. Defaults to
+    /// <see cref="PrimarySpell"/>'s <see cref="Spell.CooldownScalesWithHaste"/>; set it only where the
+    /// game behaves otherwise than the export states.
     /// </summary>
-    public bool CooldownReducedByHaste { get; init; }
+    public bool CooldownReducedByHaste
+    {
+        get => _cooldownReducedByHaste ?? PrimarySpell.CooldownScalesWithHaste == true;
+        init => _cooldownReducedByHaste = value;
+    }
+
+    private readonly bool? _cooldownReducedByHaste;
 
     /// <summary>
     /// The number of charges the ability has, read from <see cref="PrimarySpell"/>.

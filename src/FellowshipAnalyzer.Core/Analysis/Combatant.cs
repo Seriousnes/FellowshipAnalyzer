@@ -30,6 +30,10 @@ public sealed class FullCombatant : Combatant
 
     private const int EmptySlotItemId = 0;
     private const int LegendaryQuality = 6;
+    /// <summary>
+    /// Strand of Eternity's Cooldown Acceleration. Every legendary grants the same single-stack effect, so
+    /// the acceleration counts once however many legendaries are equipped.
+    /// </summary>
     private const double StrandOfEternityAcceleration = 0.10;
     private const int BlessingTiers = 4;
 
@@ -47,7 +51,7 @@ public sealed class FullCombatant : Combatant
             .DistinctBy(i => i.Id)
             .ToDictionary(i => i.Id);
 
-        Legendary = info.Gear.SingleOrDefault(item => item.Quality >= LegendaryQuality);
+        Legendaries = [.. info.Gear.Where(item => item.Id != EmptySlotItemId && item.Quality >= LegendaryQuality)];
         Stats = BuildStats(info);
     }
 
@@ -78,8 +82,14 @@ public sealed class FullCombatant : Combatant
     /// <summary>Total gem power of socketed Emerald gems, the input to <see cref="CombatantStats.AbilityCooldownReduction"/>.</summary>
     public int Emerald => Info.Emerald;
 
-    /// <summary>True when any equipped item is legendary quality (the top rarity, of which only one may be equipped).</summary>
-    public Item? Legendary { get; }
+    /// <summary>
+    /// Every equipped item of legendary quality, the top rarity. No legendary is unique-equipped, so one
+    /// can be worn in each of the chest, head and legs slots.
+    /// </summary>
+    public IReadOnlyList<Item> Legendaries { get; }
+
+    /// <summary>True when the legendary item <paramref name="itemId"/> is equipped.</summary>
+    public bool HasLegendary(int itemId) => Legendaries.Any(item => item.Id == itemId);
 
     /// <summary>The item equipped in the head slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Head => GetSlot(GearSlot.Head);
@@ -197,7 +207,7 @@ public sealed class FullCombatant : Combatant
         Spirit = info.Spirit,
         AbilityCooldownReduction =
             [new CooldownModifier(PassiveBonusTracker.BlessingOfTheCommanderReduction(info.Emerald))],
-        CooldownAcceleration = Legendary is not null
+        CooldownAcceleration = Legendaries.Count > 0
             ? [new CooldownModifier(StrandOfEternityAcceleration)]
             : [],
     };
