@@ -54,6 +54,12 @@
       "name": "Converging Timelines",
       "icon": "T_Nhance_RPG_Shadow_40"
     },
+    "ConvergingTimelinesLonesomeSong": {
+      "kind": "effect",
+      "id": 2820,
+      "name": "Converging Timelines",
+      "icon": "T_Nhance_RPG_Shadow_40"
+    },
     "EchoesOfDivinity": {
       "kind": "effect",
       "id": 2818,
@@ -1434,6 +1440,12 @@
       "id": 3236,
       "name": "Blood Arc",
       "icon": "Gunde_Frontal"
+    },
+    "Bloodbath": {
+      "kind": "effect",
+      "id": 3216,
+      "name": "Bloodbath",
+      "icon": "T_Nhance_RPG_BloodCombat_22"
     },
     "BloodboundSpirit": {
       "kind": "ability",
