@@ -14,6 +14,7 @@ public sealed partial class CrashAndBurnAnalyzer : Analyzer
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 
+    /// <summary>Fire Ball cooldown progress from Searing Blaze damage, in milliseconds.</summary>
     public CooldownReductionResult CooldownReduction { get; private set; } = new();
 
     [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]

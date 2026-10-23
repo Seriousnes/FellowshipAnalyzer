@@ -8,7 +8,8 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 public sealed partial class RekindlingFlamesAnalyzer : Analyzer
 {
     public int QualifyingDeaths { get; private set; }
-    public CooldownReductionResult CooldownReduction { get; private set; } = new();    
+    /// <summary>Engulfing Flames cooldown progress from enemy deaths, in milliseconds.</summary>
+    public CooldownReductionResult CooldownReduction { get; private set; } = new();
 
     [On<DeathEvent>]
     private void OnDeath(DeathEvent e)

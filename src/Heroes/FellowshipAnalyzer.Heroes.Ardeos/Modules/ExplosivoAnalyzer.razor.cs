@@ -17,6 +17,7 @@ public sealed partial class ExplosivoAnalyzer : Analyzer
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 
+    /// <summary>Apocalypse cooldown progress from Fire Ball casts, in milliseconds.</summary>
     public CooldownReductionResult CooldownReduction { get; private set; } = new();
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FireBall))]
