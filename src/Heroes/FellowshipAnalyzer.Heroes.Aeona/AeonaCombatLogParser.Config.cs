@@ -10,6 +10,6 @@ public sealed partial class AeonaCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:6g3jkMGFqrZn1wmW/417/310",
+        ExampleReport = "a:V2XvpaMWxLTnjDAZ/43/4",
     };
 }

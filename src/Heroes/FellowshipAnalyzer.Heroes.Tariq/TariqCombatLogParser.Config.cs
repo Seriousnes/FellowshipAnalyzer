@@ -10,6 +10,6 @@ public sealed partial class TariqCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:NcqHDKzamL7n6YFv/18/5",
+        ExampleReport = "a:dXGv74VgMy9T1xLD/53/2",
     };
 }

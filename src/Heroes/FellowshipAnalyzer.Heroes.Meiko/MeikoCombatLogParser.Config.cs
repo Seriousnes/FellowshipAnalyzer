@@ -10,6 +10,6 @@ public sealed partial class MeikoCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "kKCqY6BWrnzHapvm/17/78",
+        ExampleReport = "a:dXGv74VgMy9T1xLD/53/4",
     };
 }

@@ -10,6 +10,6 @@ public sealed partial class GundeCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:QK8XBDqf6ZhFLWAy/55/5",
+        ExampleReport = "a:2CL3gJ6VdjRtfa41/32/5",
     };
 }

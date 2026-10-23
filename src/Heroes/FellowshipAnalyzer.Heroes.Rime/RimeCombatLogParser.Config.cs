@@ -10,6 +10,6 @@ public sealed partial class RimeCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:6g3jkMGFqrZn1wmW/408/2",
+        ExampleReport = "a:BnpLWR1dhaMKkfZc/56/3",
     };
 }
