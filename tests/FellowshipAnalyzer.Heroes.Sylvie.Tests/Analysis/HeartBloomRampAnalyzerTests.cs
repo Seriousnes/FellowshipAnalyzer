@@ -66,6 +66,60 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
+    public async Task TwoBloomsAliveAtOnceEachKeepTheirOwnReleases()
+    {
+        var parser = await Analyze(
+            Combatant(Core.Common.Spells.SylvieTalents.FlowerPower),
+            Cast(PullStart + 1_000, Spells.HeartBloom),
+            Heal(PullStart + 3_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 5_000, Spells.HeartBloom, TankId, amount: 100),
+            Cast(PullStart + 6_000, Spells.HeartBloom),
+            Heal(PullStart + 7_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 8_000, Spells.HeartBloom, AllyId, amount: 50),
+            Heal(PullStart + 9_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 10_000, Spells.HeartBloom, AllyId, amount: 50),
+            Heal(PullStart + 22_000, Spells.HeartBloom, AllyId, amount: 50));
+
+        var casts = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts;
+
+        casts.Count.ShouldBe(2);
+        casts[0].Releases.ShouldBe(4);
+        casts[0].Effective.ShouldBe(400);
+        casts[1].Releases.ShouldBe(3);
+        casts[1].Effective.ShouldBe(150);
+    }
+
+    [Fact]
+    public async Task HastedPulsesGoToTheBloomTheirIntervalMatches()
+    {
+        const int hasteRating = 1_000;
+        var haste = Core.Analysis.StatTracker.RatingToPercentage(hasteRating);
+        var period = (int)(SylvieKit.HeartBloomTickIntervalMs * 100.0 / (100.0 + haste * 100.0));
+        var first = PullStart + 1_000;
+        var second = first + (period * 5 / 2);
+
+        var combatant = Combatant(Core.Common.Spells.SylvieTalents.FlowerPower);
+        combatant.Haste = hasteRating;
+
+        var parser = await Analyze(
+            combatant,
+            Cast(first, Spells.HeartBloom),
+            Heal(first + period, Spells.HeartBloom, TankId, amount: 100),
+            Heal(first + (2 * period), Spells.HeartBloom, TankId, amount: 100),
+            Cast(second, Spells.HeartBloom),
+            Heal(first + (3 * period), Spells.HeartBloom, TankId, amount: 100),
+            Heal(second + period, Spells.HeartBloom, AllyId, amount: 10),
+            Heal(first + (4 * period), Spells.HeartBloom, TankId, amount: 100),
+            Heal(second + (2 * period), Spells.HeartBloom, AllyId, amount: 10));
+
+        haste.ShouldBeGreaterThan(0.1);
+        var casts = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts;
+
+        casts[0].Effective.ShouldBe(400);
+        casts[1].Effective.ShouldBe(20);
+    }
+
+    [Fact]
     public async Task WhereBlueyWasIsRecordedOnTheCast()
     {
         var parser = await Analyze(
