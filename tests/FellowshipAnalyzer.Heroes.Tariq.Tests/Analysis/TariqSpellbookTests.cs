@@ -39,28 +39,13 @@ public sealed class TariqSpellbookTests
     }
 
     /// <summary>
-    /// <c>CooldownReducedByHaste</c> is hand-written and nothing generates it, so it drifts from the game
-    /// data silently: unset, <c>SpellUsable</c> models the unhasted cooldown and every readiness metric
-    /// built on it reads late. These five are the abilities the season 3 hero data marks
-    /// <c>SpellCDHasted: true</c> in Tariq's <c>Kit</c> block, and no others.
+    /// <c>CooldownHaste</c> defaults to the export's <c>Spell.CooldownHaste</c>. No Tariq entry departs
+    /// from the export, so every entry's cooldown Haste scaling matches it.
     /// </summary>
     [Fact]
-    public void OnlyTheAbilitiesTheHeroDataMarksHasted_HaveHastedCooldowns()
+    public void EveryEntry_HasTheCooldownHasteScalingTheExportStates()
     {
-        var hasted = new TariqAbilities().Spellbook()
-            .Where(spell => spell.CooldownReducedByHaste)
-            .Select(spell => (int)spell.PrimarySpell.FSLID)
-            .ToList();
-
-        int[] expected =
-        [
-            TariqSpells.LeapSmash.FSLID,
-            TariqSpells.CullingStrike.FSLID,
-            TariqSpells.ChainLightning.FSLID,
-            TariqSpells.HeavyStrike.FSLID,
-            TariqSpells.FaceBreaker.FSLID,
-        ];
-
-        hasted.ShouldBe(expected, ignoreOrder: true);
+        foreach (var spell in new TariqAbilities().Spellbook())
+            spell.CooldownHaste.ShouldBe(spell.PrimarySpell.CooldownHaste, spell.PrimarySpell.Name);
     }
 }
