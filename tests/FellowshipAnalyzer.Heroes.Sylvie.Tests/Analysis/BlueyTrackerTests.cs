@@ -139,4 +139,20 @@ public sealed class BlueyTrackerTests
 
         analyzer.ManaSaved.ShouldBe(118 - (int)Math.Round(118 * SylvieKit.EmbraceManaCostScaler));
     }
+
+    [Fact]
+    public async Task MovingBlueySpendsManaOnlyOnFluttercallProtect()
+    {
+        var parser = await Analyze(
+            Cast(PullStart + 1_000, Spells.FluttercallProtect, targetId: TankId),
+            ApplyBuff(PullStart + 1_000, Spells.FluttercallProtectBuff, TankId),
+            Cast(PullStart + 20_000, Spells.FluttercallEmbrace, targetId: PlayerId),
+            ApplyBuff(PullStart + 20_000, Spells.FluttercallEmbraceBuff, PlayerId),
+            Cast(PullStart + 30_000, Spells.FluttercallProtect, targetId: TankId));
+
+        var mana = parser.SylvieManaTracker.ShouldNotBeNull();
+
+        mana.Spends.ShouldAllBe(spend => spend.SpellId == Spells.FluttercallProtect.FSLID);
+        mana.Spends.Select(spend => spend.Mana).ShouldBe([18, (int)Math.Round(18 * SylvieKit.EmbraceManaCostScaler)]);
+    }
 }
