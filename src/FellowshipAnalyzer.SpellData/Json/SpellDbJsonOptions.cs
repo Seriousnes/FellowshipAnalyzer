@@ -29,6 +29,7 @@ public static class SpellDbJsonOptions
             new JsonStringEnumConverter<MagicSchool>(),
             new JsonStringEnumConverter<GenerationMeasure>(),
             new JsonStringEnumConverter<GenerationTrigger>(),
+            new JsonStringEnumConverter<CooldownHasteScaling>(),
         },
     };
 }

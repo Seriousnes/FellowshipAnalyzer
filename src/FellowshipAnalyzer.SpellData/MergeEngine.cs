@@ -75,6 +75,7 @@ public static class MergeEngine
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
                     .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
                     .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
+                    .SetIf("cooldownHaste", ability.CooldownHaste.HasValue, ProvenanceSource.Export)
                     .SetIf("range", ability.Range.HasValue, ProvenanceSource.Export)
                     .SetIf("radius", ability.Radius.HasValue, ProvenanceSource.Export)
                     .Set("charges", ProvenanceSource.Export)
@@ -96,7 +97,8 @@ public static class MergeEngine
                     channelTickInterval: ability.ChannelTick,
                     costs: costs,
                     abilityCategory: abilityCategory,
-                    resourceGeneration: generation);
+                    resourceGeneration: generation,
+                    cooldownHaste: ability.CooldownHaste);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -399,12 +401,14 @@ public static class MergeEngine
         double? castDuration, double? channelDuration, double? channelTickInterval,
         Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null,
-        ResourceGeneration? resourceGeneration = null) =>
+        ResourceGeneration? resourceGeneration = null,
+        CooldownHasteScaling? cooldownHaste = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
             AbilityCategory = abilityCategory,
             ResourceGeneration = resourceGeneration,
             Cooldown = cooldown,
+            CooldownHaste = cooldownHaste,
             CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
             Radius = radius,
@@ -499,6 +503,7 @@ public static class MergeEngine
             .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
             .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
             .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
+            .SetIf("cooldownHaste", ability?.CooldownHaste is not null, ProvenanceSource.Export)
             .SetIf("range", ability?.Range is not null, ProvenanceSource.Export)
             .SetIf("radius", ability?.Radius is not null, ProvenanceSource.Export)
             .Set("charges", ProvenanceSource.Export)
@@ -519,7 +524,8 @@ public static class MergeEngine
             channelTickInterval: ability?.ChannelTick,
             costs: costs,
             abilityCategory: abilityCategory,
-            resourceGeneration: generation);
+            resourceGeneration: generation,
+            cooldownHaste: ability?.CooldownHaste);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         if (!MemberNaming.IsValidIdentifier(curated.Member))
