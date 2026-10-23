@@ -48,20 +48,4 @@ public sealed class AeonaBuildTests
         build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
     }
 
-    [Fact]
-    public async Task WithAllThreeLegendaries_EachChangesItsOwnNumbers()
-    {
-        var parser = await Analyze(BossPull(), Info([], AeonaLegendaries.MassEntropy, AeonaLegendaries.ChronoTrigger, AeonaLegendaries.LonesomeSong));
-
-        var build = parser.AeonaBuild.ShouldNotBeNull();
-        build.MassEntropy.ShouldBeTrue();
-        build.ChronoTrigger.ShouldBeTrue();
-        build.LonesomeSong.ShouldBeTrue();
-        build.EntropyClaimCharges.ShouldBe(2);
-        build.EntropyClaimDurationMs.ShouldBe(8_000);
-        build.UnfoldingDoomDurationMs.ShouldBe(15_000);
-        build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
-        build.ConvergingTimelinesOnCleanse.ShouldBe(1.0);
-        parser.GetModule<AeonaAbilities>()!.GetMaxCharges(Spells.EntropyClaim.FSLID).ShouldBe(2);
-    }
 }

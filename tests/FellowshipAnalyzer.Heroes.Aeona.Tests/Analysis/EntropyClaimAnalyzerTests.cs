@@ -148,15 +148,6 @@ public sealed class EntropyClaimAnalyzerTests
     }
 
     [Fact]
-    public async Task MassEntropyWornWithAnotherLegendary_StillBuildsTheAnalyzer()
-    {
-        var info = Info(Burst, AeonaLegendaries.MassEntropy, AeonaLegendaries.ChronoTrigger);
-        var parser = await AeonaLog.Analyze(BossPull(), info, Completion(1_000, Spells.EntropyClaim));
-
-        parser.EntropyClaimAnalyzers.ShouldNotBeEmpty();
-    }
-
-    [Fact]
     public async Task TwoChargesRechargeFromTheirOwnCasts()
     {
         var parser = await AeonaLog.Analyze(BossPull(),

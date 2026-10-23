@@ -4,9 +4,8 @@ using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// The equipped legendaries and every number each one changes. Registered dungeon-lifetime; every analyzer
-/// and guide reads its build questions here rather than comparing item ids. A player can wear all three
-/// legendaries at once, and each changes only its own numbers.
+/// The equipped legendary and every number it changes. Registered dungeon-lifetime; every analyzer and
+/// guide reads its build questions here rather than comparing item ids.
 /// </summary>
 /// <remarks>
 /// The base figures are the codex records: Entropy's Claim (ability 1876) lasts 6 s and casts in 1.5 s;
