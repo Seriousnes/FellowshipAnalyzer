@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Immutable per-analysis context exposing only the values a module reasonably needs at construction
-/// time: the selected player, the dungeon being analyzed, and report-level actor data. Populated by
+/// time: the selected player, the dungeon being analyzed, the parser's hero, and report-level actor data. Populated by
 /// <see cref="CombatLogParser.Analyze"/> and read by generator-emitted <c>CreateInstance</c>.
 /// </summary>
 public sealed record ParseContext(
@@ -12,7 +12,8 @@ public sealed record ParseContext(
     ReportDungeon Dungeon,
     Dictionary<int, string> ActorNames,
     FullCombatant SelectedCombatant,
-    List<ReportActor>? Actors = null)
+    List<ReportActor>? Actors = null,
+    Hero? Hero = null)
 {
     /// <summary>Report-level actor master data, empty when the host supplied none.</summary>
     public List<ReportActor> Actors { get; init; } = Actors ?? [];

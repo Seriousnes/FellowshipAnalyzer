@@ -120,6 +120,25 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
         Assert.Equal(new CooldownReductionResult(300, 300), analyzer.CooldownReduction);
     }
 
+    [Theory]
+    [InlineData(HeroName.Ardeos)]
+    [InlineData(HeroName.Elarion)]
+    [InlineData(HeroName.Rime)]
+    [InlineData(HeroName.Gunde)]
+    [InlineData(HeroName.Mara)]
+    [InlineData(HeroName.Tariq)]
+    public void Item5986GrantingAnotherWeaponPower_DoesNotActivate(HeroName hero)
+    {
+        var combatant = new FullCombatant(new CombatantInfoEvent
+        {
+            SourceId = PlayerId,
+            Gear = [new FellowshipAnalyzer.Core.Events.Item { Id = 5986 }],
+        });
+        var context = new ParseContext(PlayerId, TestDungeon, [], combatant, Hero: hero);
+
+        Assert.False(HasRepositoryOfFrozenLightGear.IsActive(context));
+    }
+
     private static async Task<RepositoryOfFrozenLightAnalyzer> Analyze(List<Event> events)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);

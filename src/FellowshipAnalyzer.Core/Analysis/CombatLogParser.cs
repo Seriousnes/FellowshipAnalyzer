@@ -391,7 +391,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
+        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors, Hero);
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
