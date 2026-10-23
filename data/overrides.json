@@ -117,7 +117,6 @@
       "id": 2227,
       "name": "Ice Comet",
       "icon": "T_Rime_OnTargetPulsatingAOE",
-      "abilityCategory": "Power",
       "range": 3000,
       "radius": 700,
       "costs": { "tertiary": 2 }
@@ -547,16 +546,14 @@
       "id": 2308,
       "name": "Backstab",
       "icon": "Mara_backstab",
-      "abilityCategory": "Basic",
-      "range": 500,
-      "costs": { "primary": 20 },
+      "abilityCategory": "Core",
       "resourceGeneration": { "resource": "secondary", "amount": 2, "criticalAmount": 3, "trigger": "PerCast" }
     },
     "SkitteringBladesStealth": {
       "id": 2309,
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder",
-      "abilityCategory": "Basic",
+      "abilityCategory": "Core",
       "range": 800,
       "radius": 800,
       "costs": { "primary": 35 },
@@ -617,9 +614,7 @@
     "LashingStormkickAlt": {
       "id": 2310,
       "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08",
-      "abilityCategory": "Power",
-      "range": 800
+      "icon": "Meiko_AbilityIcon_08"
     },
     "EarthfistBarrage": {
       "cooldown": null
