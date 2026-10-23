@@ -1143,7 +1143,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             sb.AppendLine("    public static " + ItemTypeGlobalName + " " + entry.Member + " { get; } = new(" +
                           entry.ItemId.ToString(CultureInfo.InvariantCulture) + ", " +
                           Literal(entry.ItemName) + ", " + Literal(entry.Icon) +
-                          (heroMember is null ? "" : ", " + heroMember) + ");");
+                          (heroMember is null ? "" : ", " + heroMember) + ") { PowerName = " + Literal(entry.PowerName) + " };");
             sb.AppendLine();
         }
         sb.AppendLine("}");
