@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Contracts.Design;
 using FellowshipAnalyzer.Core.Events;
 
@@ -122,7 +123,7 @@ public partial class SpellUsable(
     {
         var ability = _abilities.GetAbility(spellId);
         var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-        return baseDurationMs <= 0 ? 0 : (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / EffectiveRate(spellId));
+        return baseDurationMs <= 0 ? 0 : StartDuration(ability, baseDurationMs, EffectiveRate(spellId));
     }
 
     /// <summary>
@@ -149,7 +150,7 @@ public partial class SpellUsable(
             var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
             if (baseDurationMs <= 0) return;
             var rate = EffectiveRate(spellId);
-            var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
+            var cdDuration = StartDuration(ability, baseDurationMs, rate);
 
             var maxCharges = _abilities.GetMaxCharges(spellId);
 
@@ -341,7 +342,7 @@ public partial class SpellUsable(
         var ability = _abilities.GetAbility(spellId);
         var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
         var rate = EffectiveRate(spellId);
-        var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
+        var cdDuration = StartDuration(ability, baseDurationMs, rate);
 
         cd = cd with
         {
@@ -471,8 +472,8 @@ public partial class SpellUsable(
 
     /// <summary>
     /// The cooldown-speed multiplier for <paramref name="spellId"/>: <c>1 + CDA</c>, where the Cooldown
-    /// Acceleration pool sums the haste term (the player's haste when the ability is flagged
-    /// <c>CooldownReducedByHaste</c>, else 0) and the pool <see cref="StatTracker"/> tracks for this ability:
+    /// Acceleration pool sums the haste term (the player's haste when Haste enters the ability's time
+    /// rate, else 0) and the pool <see cref="StatTracker"/> tracks for this ability:
     /// the gear-derived seed (today a legendary's unscoped Strand of Eternity) plus tracked runtime modifiers
     /// such as Chronoshift, with scoped entries contributing only to the abilities they match. Recovery and
     /// acceleration are one mechanic fed by a single additive pool, so each source contributes a term rather
@@ -485,7 +486,16 @@ public partial class SpellUsable(
             + _statTracker.CurrentCooldownAcceleration(_abilities.GetAbility(spellId));
 
     private double HasteRecovery(int spellId) =>
-        _abilities.GetAbility(spellId)?.CooldownReducedByHaste == true ? _haste.Current : 0.0;
+        _abilities.GetAbility(spellId)?.CooldownHaste == CooldownHasteScaling.TimeRate ? _haste.Current : 0.0;
+
+    /// <summary>
+    /// The milliseconds a cooldown starting now runs at <paramref name="rate"/>: the base after Ability
+    /// Cooldown Reduction, divided by <c>1 + haste</c> when Haste scales the duration, then by the rate.
+    /// </summary>
+    private int StartDuration(SpellbookAbility? ability, int baseDurationMs, double rate) =>
+        (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs)
+            / (ability?.CooldownHaste == CooldownHasteScaling.Duration ? 1.0 + _haste.Current : 1.0)
+            / rate);
 
     [On<ChangeCooldownModifierEvent>]
     private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
@@ -564,7 +574,7 @@ public partial class SpellUsable(
             var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
             if (baseDurationMs <= 0) return;
             var rate = EffectiveRate(spellId);
-            var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
+            var cdDuration = StartDuration(ability, baseDurationMs, rate);
             var maxCharges = _abilities.GetMaxCharges(spellId);
 
             cd = new CooldownInfo(
