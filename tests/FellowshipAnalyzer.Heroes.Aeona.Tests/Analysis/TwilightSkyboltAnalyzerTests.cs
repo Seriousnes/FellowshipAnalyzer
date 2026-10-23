@@ -141,6 +141,24 @@ public sealed class TwilightSkyboltAnalyzerTests
         analyzers[1].ChargesLost.ShouldBe(analyzers[1].TimeAtMaxChargesMs / analyzers[1].RechargeDurationMs);
     }
 
+    [Fact]
+    public async Task ChargesLost_SplitsACappedPullAtAHasteChange()
+    {
+        var pullEnd = 35_000;
+        var hasteAt = 17_500;
+        var (analyzers, haste) = await AnalyzeAll(Dungeon with { EndTime = pullEnd }, SpiritOfHeroism(hasteAt));
+
+        haste.ShouldBeGreaterThan(0);
+        var hastedRechargeMs = (int)(RechargeMs / (1 + haste));
+        var expected = (int)Math.Floor(
+            ((double)hasteAt / RechargeMs) + ((double)(pullEnd - hasteAt) / hastedRechargeMs));
+
+        var analyzer = analyzers.ShouldHaveSingleItem();
+        analyzer.TimeAtMaxChargesMs.ShouldBe(pullEnd);
+        analyzer.ChargesLost.ShouldBe(expected);
+        analyzer.ChargesLost.ShouldNotBe(analyzer.TimeAtMaxChargesMs / analyzer.RechargeDurationMs);
+    }
+
     private static async Task<TwilightSkyboltAnalyzer> Analyze(params Event[] events)
     {
         var (analyzers, _) = await AnalyzeAll(Dungeon, events);

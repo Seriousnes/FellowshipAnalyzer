@@ -567,6 +567,45 @@ public partial class SpellUsable(
     public int RechargeDurationDuring(int spellId, PullStartEvent pull) =>
         RechargeDurationDuring(spellId, pull.StartTime, pull.EndTime);
 
+    /// <summary>
+    /// The recharges of <paramref name="spellId"/> that fit across <paramref name="start"/> to
+    /// <paramref name="end"/>: each stretch of the window divided by the recharge duration in force
+    /// across it, summed.
+    /// </summary>
+    public double RechargesDuring(int spellId, int start, int end)
+    {
+        if (end <= start)
+            return 0;
+
+        var key = _abilities.GetAbility(spellId)?.PrimarySpell.FSLID.Value ?? spellId;
+        if (!_rechargeHistory.TryGetValue(key, out var history) || history.Count == 0)
+        {
+            var current = RechargeDuration(spellId);
+            return current > 0 ? (double)(end - start) / current : 0;
+        }
+
+        double recharges = 0;
+        var duration = history[0].Duration;
+        var at = start;
+        foreach (var (timestamp, value) in history)
+        {
+            if (timestamp <= start)
+            {
+                duration = value;
+                continue;
+            }
+
+            if (timestamp >= end) break;
+
+            recharges += (double)(timestamp - at) / duration;
+            at = timestamp;
+            duration = value;
+        }
+
+        recharges += (double)(end - at) / duration;
+        return recharges;
+    }
+
     private readonly Dictionary<int, List<(int Timestamp, int Duration)>> _rechargeHistory = [];
 
     private void SampleRechargeDurations(int timestamp)
