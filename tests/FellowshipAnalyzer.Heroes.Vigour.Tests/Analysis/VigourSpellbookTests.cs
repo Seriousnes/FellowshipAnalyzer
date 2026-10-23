@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 
 using Shouldly;
 
@@ -14,6 +15,8 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis;
 
 public sealed class VigourSpellbookTests
 {
+    private const int HasteRating = 1000;
+
     [Fact]
     public void EveryEntry_HasARealCategory()
     {
@@ -32,7 +35,7 @@ public sealed class VigourSpellbookTests
 
         abilities.GetMaxCharges(Spells.LuminousBarrier.FSLID).ShouldBe(2);
         abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull());
-        parser.SacredBarrier.ShouldNotBeNull();
+        abilities.GetAbility(Spells.LuminousBarrier.FSLID).ShouldNotBeNull().CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
     }
 
     [Fact]
@@ -44,5 +47,23 @@ public sealed class VigourSpellbookTests
 
         abilities.GetMaxCharges(Spells.LuminousBarrier.FSLID).ShouldBe(1);
         abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull());
+        abilities.GetAbility(Spells.LuminousBarrier.FSLID).ShouldNotBeNull().CooldownHaste.ShouldBe(CooldownHasteScaling.Duration);
+    }
+
+    [Fact]
+    public async Task SacredBarrierAcceleratesLuminousBarrierByHasteOnce()
+    {
+        var combatant = Combatant(VigourTalents.SacredBarrier);
+        combatant.Haste = HasteRating;
+
+        var parser = await Analyze(combatant, Cast(PullStart, Spells.Dawnflare));
+
+        var haste = parser.GetModule<Haste>().ShouldNotBeNull().Current;
+        haste.ShouldBeGreaterThan(0);
+
+        var spellUsable = parser.GetModule<SpellUsable>().ShouldNotBeNull();
+        spellUsable.EffectiveRate(Spells.LuminousBarrier.FSLID).ShouldBe(1.0 + haste, tolerance: 1e-9);
+        ((double)spellUsable.RechargeDurationDuring(Spells.LuminousBarrier.FSLID, PullStart, PullEnd))
+            .ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull() * 1000 / (1.0 + haste), tolerance: 1);
     }
 }
