@@ -11,7 +11,7 @@ public class GeneratedRegistryTests
     public void GundeRegistry_ExposesEveryAreaAbilityRadiusInGameUnits()
     {
         GundeSpells.Slaughter.Radius.ShouldBe(700);
-        GundeSpells.GrimCarve.Radius.ShouldBe(700);
+        GundeSpells.GrimCarve.Radius.ShouldBe(850);
         GundeSpells.BloodArc.Radius.ShouldBe(700);
         GundeSpells.ReaverEdge.Radius.ShouldBe(700);
         GundeSpells.BloodboundSpirit.Radius.ShouldBe(1000);
@@ -47,7 +47,7 @@ public class GeneratedRegistryTests
     [Fact]
     public void GundeRegistry_GivesGrimCarveARangeWellPastItsRadius()
     {
-        GundeSpells.GrimCarve.Radius!.Value.ShouldBe(700);
+        GundeSpells.GrimCarve.Radius!.Value.ShouldBe(850);
         GundeSpells.GrimCarve.Range!.Value.ShouldBe(3_000);
     }
 

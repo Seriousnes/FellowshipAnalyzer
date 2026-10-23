@@ -8,7 +8,7 @@
       "abilityCategory": "Power",
       "range": 3000,
       "costs": {
-        "primary": 0
+        "primary": 30
       }
     },
     "AmendFateCost": {
@@ -245,7 +245,7 @@
       "name": "Intercession",
       "icon": "T_Lisa_AoESilence",
       "abilityCategory": "Control",
-      "cooldown": 300,
+      "cooldown": 200,
       "range": 3000,
       "radius": 500,
       "costs": {
@@ -284,7 +284,7 @@
       "abilityCategory": "Power",
       "range": 3000,
       "costs": {
-        "primary": 0
+        "primary": 30
       }
     },
     "OblivionAbsorbAbsorb": {
@@ -342,7 +342,7 @@
       "icon": "T_Lisa_ChronaWave",
       "abilityCategory": "Power",
       "costs": {
-        "primary": 0
+        "primary": 50
       }
     },
     "RestoreContinuityCost": {
@@ -410,7 +410,7 @@
       "channelDuration": 2,
       "channelTickInterval": 0.5,
       "costs": {
-        "mana": 61
+        "mana": 49
       },
       "resourceGeneration": {
         "resource": "primary",
@@ -1396,7 +1396,10 @@
       "abilityCategory": "Spirit",
       "range": 1000,
       "radius": 1000,
-      "castDuration": 1
+      "castDuration": 1,
+      "costs": {
+        "spirit": 100
+      }
     },
     "BloodboundSpiritDamage": {
       "kind": "effect",
@@ -1478,7 +1481,7 @@
       "abilityCategory": "Power",
       "cooldown": 15,
       "range": 3000,
-      "radius": 700
+      "radius": 850
     },
     "GrimCarveDamage": {
       "kind": "effect",
@@ -2000,10 +2003,7 @@
       "icon": "T_Warmaster_shockwave",
       "abilityCategory": "Power",
       "cooldown": 30,
-      "radius": 1000,
-      "costs": {
-        "secondary": 0
-      }
+      "radius": 1000
     },
     "ShockwaveDamage": {
       "kind": "effect",
@@ -2070,7 +2070,7 @@
       "icon": "T_Warmaster_BleedStrike",
       "abilityCategory": "Power",
       "cooldown": 30,
-      "range": 500,
+      "range": 800,
       "costs": {
         "secondary": 2
       }
@@ -2118,7 +2118,8 @@
       "icon": "T_warmaster_Taunt",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 4000
+      "range": 4000,
+      "charges": 2
     },
     "TauntDebuff": {
       "kind": "effect",
@@ -2217,7 +2218,11 @@
       "id": 2308,
       "name": "Backstab",
       "icon": "Mara_backstab",
-      "abilityCategory": "Core",
+      "abilityCategory": "Basic",
+      "range": 500,
+      "costs": {
+        "primary": 20
+      },
       "resourceGeneration": {
         "resource": "secondary",
         "amount": 2,
@@ -2465,6 +2470,7 @@
       "id": 1131,
       "name": "Seeting Burst",
       "icon": "T_TurtleShield",
+      "abilityCategory": "Core",
       "radius": 700
     },
     "ShadowWard": {
@@ -2522,7 +2528,7 @@
       "id": 2309,
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder",
-      "abilityCategory": "Core",
+      "abilityCategory": "Basic",
       "range": 800,
       "radius": 800,
       "costs": {
@@ -2541,7 +2547,7 @@
       "name": "Stalker Step",
       "icon": "Mara_Stalkerstep",
       "abilityCategory": "Movement",
-      "cooldown": 30,
+      "cooldown": 15,
       "range": 3000,
       "charges": 2
     },
@@ -2570,7 +2576,7 @@
       "icon": "Mara_Stun",
       "abilityCategory": "Control",
       "cooldown": 24,
-      "range": 500
+      "range": 1000
     },
     "WebCrackCost": {
       "kind": "effect",
@@ -2678,7 +2684,7 @@
       "name": "Double Palm Strike",
       "icon": "Meiko_AbilityIcon_04",
       "abilityCategory": "Core",
-      "range": 500
+      "range": 800
     },
     "EarthFist": {
       "kind": "ability",
@@ -2712,7 +2718,7 @@
       "name": "Earthfist Barrage",
       "icon": "Meiko_AbilityIcon_09",
       "abilityCategory": "Power",
-      "range": 500,
+      "range": 800,
       "channelDuration": 1,
       "channelTickInterval": 0.25
     },
@@ -2770,7 +2776,7 @@
       "name": "Gust",
       "icon": "Meiko_AbilityIcon_10",
       "abilityCategory": "Movement",
-      "cooldown": 30,
+      "cooldown": 20,
       "charges": 2,
       "channelDuration": 0.5,
       "channelTickInterval": 0.5
@@ -2787,13 +2793,15 @@
       "name": "Lashing Stormkick",
       "icon": "Meiko_AbilityIcon_08",
       "abilityCategory": "Power",
-      "range": 500
+      "range": 800
     },
     "LashingStormkickAlt": {
       "kind": "ability",
       "id": 2310,
       "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08"
+      "icon": "Meiko_AbilityIcon_08",
+      "abilityCategory": "Power",
+      "range": 800
     },
     "LashingStormkickDamage": {
       "kind": "effect",
@@ -2813,7 +2821,7 @@
       "name": "Rising Earth",
       "icon": "Meiko_AbilityIcon_06",
       "abilityCategory": "Core",
-      "range": 500
+      "range": 800
     },
     "RisingStorm": {
       "kind": "ability",
@@ -2821,7 +2829,7 @@
       "name": "Rising Storm",
       "icon": "Meiko_AbilityIcon_05",
       "abilityCategory": "Core",
-      "range": 500,
+      "range": 800,
       "radius": 500
     },
     "Serenity": {
@@ -2850,7 +2858,7 @@
       "name": "Shatter Earth",
       "icon": "T_Meiko_SlamStun",
       "abilityCategory": "Major",
-      "cooldown": 60,
+      "cooldown": 45,
       "range": 3000,
       "radius": 500
     },
@@ -3016,7 +3024,7 @@
       "name": "Stone Stomp",
       "icon": "Meiko_AbilityIcon_11",
       "abilityCategory": "Control",
-      "cooldown": 120,
+      "cooldown": 60,
       "range": 800
     },
     "StoneStompCost": {
@@ -3069,7 +3077,8 @@
       "abilityCategory": "Utility",
       "cooldown": 8,
       "range": 4000,
-      "radius": 4000
+      "radius": 4000,
+      "charges": 2
     },
     "TauntDebuff": {
       "kind": "effect",
@@ -3239,10 +3248,7 @@
       "icon": "T_Rime_BirdCD",
       "abilityCategory": "Major",
       "cooldown": 60,
-      "range": 3000,
-      "costs": {
-        "tertiary": 0
-      }
+      "range": 3000
     },
     "FlightOfTheNavirAoeBuff": {
       "kind": "effect",
@@ -3388,7 +3394,7 @@
       "icon": "T_Rime_AnimaBolt",
       "abilityCategory": "Power",
       "range": 3000,
-      "castDuration": 2,
+      "castDuration": 1.5,
       "costs": {
         "tertiary": 2
       }
@@ -3448,6 +3454,7 @@
       "id": 2227,
       "name": "Ice Comet",
       "icon": "T_Rime_OnTargetPulsatingAOE",
+      "abilityCategory": "Power",
       "range": 3000,
       "radius": 700,
       "costs": {
@@ -3489,7 +3496,10 @@
       "name": "Rising Talons",
       "icon": "T_Rime_AOE_Spender",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "tertiary": 1
+      }
     },
     "SoulfrostTorrent": {
       "kind": "ability",
@@ -3509,7 +3519,10 @@
       "name": "Talon Strike",
       "icon": "T_Rime_Singletarget_spender_",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "tertiary": 1
+      }
     },
     "WinterBlessingHeal": {
       "kind": "effect",
@@ -3555,7 +3568,10 @@
       "name": "Wrath of Winter",
       "icon": "T_Rime_SpiritAbility",
       "abilityCategory": "Spirit",
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "costs": {
+        "spirit": 100
+      }
     },
     "WrathOfWinterBuff": {
       "kind": "effect",
@@ -3739,7 +3755,10 @@
       "name": "Fluttercall: Protect",
       "icon": "T_Mosse_BlueButterfly",
       "abilityCategory": "Utility",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "mana": 18
+      }
     },
     "FluttercallProtectBuff": {
       "kind": "effect",
@@ -4527,7 +4546,10 @@
       "name": "Dawnbreaker Orb",
       "icon": "T_Vigor_DawnSphere",
       "abilityCategory": "Power",
-      "cooldown": 10
+      "cooldown": 10,
+      "costs": {
+        "primary": 2
+      }
     },
     "DawnbreakerOrbActiveProjectileProc": {
       "kind": "effect",
@@ -4871,10 +4893,7 @@
       "icon": "T_Vigor_Book",
       "abilityCategory": "Control",
       "cooldown": 30,
-      "range": 3000,
-      "costs": {
-        "mana": 0
-      }
+      "range": 3000
     },
     "ThrowBookResourceCost": {
       "kind": "effect",
@@ -4909,7 +4928,10 @@
       "name": "Aura of Solace",
       "icon": "T_Sune_AuraOfSolace",
       "abilityCategory": "Utility",
-      "cooldown": 3
+      "cooldown": 3,
+      "costs": {
+        "mana": 10
+      }
     },
     "AuraOfSolaceAllyBuff": {
       "kind": "effect",
@@ -5131,7 +5153,7 @@
       "name": "Ruptured Dawn",
       "icon": "T_Sune_RisingSun",
       "abilityCategory": "Control",
-      "cooldown": 60
+      "cooldown": 45
     },
     "RupturedDawnDamage": {
       "kind": "effect",
@@ -5279,7 +5301,8 @@
       "icon": "T_Sune_Taunt",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 4000
+      "range": 4000,
+      "charges": 2
     },
     "TauntTaunt": {
       "kind": "effect",
@@ -7657,306 +7680,306 @@
   "legendaries": {
     "aeona": {
       "ChronoTrigger": {
-        "itemId": 5221,
-        "itemName": "Signet of the Chrono Trigger",
+        "itemId": 5898,
+        "itemName": "Timeweaver Dress",
         "powerId": 618,
         "powerName": "Chrono Trigger",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Lisa_Prog01_Chest_R2_T0-legendary"
       },
       "LonesomeSong": {
-        "itemId": 5217,
-        "itemName": "Time-warped Drape of the Lone Diety",
+        "itemId": 5899,
+        "itemName": "Timeweaver Helm",
         "powerId": 619,
         "powerName": "Lonesome Song",
-        "slot": "Back",
-        "icon": "Icon_Lisa_CloakLegendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Lisa_Prog01_Head_R2_T0-legendary"
       },
       "MassEntropy": {
-        "itemId": 5226,
-        "itemName": "Bands of the Withering Shores",
+        "itemId": 5900,
+        "itemName": "Timeweaver Leggings",
         "powerId": 620,
         "powerName": "Mass Entropy",
-        "slot": "Wrists",
-        "icon": "Tex_bracelets_cl_01_bg"
+        "slot": "Legs",
+        "icon": "Icon_Lisa_Prog01_Waist_R2_T0-legendary"
       }
     },
     "ardeos": {
       "DevouringFlame": {
-        "itemId": 5225,
-        "itemName": "Draconic Bracers of the Devouring Flame",
+        "itemId": 5900,
+        "itemName": "Pyromancer Codpiece",
         "powerId": 616,
         "powerName": "Devouring Flame",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_01_b"
+        "slot": "Legs",
+        "icon": "Icon_Firemage_FmCloth_Waist_R2_T0-legendary"
       },
       "Explosivo": {
-        "itemId": 5222,
-        "itemName": "Ring of Boomtastic Explosions",
+        "itemId": 5898,
+        "itemName": "Pyromancer Robe",
         "powerId": 615,
         "powerName": "Explosivo",
-        "slot": "Ring",
-        "icon": "Tex_rings_02_b1"
+        "slot": "Chest",
+        "icon": "Icon_Firemage_FmCloth_Chest_R2_T0-legendary"
       },
       "FireToad": {
-        "itemId": 5216,
-        "itemName": "Exquisite Flaming Toad Cloak",
+        "itemId": 5899,
+        "itemName": "Pyromancer Helm",
         "powerId": 593,
         "powerName": "Fire Toad",
-        "slot": "Back",
-        "icon": "Icon_Firemage_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Firemage_FmCloth_Head_R2_T0-legendary"
       }
     },
     "elarion": {
       "AstronomersHail": {
-        "itemId": 5224,
-        "itemName": "Master Astronomer\u0027s Bracers",
+        "itemId": 5900,
+        "itemName": "Skystrider Leggings",
         "powerId": 516,
         "powerName": "Astronomer\u0027s Hail",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_6_b"
+        "slot": "Legs",
+        "icon": "Icon_Bowguy_AngelicHawk_Waist_R2_T0-legendary"
       },
       "Shimmer": {
-        "itemId": 5218,
-        "itemName": "Shimmering Silver Cape",
+        "itemId": 5899,
+        "itemName": "Skystrider Helm",
         "powerId": 429,
         "powerName": "Shimmer",
-        "slot": "Back",
-        "icon": "Icon_Bowguy_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Bowguy_AngelicHawk_Head_R2_T0-legendary"
       },
       "StarstrikersAscent": {
-        "itemId": 5223,
-        "itemName": "Signet of Starstriker\u0027s Ascent",
+        "itemId": 5898,
+        "itemName": "Skystrider Hauberk",
         "powerId": 430,
         "powerName": "Starstriker\u0027s Ascent",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Bowguy_AngelicHawk_Chest_R2_T0-legendary"
       }
     },
     "gunde": {
       "BleedingHearts": {
-        "itemId": 5220,
-        "itemName": "Band of The Bleeding Heart",
+        "itemId": 5898,
+        "itemName": "Northlander\u0027s Harness",
         "powerId": 698,
         "powerName": "Bleeding Hearts",
-        "slot": "Ring",
-        "icon": "Tex_rings_02_b"
+        "slot": "Chest",
+        "icon": "Icon_Gunde_Prog01_Chest_R2_T0-legendary"
       },
       "BloodyMess": {
-        "itemId": 5218,
-        "itemName": "Carver\u0027s Sinister Apron",
+        "itemId": 5899,
+        "itemName": "Northlander\u0027s Helm",
         "powerId": 697,
         "powerName": "Bloody Mess",
-        "slot": "Back",
-        "icon": "Icon_Gunde_LegendaryCloak01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Gunde_Prog01_Head_R2_T0-legendary"
       }
     },
     "helena": {
       "IronSentinel": {
-        "itemId": 5217,
-        "itemName": "Linked Heavy Metal Cloak",
+        "itemId": 5899,
+        "itemName": "Warmaster Helm",
         "powerId": 625,
         "powerName": "Iron Sentinel",
-        "slot": "Back",
-        "icon": "Icon_Warmaster_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Warmaster_FkPlate_Head_R2_T0-legendary"
       },
       "RazorCrash": {
-        "itemId": 5221,
-        "itemName": "Masochistic Razor Loop",
+        "itemId": 5898,
+        "itemName": "Warmaster Breastplate",
         "powerId": 389,
         "powerName": "Razor Crash",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Warmaster_FkPlate_Chest_R2_T0-legendary"
       },
       "VanguardsAdvance": {
-        "itemId": 5226,
-        "itemName": "Bindings of the Blackened Vanguard",
+        "itemId": 5900,
+        "itemName": "Warmaster Greaves",
         "powerId": 391,
         "powerName": "Vanguard\u0027s Advance",
-        "slot": "Wrists",
-        "icon": "Tex_bracelets_cl_01_bg"
+        "slot": "Legs",
+        "icon": "Icon_Warmaster_FkPlate_Waist_R2_T0-legendary"
       }
     },
     "mara": {
       "DrenchedInBlood": {
-        "itemId": 5223,
-        "itemName": "Stalker\u0027s Crimson Loop",
+        "itemId": 5898,
+        "itemName": "Hungering Blade Hauberk",
         "powerId": 421,
         "powerName": "Drenched in Blood",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Mara_Shadowblade_Chest_R2_T0-legendary"
       },
       "FromTheShadows": {
-        "itemId": 5218,
-        "itemName": "Assassin\u0027s Shadow-Lined Cape",
+        "itemId": 5899,
+        "itemName": "Hungering Blade Helm",
         "powerId": 585,
         "powerName": "From the Shadows",
-        "slot": "Back",
-        "icon": "Icon_Mara_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Mara_Shadowblade_Head_R2_T0-legendary"
       },
       "VexirasVenom": {
-        "itemId": 5225,
-        "itemName": "Wristbands of Vexira\u0027s Prey",
+        "itemId": 5900,
+        "itemName": "Hungering Blade Leggings",
         "powerId": 420,
         "powerName": "Vexira\u0027s Venom",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_01_b"
+        "slot": "Legs",
+        "icon": "Icon_Mara_Shadowblade_Waist_R2_T0-legendary"
       }
     },
     "meiko": {
       "EarthenSkin": {
-        "itemId": 5219,
-        "itemName": "Drape of the Earthen Spirits",
+        "itemId": 5899,
+        "itemName": "Twinsoul Helm",
         "powerId": 665,
         "powerName": "Earthen Skin",
-        "slot": "Back",
-        "icon": "Icon_Meiko_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Meiko_CmLeather_Head_R2_T0-legendary"
       },
       "EverlastingSpirit": {
-        "itemId": 5224,
-        "itemName": "Bracers of Everlasting Spirit",
+        "itemId": 5900,
+        "itemName": "Twinsoul Leggings",
         "powerId": 447,
         "powerName": "Everlasting Spirit",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_6_b"
+        "slot": "Legs",
+        "icon": "Icon_Meiko_CmLeather_Waist_R2_T0-legendary"
       },
       "TectonicImpact": {
-        "itemId": 5220,
-        "itemName": "Ring of Tectonic Impact",
+        "itemId": 5898,
+        "itemName": "Twinsoul Tunic",
         "powerId": 416,
         "powerName": "Tectonic Impact",
-        "slot": "Ring",
-        "icon": "Tex_rings_02_b"
+        "slot": "Chest",
+        "icon": "Icon_Meiko_CmLeather_Chest_R2_T0-legendary"
       }
     },
     "rime": {
       "FrostwyrmsSpite": {
-        "itemId": 5218,
-        "itemName": "Drakesblood Tapestry",
+        "itemId": 5899,
+        "itemName": "Harbinger of Winter Helm",
         "powerId": 397,
         "powerName": "Frostwyrm\u0027s Spite",
-        "slot": "Back",
-        "icon": "Icon_Rime_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Rime_ArcticOwl_Head_R2_T0-legendary"
       },
       "SkandisDecree": {
-        "itemId": 5226,
-        "itemName": "Skandi\u0027s Bands of Endless Winter",
+        "itemId": 5900,
+        "itemName": "Harbinger of Winter Leggings",
         "powerId": 396,
         "powerName": "Skandi\u0027s Decree",
-        "slot": "Wrists",
-        "icon": "Tex_bracelets_cl_01_bg"
+        "slot": "Legs",
+        "icon": "Icon_Rime_ArcticOwl_Waist_R2_T0-legendary"
       },
       "UndulatingSpirit": {
-        "itemId": 5220,
-        "itemName": "Eldrin Signet of Undulating Spirits",
+        "itemId": 5898,
+        "itemName": "Harbinger of Winter Furs",
         "powerId": 398,
         "powerName": "Undulating Spirit",
-        "slot": "Ring",
-        "icon": "Tex_rings_02_b"
+        "slot": "Chest",
+        "icon": "Icon_Rime_ArcticOwl_Chest_R2_T0-legendary"
       }
     },
     "sylvie": {
       "DryadsHaven": {
-        "itemId": 5224,
-        "itemName": "Bands of the First Dryad",
+        "itemId": 5900,
+        "itemName": "Daughter of the Forest Leggings",
         "powerId": 526,
         "powerName": "Dryad\u0027s Haven",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_6_b"
+        "slot": "Legs",
+        "icon": "Icon_Mosse_PetalMetal_Waist_R2_T0-legendary"
       },
       "UnrelentingThicket": {
-        "itemId": 5216,
-        "itemName": "The Mad Gardener\u0027s Shawl",
+        "itemId": 5899,
+        "itemName": "Daughter of the Forest Helm",
         "powerId": 609,
         "powerName": "Unrelenting Thicket",
-        "slot": "Back",
-        "icon": "Icon_Mosse_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Mosse_PetalMetal_Head_R2_T0-legendary"
       },
       "UnyieldingBloom": {
-        "itemId": 5220,
-        "itemName": "Loop of Unyielding Bloom",
+        "itemId": 5898,
+        "itemName": "Daughter of the Forest Tunic",
         "powerId": 411,
         "powerName": "Unyielding Bloom",
-        "slot": "Ring",
-        "icon": "Tex_rings_02_b"
+        "slot": "Chest",
+        "icon": "Icon_Mosse_PetalMetal_Chest_R2_T0-legendary"
       }
     },
     "tariq": {
       "ExecutionersGrin": {
-        "itemId": 5225,
-        "itemName": "Executioner\u0027s Unsanitary Bands",
+        "itemId": 5900,
+        "itemName": "Stormlord Wraps",
         "powerId": 423,
         "powerName": "Executioner\u0027s Grin",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_01_b"
+        "slot": "Legs",
+        "icon": "Icon_Ink_Beastslayer_Waist_R2_T0-legendary"
       },
       "SlayersMosh": {
-        "itemId": 5218,
-        "itemName": "Drape of the Slayer King",
+        "itemId": 5899,
+        "itemName": "Stormlord Helm",
         "powerId": 424,
         "powerName": "Slayer\u0027s Mosh",
-        "slot": "Back",
-        "icon": "Icon_Ink_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Ink_Beastslayer_Head_R2_T0-legendary"
       },
       "ThunderingVortex": {
-        "itemId": 5221,
-        "itemName": "Bloodied Brass Loop",
+        "itemId": 5898,
+        "itemName": "Stormlord Harness",
         "powerId": 86,
         "powerName": "Thundering Vortex",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Ink_Beastslayer_Chest_R2_T0-legendary"
       }
     },
     "vigour": {
       "HarmonizingRefractions": {
-        "itemId": 5223,
-        "itemName": "Ring of Harmonizing Refractions",
+        "itemId": 5898,
+        "itemName": "Lightshaper Vestments",
         "powerId": 395,
         "powerName": "Harmonizing Refractions",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Vigor_DrPlate_Chest_R2_T0-legendary"
       },
       "LightsReverence": {
-        "itemId": 5217,
-        "itemName": "Dawnbreaker\u0027s Cloak of Reverence",
+        "itemId": 5899,
+        "itemName": "Lightshaper Helm",
         "powerId": 565,
         "powerName": "Light\u0027s Reverence",
-        "slot": "Back",
-        "icon": "Icon_Vigor_Cloak01_Legendary01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Vigor_DrPlate_Head_R2_T0-legendary"
       },
       "ResplendentDawn": {
-        "itemId": 5226,
-        "itemName": "Bracers of Resplendent Dawn",
+        "itemId": 5900,
+        "itemName": "Lightshaper Leggings",
         "powerId": 394,
         "powerName": "Resplendent Dawn",
-        "slot": "Wrists",
-        "icon": "Tex_bracelets_cl_01_bg"
+        "slot": "Legs",
+        "icon": "Icon_Vigor_DrPlate_Waist_R2_T0-legendary"
       }
     },
     "xavian": {
       "FortressInTheSands": {
-        "itemId": 5224,
-        "itemName": "Sandworn Bands of the Fortress",
+        "itemId": 5900,
+        "itemName": "Light of Azamir Greaves",
         "powerId": 579,
         "powerName": "Fortress in the Sands",
-        "slot": "Wrists",
-        "icon": "Tex_bracers_6_b"
+        "slot": "Legs",
+        "icon": "Icon_Sune_Prog01_Waist_R2_T0-legendary"
       },
       "GrosslyIncandescent": {
-        "itemId": 5217,
-        "itemName": "Gilded Cloak of the Sunlit Kingdom",
+        "itemId": 5899,
+        "itemName": "Helm of the First King",
         "powerId": 606,
         "powerName": "Grossly Incandescent",
-        "slot": "Back",
-        "icon": "Icon_Sune_LegCloak01_Back_R0_T0-legendary"
+        "slot": "Head",
+        "icon": "Icon_Sune_Prog01_Head_R2_T0-legendary"
       },
       "SolarGlare": {
-        "itemId": 5221,
-        "itemName": "Runed Loop of the Horizon",
+        "itemId": 5898,
+        "itemName": "Light of Azamir Breastplate",
         "powerId": 605,
         "powerName": "Solar Glare",
-        "slot": "Ring",
-        "icon": "Tex_rings_07_b"
+        "slot": "Chest",
+        "icon": "Icon_Sune_Prog01_Chest_R2_T0-legendary"
       }
     }
   },
@@ -8001,6 +8024,7 @@
     "205": "Physical",
     "206": "Physical",
     "207": "Physical",
+    "214": "Physical",
     "215": "Physical",
     "217": "Magic",
     "218": "Magic",
@@ -8013,11 +8037,14 @@
     "231": "Magic",
     "232": "Magic",
     "236": "Magic",
+    "238": "Magic",
     "242": "Magic",
+    "244": "Magic",
     "246": "Magic",
     "248": "Physical",
     "251": "Magic",
     "252": "Physical",
+    "254": "Magic",
     "255": "Magic/Physical",
     "265": "Magic",
     "266": "Magic",
@@ -8081,12 +8108,15 @@
     "399": "Physical",
     "402": "Physical",
     "412": "Magic",
+    "419": "Magic",
+    "421": "Physical",
     "430": "Physical",
     "432": "Physical",
     "437": "Physical",
     "442": "Physical",
     "443": "Physical",
     "456": "Magic",
+    "457": "Magic",
     "458": "Magic",
     "460": "Magic",
     "462": "Physical",
@@ -8113,6 +8143,7 @@
     "496": "Magic",
     "497": "Physical",
     "498": "Physical",
+    "499": "Magic",
     "503": "Magic",
     "504": "Physical",
     "505": "Physical",
@@ -8120,7 +8151,9 @@
     "507": "Magic",
     "510": "Physical",
     "512": "Magic",
+    "513": "Magic",
     "514": "Magic",
+    "515": "Physical",
     "525": "Physical",
     "526": "Magic",
     "527": "Magic",
@@ -8129,6 +8162,7 @@
     "534": "Physical",
     "535": "Magic",
     "536": "Physical",
+    "538": "Magic",
     "544": "Physical",
     "545": "Physical",
     "551": "Physical",
@@ -8158,6 +8192,7 @@
     "603": "Physical",
     "609": "Physical",
     "610": "Physical",
+    "612": "Magic",
     "613": "Magic",
     "615": "Magic",
     "616": "Magic",
@@ -8170,6 +8205,7 @@
     "636": "Magic",
     "637": "Magic",
     "638": "Physical",
+    "639": "Magic",
     "640": "Magic",
     "641": "Physical",
     "642": "Physical",
@@ -8181,6 +8217,7 @@
     "650": "Magic",
     "651": "Physical",
     "652": "Physical",
+    "654": "Magic",
     "655": "Magic",
     "657": "Magic",
     "658": "Physical",
@@ -8193,6 +8230,7 @@
     "671": "Physical",
     "676": "Magic",
     "688": "Magic",
+    "689": "Magic",
     "690": "Magic",
     "692": "Magic",
     "694": "Magic",
@@ -8237,10 +8275,12 @@
     "750": "Magic",
     "751": "Physical",
     "752": "Physical",
+    "753": "Magic",
     "754": "Magic",
     "755": "Magic",
     "756": "Magic",
     "757": "Magic",
+    "758": "Magic",
     "759": "Magic",
     "761": "Physical",
     "763": "Magic",
@@ -8270,6 +8310,7 @@
     "794": "Physical",
     "795": "Magic",
     "797": "Physical",
+    "803": "Physical",
     "805": "Physical",
     "810": "Magic",
     "812": "Physical",
@@ -8289,6 +8330,7 @@
     "838": "Physical",
     "840": "Physical",
     "846": "Magic",
+    "848": "Magic",
     "850": "Physical",
     "853": "Magic",
     "855": "Magic",
@@ -8390,7 +8432,6 @@
     "1125": "Physical",
     "1128": "Physical",
     "1129": "Physical",
-    "1167": "Physical",
     "1200": "Physical",
     "1201": "Physical",
     "1207": "Physical",
@@ -8436,6 +8477,7 @@
     "1317": "Physical",
     "1318": "Physical",
     "1393": "Physical",
+    "1396": "Physical",
     "1399": "Magic",
     "1406": "Magic",
     "1408": "Physical",
@@ -8455,6 +8497,7 @@
     "1449": "Magic",
     "1450": "Physical",
     "1451": "Physical",
+    "1453": "Magic",
     "1454": "Magic",
     "1455": "Magic",
     "1456": "Magic",
@@ -8463,9 +8506,12 @@
     "1470": "Physical",
     "1472": "Physical",
     "1473": "Physical",
+    "1477": "Physical",
     "1479": "Physical",
+    "1482": "Magic",
     "1483": "Magic",
     "1484": "Magic",
+    "1503": "Magic",
     "1506": "Physical",
     "1511": "Physical",
     "1519": "Physical",
@@ -8481,16 +8527,21 @@
     "1584": "Magic",
     "1586": "Magic",
     "1587": "Magic",
+    "1588": "Magic",
+    "1592": "Magic",
     "1593": "Magic",
     "1595": "Magic",
+    "1596": "Magic",
     "1597": "Magic",
     "1599": "Magic",
     "1600": "Magic",
     "1601": "Magic",
+    "1617": "Magic",
     "1618": "Magic",
     "1622": "Physical",
     "1623": "Magic",
     "1634": "Magic",
+    "1635": "Magic",
     "1636": "Magic",
     "1640": "Magic",
     "1641": "Physical",
@@ -8500,6 +8551,7 @@
     "1649": "Magic",
     "1653": "Magic",
     "1657": "Physical",
+    "1664": "Magic",
     "1666": "Magic",
     "1667": "Magic",
     "1764": "Physical",
@@ -8564,6 +8616,7 @@
     "1992": "Magic",
     "1995": "Magic",
     "1997": "Physical",
+    "1998": "Physical",
     "2000": "Magic",
     "2009": "Physical",
     "2013": "Physical",
@@ -8573,6 +8626,7 @@
     "2039": "Physical",
     "2042": "Magic",
     "2043": "Magic",
+    "2069": "Magic",
     "2083": "Magic",
     "2084": "Physical",
     "2085": "Magic",
@@ -8586,6 +8640,7 @@
     "2093": "Magic",
     "2094": "Physical",
     "2096": "Magic",
+    "2097": "Magic",
     "2103": "Magic",
     "2105": "Physical",
     "2106": "Magic",
@@ -8605,10 +8660,17 @@
     "2127": "Magic",
     "2128": "Physical",
     "2130": "Magic",
+    "2131": "Magic",
     "2133": "Physical",
     "2134": "Magic",
+    "2137": "Magic",
+    "2138": "Magic",
     "2139": "Physical",
+    "2140": "Magic",
+    "2141": "Magic",
     "2142": "Magic",
+    "2143": "Magic",
+    "2144": "Magic",
     "2145": "Magic",
     "2147": "Physical",
     "2149": "Physical",
@@ -8645,6 +8707,7 @@
     "2191": "Physical",
     "2192": "Physical",
     "2196": "Physical",
+    "2198": "Physical",
     "2199": "Magic",
     "2200": "Magic",
     "2203": "Physical",
@@ -8670,8 +8733,45 @@
     "2298": "Physical",
     "2300": "Physical",
     "2301": "Physical",
-    "2308": "Physical",
-    "2309": "Physical",
+    "2304": "Magic",
+    "2317": "Magic",
+    "2334": "Physical",
+    "2336": "Magic",
+    "2337": "Physical",
+    "2338": "Magic",
+    "2349": "Physical",
+    "2351": "Physical",
+    "2352": "Physical",
+    "2353": "Physical",
+    "2354": "Magic",
+    "2355": "Physical",
+    "2356": "Physical",
+    "2357": "Magic",
+    "2358": "Physical",
+    "2359": "Physical",
+    "2360": "Physical",
+    "2362": "Physical",
+    "2363": "Physical",
+    "2364": "Physical",
+    "2365": "Magic",
+    "2366": "Physical",
+    "2367": "Magic",
+    "2368": "Physical",
+    "2369": "Physical",
+    "2370": "Magic",
+    "2371": "Magic",
+    "2372": "Physical",
+    "2373": "Magic",
+    "2374": "Physical",
+    "2375": "Magic",
+    "2377": "Physical",
+    "2378": "Physical",
+    "2380": "Physical",
+    "2382": "Magic",
+    "2383": "Magic",
+    "2384": "Magic",
+    "2385": "Magic",
+    "2386": "Magic",
     "1000038": "Magic",
     "1000039": "Magic",
     "1000063": "Magic",
@@ -8693,6 +8793,7 @@
     "1000186": "Physical",
     "1000187": "Physical",
     "1000189": "Physical",
+    "1000196": "Physical",
     "1000197": "Physical",
     "1000199": "Magic",
     "1000200": "Magic",
@@ -8708,10 +8809,16 @@
     "1000216": "Magic",
     "1000217": "Magic",
     "1000223": "Magic",
+    "1000224": "Magic",
+    "1000227": "Magic",
     "1000232": "Magic",
+    "1000233": "Magic",
+    "1000234": "Magic",
     "1000236": "Magic",
     "1000240": "Physical",
     "1000246": "Physical",
+    "1000247": "Magic",
+    "1000248": "Magic",
     "1000249": "Magic/Physical",
     "1000255": "Magic",
     "1000256": "Magic",
@@ -8793,10 +8900,13 @@
     "1000457": "Physical",
     "1000458": "Physical",
     "1000466": "Magic",
+    "1000475": "Magic",
+    "1000479": "Physical",
     "1000488": "Physical",
     "1000492": "Physical",
     "1000493": "Physical",
     "1000499": "Physical",
+    "1000528": "Magic",
     "1000529": "Magic",
     "1000531": "Physical",
     "1000532": "Magic",
@@ -8843,6 +8953,8 @@
     "1000605": "Magic",
     "1000606": "Magic",
     "1000607": "Magic",
+    "1000608": "Magic",
+    "1000610": "Physical",
     "1000620": "Physical",
     "1000621": "Magic",
     "1000622": "Magic",
@@ -8852,6 +8964,8 @@
     "1000630": "Physical",
     "1000631": "Magic",
     "1000632": "Physical",
+    "1000634": "Magic",
+    "1000635": "Magic",
     "1000640": "Physical",
     "1000641": "Physical",
     "1000647": "Physical",
@@ -8895,6 +9009,7 @@
     "1000730": "Physical",
     "1000731": "Physical",
     "1000733": "Physical",
+    "1000735": "Magic",
     "1000736": "Magic",
     "1000738": "Magic",
     "1000739": "Magic",
@@ -8909,6 +9024,7 @@
     "1000764": "Magic",
     "1000765": "Magic",
     "1000766": "Physical",
+    "1000767": "Magic",
     "1000768": "Magic",
     "1000769": "Physical",
     "1000770": "Physical",
@@ -8919,6 +9035,7 @@
     "1000775": "Physical",
     "1000776": "Magic",
     "1000779": "Physical",
+    "1000782": "Magic",
     "1000786": "Magic",
     "1000787": "Physical",
     "1000790": "Magic",
@@ -8932,6 +9049,8 @@
     "1000805": "Magic",
     "1000816": "Magic",
     "1000818": "Magic",
+    "1000819": "Magic",
+    "1000820": "Magic",
     "1000821": "Magic",
     "1000823": "Magic",
     "1000825": "Magic",
@@ -9013,9 +9132,7 @@
     "1000953": "Magic",
     "1000954": "Magic",
     "1000955": "Magic",
-    "1000956": "Physical",
     "1000957": "Physical",
-    "1000958": "Physical",
     "1000959": "Physical",
     "1000960": "Physical",
     "1000961": "Physical",
@@ -9054,6 +9171,7 @@
     "1001028": "Physical",
     "1001029": "Physical",
     "1001034": "Magic",
+    "1001035": "Magic",
     "1001037": "Physical",
     "1001038": "Physical",
     "1001039": "Physical",
@@ -9202,8 +9320,6 @@
     "1001586": "Physical",
     "1001587": "Physical",
     "1001588": "Physical",
-    "1001641": "Physical",
-    "1001642": "Physical",
     "1001703": "Physical",
     "1001704": "Physical",
     "1001705": "Physical",
@@ -9270,6 +9386,7 @@
     "1001900": "Physical",
     "1002000": "Magic",
     "1002002": "Physical",
+    "1002003": "Physical",
     "1002010": "Physical",
     "1002011": "Magic",
     "1002012": "Magic",
@@ -9283,6 +9400,7 @@
     "1002035": "Physical",
     "1002036": "Physical",
     "1002037": "Physical",
+    "1002038": "Physical",
     "1002042": "Magic",
     "1002044": "Physical",
     "1002045": "Physical",
@@ -9301,6 +9419,7 @@
     "1002099": "Physical",
     "1002100": "Physical",
     "1002102": "Magic",
+    "1002103": "Magic",
     "1002105": "Magic",
     "1002106": "Magic",
     "1002119": "Physical",
@@ -9311,13 +9430,17 @@
     "1002130": "Physical",
     "1002131": "Physical",
     "1002133": "Physical",
+    "1002134": "Physical",
+    "1002135": "Physical",
     "1002137": "Physical",
+    "1002142": "Magic",
     "1002143": "Magic",
     "1002144": "Magic",
     "1002145": "Magic",
     "1002148": "Physical",
     "1002170": "Magic",
     "1002173": "Magic",
+    "1002175": "Magic",
     "1002176": "Physical",
     "1002178": "Magic",
     "1002180": "Magic",
@@ -9342,6 +9465,7 @@
     "1002250": "Physical",
     "1002252": "Magic",
     "1002255": "Physical",
+    "1002257": "Magic",
     "1002260": "Physical",
     "1002264": "Magic",
     "1002265": "Magic",
@@ -9367,6 +9491,7 @@
     "1002320": "Magic",
     "1002327": "Physical",
     "1002330": "Physical",
+    "1002332": "Magic",
     "1002335": "Physical",
     "1002342": "Magic",
     "1002345": "Magic",
@@ -9374,10 +9499,12 @@
     "1002351": "Magic",
     "1002352": "Magic",
     "1002360": "Physical",
+    "1002369": "Magic",
     "1002370": "Magic",
     "1002374": "Physical",
     "1002376": "Magic",
     "1002377": "Magic",
+    "1002378": "Magic",
     "1002379": "Magic",
     "1002381": "Magic",
     "1002401": "Magic",
@@ -9395,6 +9522,7 @@
     "1002430": "Physical",
     "1002431": "Physical",
     "1002432": "Magic",
+    "1002436": "Magic",
     "1002438": "Magic",
     "1002439": "Magic",
     "1002440": "Magic",
@@ -9520,7 +9648,11 @@
     "1002826": "Magic",
     "1002827": "Magic",
     "1002833": "Magic",
+    "1002838": "Magic",
     "1002839": "Magic",
+    "1002841": "Magic",
+    "1002843": "Magic",
+    "1002844": "Magic",
     "1002865": "Magic",
     "1002866": "Magic",
     "1002867": "Magic",
@@ -9550,6 +9682,7 @@
     "1002891": "Physical",
     "1002893": "Magic",
     "1002894": "Magic",
+    "1002895": "Magic",
     "1002897": "Magic",
     "1002898": "Physical",
     "1002899": "Magic",
@@ -9582,11 +9715,20 @@
     "1002958": "Magic",
     "1002959": "Magic",
     "1002960": "Magic",
+    "1002961": "Magic",
     "1002963": "Physical",
     "1002964": "Magic",
     "1002965": "Magic",
     "1002966": "Magic",
+    "1002974": "Magic",
+    "1002976": "Magic",
+    "1002977": "Magic",
+    "1002978": "Magic",
+    "1002982": "Magic",
+    "1002983": "Magic",
     "1002985": "Magic",
+    "1002986": "Magic",
+    "1002987": "Magic",
     "1002988": "Magic",
     "1002989": "Magic",
     "1002992": "Physical",
@@ -9618,6 +9760,8 @@
     "1003021": "Magic",
     "1003022": "Physical",
     "1003024": "Physical",
+    "1003025": "Magic/Physical",
+    "1003026": "Magic/Physical",
     "1003031": "Magic",
     "1003032": "Magic",
     "1003033": "Magic",
@@ -9639,6 +9783,7 @@
     "1003058": "Magic",
     "1003059": "Physical",
     "1003065": "Physical",
+    "1003066": "Physical",
     "1003071": "Magic",
     "1003075": "Physical",
     "1003076": "Physical",
@@ -9670,7 +9815,54 @@
     "1003241": "Physical",
     "1003247": "Physical",
     "1003248": "Physical",
-    "1003257": "Physical"
+    "1003257": "Physical",
+    "1003287": "Physical",
+    "1003289": "Magic",
+    "1003290": "Physical",
+    "1003291": "Magic",
+    "1003294": "Physical",
+    "1003298": "Physical",
+    "1003299": "Physical",
+    "1003300": "Physical",
+    "1003301": "Physical",
+    "1003302": "Magic",
+    "1003303": "Physical",
+    "1003304": "Physical",
+    "1003307": "Magic",
+    "1003308": "Physical",
+    "1003309": "Physical",
+    "1003310": "Physical",
+    "1003312": "Physical",
+    "1003313": "Physical",
+    "1003314": "Physical",
+    "1003315": "Physical",
+    "1003316": "Magic",
+    "1003317": "Physical",
+    "1003318": "Magic",
+    "1003319": "Magic",
+    "1003320": "Magic",
+    "1003321": "Physical",
+    "1003323": "Physical",
+    "1003324": "Physical",
+    "1003325": "Magic",
+    "1003326": "Magic",
+    "1003327": "Physical",
+    "1003328": "Magic",
+    "1003329": "Magic",
+    "1003330": "Magic",
+    "1003332": "Physical",
+    "1003333": "Magic",
+    "1003334": "Magic",
+    "1003335": "Magic",
+    "1003340": "Physical",
+    "1003341": "Physical",
+    "1003342": "Physical",
+    "1003344": "Physical",
+    "1003350": "Magic",
+    "1003351": "Magic",
+    "1003352": "Magic",
+    "1003353": "Magic",
+    "1003357": "Magic"
   },
   "rarities": {
     "0": "Common",
@@ -9691,7 +9883,7 @@
     "12": "Codex_Dungeon_NP",
     "13": "Codex_CapDungeon_PR",
     "15": "Codex_Dungeon_SG",
-    "17": "LoadingScreen_SH",
+    "17": "T_Loadingscreen_SH_Halloween",
     "21": "Codex_Dungeon_UM",
     "23": "Codex_CapDungeon_VV",
     "24": "Codex_Dungeon_SH",
@@ -9699,10 +9891,136 @@
     "28": "Loadingscreen_FM",
     "29": "Codex_Dungeon_MC",
     "30": "Codex_PinnacleDungeon_ST",
-    "31": "Codex_Dungeon_SP"
+    "31": "Codex_Dungeon_SP",
+    "36": "Codex_Treevillage"
+  },
+  "augmentations": {
+    "1": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "2": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "4": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "5": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "28": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "31": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "32": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "33": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "34": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "35": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "39": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "42": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "46": {
+      "type": "Sigil",
+      "modifier": "HeroicTrait"
+    },
+    "47": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "48": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "51": {
+      "type": "Aspect",
+      "modifier": "MajorTrait"
+    },
+    "52": {
+      "type": "ProtectiveEnchant"
+    },
+    "53": {
+      "type": "ProtectiveEnchant"
+    },
+    "54": {
+      "type": "ProtectiveEnchant"
+    },
+    "55": {
+      "type": "ProtectiveEnchant"
+    },
+    "56": {
+      "type": "ProtectiveEnchant"
+    },
+    "57": {
+      "type": "ProtectiveEnchant"
+    },
+    "58": {
+      "type": "ProtectiveEnchant"
+    },
+    "59": {
+      "type": "ProtectiveEnchant"
+    },
+    "61": {
+      "type": "ProtectiveEnchant"
+    },
+    "62": {
+      "type": "ProtectiveEnchant"
+    },
+    "63": {
+      "type": "ProtectiveEnchant"
+    },
+    "65": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    },
+    "66": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    },
+    "67": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    },
+    "68": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    },
+    "69": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    },
+    "70": {
+      "type": "Enchant",
+      "modifier": "StatEnchant"
+    }
   },
   "texturesSharedAcrossRungs": [
     "Hint_Generic_Talent_Star",
+    "Rewards_TalentPoints",
+    "Rewards_TalentRows",
     "T_CurseWeak",
     "T_Icons_Customization_Item_Icon",
     "T_Icons_Gems_Amethyst1",
@@ -9729,11 +10047,9 @@
     "T_Icons_Gems_Topaz2",
     "T_Icons_Gems_Topaz3",
     "T_Icons_Gems_Topaz4",
-    "T_Nhance_RPG_Tech_25",
     "T_OrbofShadow",
     "T_Relic_Chicken",
     "T_Relic_CombatRess",
-    "T_Relic_DamageReduction",
     "T_Relic_DispelRune",
     "T_Relic_Drums",
     "T_Relic_HealingPotion",
@@ -9742,78 +10058,72 @@
     "T_RunePlaceholder_01",
     "Tex_Crimson_bsc_bg",
     "Tex_Gem_61",
-    "Tex_TrophyIcons_01_b",
-    "Tex_TrophyIcons_03_b",
     "Tex_TrophyIcons_06_b",
-    "Tex_TrophyIcons_08_b",
+    "Tex_TrophyIcons_110_b",
     "Tex_TrophyIcons_112_b",
-    "Tex_TrophyIcons_28_b",
-    "Tex_TrophyIcons_31_b",
+    "Tex_TrophyIcons_24_b",
+    "Tex_TrophyIcons_34_b",
     "Tex_TrophyIcons_37_b",
     "Tex_TrophyIcons_41_b",
     "Tex_TrophyIcons_42_b",
     "Tex_TrophyIcons_47_b",
+    "Tex_TrophyIcons_64_b",
     "Tex_TrophyIcons_66_b",
+    "Tex_TrophyIcons_72_b",
+    "Tex_archi_brs_01_b",
     "Tex_armor_14_b",
     "Tex_artifact_10_b",
     "Tex_axe_13_bg",
+    "Tex_belt_05_bg",
+    "Tex_belts_07_b",
     "Tex_boots_1_b",
     "Tex_bow_03_bg",
-    "Tex_bracelets_cl_01_bg",
-    "Tex_bracers_01_b",
-    "Tex_bracers_03_b",
-    "Tex_bracers_04_b",
-    "Tex_bracers_05_b",
-    "Tex_bracers_06_b",
-    "Tex_bracers_07_b",
     "Tex_bracers_09_b",
     "Tex_bracers_10_b",
-    "Tex_bracers_16_b",
     "Tex_bracers_17_b",
-    "Tex_bracers_19_b",
-    "Tex_bracers_20_b",
+    "Tex_bracers_18_b",
     "Tex_bracers_22_b",
     "Tex_bracers_23_b",
-    "Tex_bracers_3_b",
     "Tex_bracers_6_b",
     "Tex_bracers_8_b",
-    "Tex_bracers_9_b",
+    "Tex_decoration_01_b",
     "Tex_dru_brs_01_b",
+    "Tex_element_air__b_01",
+    "Tex_element_water__b_01",
+    "Tex_elementl_earth__b_01",
+    "Tex_eye_b_01",
     "Tex_gloves_38_b",
     "Tex_helmet_05_b",
     "Tex_kn_02_bg",
     "Tex_kn_02g",
+    "Tex_mgg_brs_b_01",
     "Tex_necklace_01_b",
     "Tex_necklace_02_b",
     "Tex_necklace_03_b",
     "Tex_necklace_04_b",
-    "Tex_necklace_05_b",
     "Tex_nk_01_bg",
     "Tex_nk_02_bg",
     "Tex_nk_03_bg",
-    "Tex_nk_04_bg",
     "Tex_nk_05_bg",
     "Tex_nk_06_bg",
     "Tex_nk_07_bg",
+    "Tex_nnj_br_01_b",
+    "Tex_orb_09_b",
     "Tex_pants_05_b",
+    "Tex_rg_brs_b_01",
     "Tex_ring_rg_01_b",
-    "Tex_rings_02_b",
-    "Tex_rings_02_b1",
     "Tex_rings_03_b",
     "Tex_rings_04_b",
-    "Tex_rings_05_b",
     "Tex_rings_06_b",
-    "Tex_rings_07_b",
-    "Tex_rings_08_b",
     "Tex_rings_b_02",
     "Tex_rn_01_bg",
     "Tex_rn_02_bg",
     "Tex_rn_03_bg",
-    "Tex_rn_04_bg",
     "Tex_rn_05_bg",
     "Tex_rn_06_bg",
     "Tex_rn_07_bg",
     "Tex_rune_12_b",
+    "Tex_shard_b_03",
     "Tex_shard_b_05",
     "Tex_shoulders_01_b",
     "Tex_st_11_bg",

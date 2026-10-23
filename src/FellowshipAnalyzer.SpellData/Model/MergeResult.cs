@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.SpellData.Sources;
 
 namespace FellowshipAnalyzer.SpellData.Model;
 
@@ -51,6 +52,12 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     /// its zone encounters by the same id, so a report's zone resolves its own icon.
     /// </summary>
     public Dictionary<int, string> Dungeons { get; init; } = [];
+
+    /// <summary>
+    /// Every augmentation's entity type and item modifier slot, keyed by the export's augmentation id.
+    /// Fellowship Logs writes every augmentation on an item in one list, so the id is what selects the slot.
+    /// </summary>
+    public List<ExportAugmentation> Augmentations { get; init; } = [];
 
     /// <summary>
     /// Every talent the export slots to a hero, scoped by that hero's key. Talents are held apart from

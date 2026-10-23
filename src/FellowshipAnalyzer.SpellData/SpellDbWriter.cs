@@ -6,6 +6,7 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
+using FellowshipAnalyzer.SpellData.Sources;
 
 
 namespace FellowshipAnalyzer.SpellData;
@@ -35,6 +36,9 @@ public static class SpellDbWriter
     /// <summary>The top-level key holding the dungeon id → icon map, which is not a spell scope.</summary>
     public const string DungeonsSection = "dungeons";
 
+    /// <summary>The top-level key holding the augmentation id → type and modifier slot map, which is not a spell scope.</summary>
+    public const string AugmentationsSection = "augmentations";
+
     /// <summary>
     /// The top-level key listing item and gem textures drawn once for every rarity rung, which is not a
     /// spell scope. Named so it cannot collide with the <c>shared</c> spell scope.
@@ -52,7 +56,7 @@ public static class SpellDbWriter
         var heroScopes = byScope.Keys
             .Where(k => k != "shared" && k != "items" && k != SchoolsSection && k != RaritiesSection
                         && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != LegendariesSection
-                        && k != DungeonsSection)
+                        && k != DungeonsSection && k != AugmentationsSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -140,6 +144,19 @@ public static class SpellDbWriter
             root[DungeonsSection] = dungeonsObj;
         }
 
+        if (result.Augmentations.Count > 0)
+        {
+            var augmentationsObj = new JsonObject();
+            foreach (var augmentation in result.Augmentations.OrderBy(a => a.Id))
+            {
+                var entry = new JsonObject { ["type"] = augmentation.Type };
+                if (augmentation.Modifier is { } modifier)
+                    entry["modifier"] = modifier;
+                augmentationsObj[augmentation.Id.ToString(CultureInfo.InvariantCulture)] = entry;
+            }
+            root[AugmentationsSection] = augmentationsObj;
+        }
+
         if (result.TexturesSharedAcrossRungs.Count > 0)
         {
             var textureArray = new JsonArray();
@@ -161,6 +178,7 @@ public static class SpellDbWriter
         var talents = new List<CuratedSpell>();
         var legendaries = new List<CuratedLegendary>();
         var dungeons = new Dictionary<int, string>();
+        var augmentations = new List<ExportAugmentation>();
 
         foreach (var (scope, scopeNode) in root)
         {
@@ -196,6 +214,14 @@ public static class SpellDbWriter
                 foreach (var (idText, iconNode) in scopeObj)
                     if (int.TryParse(idText, out var id) && iconNode?.GetValue<string>() is { } icon)
                         dungeons[id] = icon;
+                continue;
+            }
+
+            if (scope == AugmentationsSection)
+            {
+                foreach (var (idText, entryNode) in scopeObj)
+                    if (int.TryParse(idText, out var id) && entryNode?["type"]?.GetValue<string>() is { } type)
+                        augmentations.Add(new ExportAugmentation(id, type, entryNode["modifier"]?.GetValue<string>()));
                 continue;
             }
 
@@ -249,7 +275,7 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Talents = talents, Legendaries = legendaries };
+        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Augmentations = augmentations, Talents = talents, Legendaries = legendaries };
     }
 
     /// <summary>

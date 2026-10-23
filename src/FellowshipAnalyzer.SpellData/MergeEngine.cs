@@ -197,6 +197,7 @@ public static class MergeEngine
             Rarities = inputs.Export.Rarities.ToDictionary(r => r.Tier, r => r.Name),
             TexturesSharedAcrossRungs = inputs.Icons.TexturesSharedAcrossRungs,
             Dungeons = inputs.Export.Dungeons.ToDictionary(d => d.Id, d => d.Icon),
+            Augmentations = inputs.Export.Augmentations,
             Talents = BuildTalents(inputs, gaps),
             Legendaries = BuildLegendaries(inputs, gaps),
         };

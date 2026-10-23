@@ -59,7 +59,7 @@ public sealed class IconSource
                 AbilityDocument ability => (SpellKind.Ability, ability.Icon),
                 EffectDocument effect => (SpellKind.Effect, effect.Icon),
                 TalentDocument talent => (SpellKind.Talent, talent.Icon),
-                TraitDocument trait => (SpellKind.Weapon, trait.Icon),
+                AugmentationDocument augmentation => (SpellKind.Weapon, augmentation.Icon),
                 _ => default((SpellKind, string?)),
             };
 

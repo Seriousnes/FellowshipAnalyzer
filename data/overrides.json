@@ -114,7 +114,13 @@
       "icon": "T_Rime_HealingBuff"
     },
     "IceCometAlt": {
-      "id": 2227
+      "id": 2227,
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE",
+      "abilityCategory": "Power",
+      "range": 3000,
+      "radius": 700,
+      "costs": { "tertiary": 2 }
     }
   },
   "elarion": {
@@ -412,7 +418,8 @@
     "NavigatorsIntuitionTrait": {
       "id": 43,
       "kind": "weapon",
-      "name": "Navigator\u0027s Intuition"
+      "name": "Navigator's Intuition",
+      "icon": "Tex_SpellBook03_42"
     },
     "MartialInitiativeTrait": {
       "id": 51,
@@ -537,21 +544,43 @@
   },
   "mara": {
     "BackstabStealth": {
-      "id": 2308
+      "id": 2308,
+      "name": "Backstab",
+      "icon": "Mara_backstab",
+      "abilityCategory": "Basic",
+      "range": 500,
+      "costs": { "primary": 20 },
+      "resourceGeneration": { "resource": "secondary", "amount": 2, "criticalAmount": 3, "trigger": "PerCast" }
     },
     "SkitteringBladesStealth": {
-      "id": 2309
+      "id": 2309,
+      "name": "Skittering Blades",
+      "icon": "Mara_AOEBuilder",
+      "abilityCategory": "Basic",
+      "range": 800,
+      "radius": 800,
+      "costs": { "primary": 35 },
+      "resourceGeneration": { "resource": "secondary", "amount": 1, "criticalAmount": 2, "trigger": "PerHit" }
     },
     "KickAlt": {
-      "id": 1167
+      "id": 1167,
+      "name": "Kick",
+      "icon": "Mara_Kick",
+      "abilityCategory": "Utility",
+      "cooldown": 16,
+      "range": 500
     },
     "KickLockoutAlt": {
       "id": 1641,
-      "kind": "effect"
+      "kind": "effect",
+      "name": "Tremble!",
+      "icon": "Tex_red_10"
     },
     "KickInterruptAlt": {
       "id": 1642,
-      "kind": "effect"
+      "kind": "effect",
+      "name": "Kick",
+      "icon": "Mara_Kick"
     },
     "BroodingShadowsBuff": {
       "id": 1591,
@@ -586,7 +615,11 @@
       "id": 1122
     },
     "LashingStormkickAlt": {
-      "id": 2310
+      "id": 2310,
+      "name": "Lashing Stormkick",
+      "icon": "Meiko_AbilityIcon_08",
+      "abilityCategory": "Power",
+      "range": 800
     },
     "EarthfistBarrage": {
       "cooldown": null

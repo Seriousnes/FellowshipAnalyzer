@@ -27,10 +27,10 @@
     private string? _name;
     private string? _icon;
 
-    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(), _spellId));
+    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(_spellId), _spellId));
 
     private string? TooltipPath => _spellId > 0
-        ? CodexAddresses.Tooltip(_kind.ToEntityType(), _spellId)
+        ? CodexAddresses.Tooltip(_kind.ToEntityType(_spellId), _spellId)
         : null;
     private string IconUrl => Codex.IconUrl(_icon!);
 

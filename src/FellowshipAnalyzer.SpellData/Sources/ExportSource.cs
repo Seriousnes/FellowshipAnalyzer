@@ -65,6 +65,13 @@ public record ExportRarity(int Tier, string Name, string DisplayName);
 /// </summary>
 public record ExportDungeon(int Id, string Icon);
 
+/// <summary>
+/// One augmentation, with its entity type and the item modifier slot that holds it. Fellowship Logs
+/// writes an item's augmentations in one list, so the type is what tells a sigil from an aspect. An
+/// augmentation held only in an attunement tree has no <paramref name="Modifier"/>.
+/// </summary>
+public record ExportAugmentation(int Id, string Type, string? Modifier);
+
 public sealed class ExportSource
 {
     public Dictionary<int, ExportAbility> Abilities { get; }
@@ -82,6 +89,9 @@ public sealed class ExportSource
 
     public List<ExportDungeon> Dungeons { get; }
 
+    /// <summary>Every augmentation in the export, ordered by id.</summary>
+    public List<ExportAugmentation> Augmentations { get; }
+
     public Dictionary<string, AbilityCategory?> AbilityCategories { get; }
 
     private ExportSource(
@@ -92,6 +102,7 @@ public sealed class ExportSource
         List<ExportHero> heroes,
         List<ExportRarity> rarities,
         List<ExportDungeon> dungeons,
+        List<ExportAugmentation> augmentations,
         Dictionary<string, AbilityCategory?> abilityCategories)
     {
         Abilities = abilities;
@@ -101,6 +112,7 @@ public sealed class ExportSource
         Heroes = heroes;
         Rarities = rarities;
         Dungeons = dungeons;
+        Augmentations = augmentations;
         AbilityCategories = abilityCategories;
     }
 
@@ -122,6 +134,7 @@ public sealed class ExportSource
         var talentSlots = new List<TalentSlotDocument>();
         var legendaries = new List<ExportLegendary>();
         var dungeons = new List<ExportDungeon>();
+        var augmentationDocuments = new List<AugmentationDocument>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
@@ -173,6 +186,9 @@ public sealed class ExportSource
                     when !string.IsNullOrEmpty(dungeon.Icon) && !string.IsNullOrEmpty(dungeon.Name):
                     dungeons.Add(new ExportDungeon(dungeon.Id, dungeon.Icon));
                     break;
+                case AugmentationDocument augmentation:
+                    augmentationDocuments.Add(augmentation);
+                    break;
             }
         }
 
@@ -213,7 +229,34 @@ public sealed class ExportSource
         dungeons.Sort((left, right) => left.Id.CompareTo(right.Id));
         legendaries.Sort((left, right) => string.CompareOrdinal(left.Hero, right.Hero) is var byHero && byHero != 0 ? byHero : left.ItemId.CompareTo(right.ItemId));
 
-        return new ExportSource(abilities, effects, talents, legendaries, heroes, rarities, dungeons, categories);
+        return new ExportSource(
+            abilities, effects, talents, legendaries, heroes, rarities, dungeons,
+            BuildAugmentations(augmentationDocuments, settings), categories);
+    }
+
+    private static List<ExportAugmentation> BuildAugmentations(List<AugmentationDocument> documents, SettingsFile settings)
+    {
+        var augmentations = new Dictionary<int, ExportAugmentation>();
+
+        foreach (var document in documents)
+        {
+            var type = EntityTypes.TypeOf(document).ToString();
+            var modifier = document.CategoryTag is { } tag
+                ? settings.StatCalculation.SlotDefinitions
+                    .Where(slot => slot.Value.AugmentationPool.Contains(tag, StringComparer.Ordinal))
+                    .Select(slot => slot.Key)
+                    .Order(StringComparer.Ordinal)
+                    .FirstOrDefault()
+                : null;
+
+            if (augmentations.TryGetValue(document.Id, out var known) && known.Type != type)
+                throw new InvalidOperationException(
+                    $"The export writes augmentation id {document.Id} as both {known.Type} and {type}.");
+
+            augmentations[document.Id] = new ExportAugmentation(document.Id, type, modifier);
+        }
+
+        return [.. augmentations.Values.OrderBy(augmentation => augmentation.Id)];
     }
 
     private const string NoCategory = "None";

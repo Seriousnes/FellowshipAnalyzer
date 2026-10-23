@@ -84,22 +84,27 @@ public class ItemTooltipTests
     }
 
     [Fact]
-    public void For_NamesNoRandomRollsSoNoStatCanFallOutsideThePool()
-    {
-        ItemTooltip.For(Worn(), HeroName.Mara).RandomStats.ShouldBeNull();
+    public void For_NamesNoRandomRollsSoNoStatCanFallOutsideThePool() =>
         Body(Worn()).ShouldNotContain("randomStats");
+
+    [Fact]
+    public void For_StatesEachAugmentationInTheModifierSlotItsTypeFills()
+    {
+        var item = Worn();
+        item.Traits.Add(new ItemTrait { Id = FSLID.FromNative(SpellKind.Weapon, 42).Value, Rank = 2, Name = "Hunter's Focus" });
+        item.Traits.Add(new ItemTrait { Id = FSLID.FromNative(SpellKind.Weapon, 51).Value, Rank = 1, Name = "Martial Initiative" });
+
+        ItemTooltip.For(item, HeroName.Mara).Modifiers.ShouldBe(
+            [new ItemModifier(ModifierKind.HeroicTrait, 42, 2), new ItemModifier(ModifierKind.MajorTrait, 51, 1)]);
     }
 
     [Fact]
-    public void For_ReadsATraitBackToItsNativeId()
+    public void For_LeavesOffAnAugmentationNoModifierSlotHolds()
     {
         var item = Worn();
-        item.Traits.Add(new ItemTrait { Id = FSLID.FromNative(SpellKind.Weapon, 456).Value, Rank = 2 });
+        item.Traits.Add(new ItemTrait { Id = FSLID.FromNative(SpellKind.Weapon, 52).Value, Rank = 1, Name = "The Beetle" });
 
-        ItemTooltip.For(item, HeroName.Mara).Modifiers.ShouldBe(
-            [new ItemModifier(ModifierKind.Trait, 456, 2)]);
-
-        Body(item).ShouldContain("""{"kind":"Trait","id":456,"amount":2}""");
+        ItemTooltip.For(item, HeroName.Mara).Modifiers.ShouldBeNull();
     }
 
     [Fact]

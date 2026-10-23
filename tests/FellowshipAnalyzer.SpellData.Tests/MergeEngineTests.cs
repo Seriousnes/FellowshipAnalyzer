@@ -43,7 +43,7 @@ public class MergeEngineTests
     {
         var s = Run().Spells.Single(x => x.Scope == "gunde" && x.Member == "GrimCarve");
         s.Spell.Range.ShouldBe(3000);
-        s.Spell.Radius.ShouldBe(700);
+        s.Spell.Radius.ShouldBe(850);
     }
 
     [Fact]
