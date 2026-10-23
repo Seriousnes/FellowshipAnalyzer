@@ -21,6 +21,14 @@ public class MergeEngineTests
     }
 
     [Fact]
+    public void Xavian_SolarShield_HasACooldownHasteShortens() =>
+        Run().Spells.Single(x => x.Scope == "xavian" && x.Member == "SolarShield").Spell.CooldownScalesWithHaste.ShouldBe(true);
+
+    [Fact]
+    public void Xavian_ShiningHalo_HasACooldownHasteLeavesAlone() =>
+        Run().Spells.Single(x => x.Scope == "xavian" && x.Member == "ShiningHalo").Spell.CooldownScalesWithHaste.ShouldBeNull();
+
+    [Fact]
     public void Rime_FreezingTorrent_HasNormalizedScalars()
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
