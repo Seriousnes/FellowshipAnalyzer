@@ -17,7 +17,7 @@
         <CastOverview Title="Economy Overview" Stats="@BuildOverviewStats()" />
         @if (DevouringFlameEquipped())
         {
-            <CastOverview Title="Devouring Flame (Draconic Bracers)" Stats="@BuildDevouringFlameStats()" />
+            <CastOverview Title="@Legendaries.DevouringFlame.Name" Stats="@BuildDevouringFlameStats()" />
         }
         <CastDetail Title="Wildfire Windows"
                     Description="Each row is one Wildfire cast and the Engulfing Flames casts during setup."
@@ -40,7 +40,6 @@
         var doubleApplied = analyzers.Sum(analyzer => analyzer.DoubleAppliedWindows);
         var doubleRate = evaluated > 0 ? (int)Math.Round((double)doubleApplied / evaluated * 100) : 0;
         var wasted = analyzers.Sum(analyzer => analyzer.WastedCharges);
-        var overcapSeconds = analyzers.Sum(analyzer => analyzer.CappedSeconds);
 
         return
         [
@@ -58,10 +57,6 @@
                 "Wasted Charges",
                 "Engulfing Flames recharge periods spent at maximum charges across every pull.",
                 wasted == 0 ? QualitativePerformance.Perfect : wasted <= 2 ? QualitativePerformance.Ok : QualitativePerformance.Fail),
-            new OverviewStat(
-                $"{overcapSeconds:0.#}s",
-                "Time at Max",
-                "Total time Engulfing Flames spent at maximum charges across every pull."),
         ];
     }
 
@@ -94,7 +89,7 @@
                 $"{modeledBonus:0.#}%",
                 "Modeled Damage Bonus",
                 "Damage bonus on the primary target.",
-                PerformanceTiers.FromThresholds(modeledBonus, 9, 6, 3)),
+                PerformanceTiers.FromThresholds(averageInstances, 1.5, 1, 0.5)),
         ];
     }
 
@@ -119,10 +114,6 @@
                 $"{window.ChargesAtReady}/{Spells.EngulfingFlames.Charges}",
                 "Charges at Ready",
                 "Engulfing Flames charges available the instant Wildfire came off cooldown."),
-            new PerCastStat(
-                $"{window.HeldMs / 1000d:0.0}s",
-                "Held",
-                "How long Wildfire was held after it came off cooldown."),
         };
 
         var sequence = window.EngulfingFlamesCasts

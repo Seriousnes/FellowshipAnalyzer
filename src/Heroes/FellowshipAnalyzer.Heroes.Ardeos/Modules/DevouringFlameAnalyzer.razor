@@ -1,11 +1,11 @@
-@using FellowshipAnalyzer.Core.Common.Items
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @inherits Analyzer
 
 @code {
     public override RenderFragment? Statistic =>
         @<StatCard>
             <Header>
-                @Items.DraconicBracersOfTheDevouringFlame.Name
+                @Legendaries.DevouringFlame.Name
             </Header>
             <ChildContent>
                 <ItemDamageDone Amount="@((long)totalIncreasedDamage)" ShowShare=true />
