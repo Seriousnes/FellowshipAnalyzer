@@ -38,6 +38,16 @@ public sealed class HelenaSpellbookTests
     }
 
     [Fact]
+    public void PowerStrikeShieldThrowAndShockwave_RecoverWithHaste()
+    {
+        var spellbook = new HelenaAbilities().Spellbook().ToList();
+
+        Entry(spellbook, Spells.PowerStrike).CooldownReducedByHaste.ShouldBeTrue();
+        Entry(spellbook, Spells.ShieldThrow).CooldownReducedByHaste.ShouldBeTrue();
+        Entry(spellbook, Spells.Shockwave).CooldownReducedByHaste.ShouldBeTrue();
+    }
+
+    [Fact]
     public void WithoutIronSentinel_HoldTheLineHasOneChargeThatIgnoresHaste()
     {
         var holdTheLine = Entry(new HelenaAbilities().Spellbook().ToList(), Spells.HoldTheLine);

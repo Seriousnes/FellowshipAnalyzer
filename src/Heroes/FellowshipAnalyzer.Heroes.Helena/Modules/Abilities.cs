@@ -30,7 +30,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.PowerStrikeDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -38,7 +37,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ShieldThrowDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -54,7 +52,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ShockwaveDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
