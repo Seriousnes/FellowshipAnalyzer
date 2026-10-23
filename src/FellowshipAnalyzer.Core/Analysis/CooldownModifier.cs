@@ -51,7 +51,33 @@ public enum CooldownPool
 /// The abilities the modifier applies to, or <c>null</c> for an unscoped modifier that applies to every
 /// ability.
 /// </param>
-public sealed record CooldownModifier(double Value, CooldownScope? Scope = null);
+public sealed record CooldownModifier(double Value, CooldownScope? Scope = null)
+{
+    /// <summary>
+    /// The ability whose own effect grants the modifier, or <c>null</c> for a modifier no ability grants.
+    /// A Weapon ability's Cooldown Acceleration takes only the modifiers its own effects grant
+    /// (Chronoshift's 8× while channelling Chronoshift).
+    /// </summary>
+    public Spell? GrantedBy { get; init; }
+
+    /// <summary>Whether the modifier's <see cref="Scope"/> covers <paramref name="ability"/>. An unscoped modifier covers every ability.</summary>
+    public bool Covers(SpellbookAbility? ability) =>
+        Scope is null || (ability is not null && Scope.Matches(ability));
+
+    /// <summary>
+    /// Whether the modifier joins <paramref name="ability"/>'s Cooldown Acceleration. A Weapon ability takes
+    /// only a modifier its own effect grants; every other ability takes the modifiers that
+    /// <see cref="Covers"/> it.
+    /// </summary>
+    public bool Accelerates(SpellbookAbility? ability) =>
+        ability?.AbilityCategory == AbilityCategory.Weapon
+            ? GrantedBy is { } grantedBy && IsOwnSpell(ability, grantedBy)
+            : Covers(ability);
+
+    private static bool IsOwnSpell(SpellbookAbility ability, Spell spell) =>
+        spell.FSLID.Equals(ability.PrimarySpell.FSLID)
+        || (ability.AdditionalSpells?.Any(additional => additional.FSLID.Equals(spell.FSLID)) ?? false);
+}
 
 /// <summary>
 /// An immutable collection of <see cref="CooldownModifier"/> entries whose <see cref="Total"/> resolves the
@@ -69,14 +95,11 @@ public sealed class CooldownModifierSet : List<CooldownModifier>
     /// <remarks>
     /// A <c>null</c> ability accrues only the unscoped entries.
     /// </remarks>
-    public double Total(SpellbookAbility? ability)
-    {
-        var total = 0.0;
-        foreach (var entry in this)
-        {
-            if (entry.Scope is null || (ability is not null && entry.Scope.Matches(ability)))
-                total += entry.Value;
-        }
-        return total;
-    }
+    public double Total(SpellbookAbility? ability) => this.Where(entry => entry.Covers(ability)).Sum(entry => entry.Value);
+
+    /// <summary>
+    /// The summed Cooldown Acceleration for <paramref name="ability"/>: every entry that
+    /// <see cref="CooldownModifier.Accelerates"/> it.
+    /// </summary>
+    public double AccelerationTotal(SpellbookAbility? ability) => this.Where(entry => entry.Accelerates(ability)).Sum(entry => entry.Value);
 }

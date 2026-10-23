@@ -6,8 +6,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds a
-/// Cooldown Acceleration modifier of 800% to the pool <see cref="StatTracker"/> tracks, taking an
-/// ability with no haste contribution to 9× recovery. The channel lasts a fixed 3 seconds
+/// Cooldown Acceleration term of 7.0 to the pool <see cref="StatTracker"/> tracks: Asha's Arcane Embrace
+/// multiplies Cooldown Recovery by 8, which joins the additive pool as <c>8 - 1</c>, taking an ability with
+/// no haste contribution to 8× recovery. Chronoshift is a Weapon ability and takes the term for its own
+/// cooldown too, as the modifier's <see cref="CooldownModifier.GrantedBy"/>. The channel lasts a fixed 3 seconds
 /// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early.
 /// <para>
 /// The window is driven by channel events. <see cref="OnBeginChannel"/> adds the modifier; where
@@ -25,9 +27,9 @@ public sealed partial class ChronoshiftAnalyzer(
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    private const double AddedRecovery = 8.0;
+    private const double AddedRecovery = 7.0;
 
-    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery);
+    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Spells.Chronoshift };
 
     private const int ChannelDurationMs = 3000;
 
@@ -43,9 +45,9 @@ public sealed partial class ChronoshiftAnalyzer(
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
-    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 800%
+    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 7.0
     /// produced beyond what the spell would have made over the same window without it. Because the pool
-    /// is additive, that extra is 8× the time on cooldown whatever the ability's haste contribution.
+    /// is additive, that extra is 7× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell

@@ -14,7 +14,7 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="ChronoshiftAnalyzer"/>: the +800% recovery window (9× for an ability with no
+/// Tests for <see cref="ChronoshiftAnalyzer"/>: the 8× Cooldown Recovery window (a 7.0 term on the pool, 8× for an ability with no
 /// haste contribution) is opened on the Chronoshift channel, bounded to 3 seconds (or an early
 /// <see cref="EndChannelEvent"/>), and the bonus cooldown recovery it grants is attributed per ability.
 /// </summary>
@@ -41,7 +41,7 @@ public sealed class ChronoshiftAnalyzerTests
 
         var recovery = Assert.Single(analyzer.RecoveryByAbility);
         Assert.Equal(BigCdId, recovery.SpellId);
-        Assert.InRange(recovery.RecoveredMs, 22_500, 23_500);
+        Assert.InRange(recovery.RecoveredMs, 20_500, 21_500);
         Assert.Equal(analyzer.TotalRecoveredMs, recovery.RecoveredMs);
     }
 
@@ -71,7 +71,7 @@ public sealed class ChronoshiftAnalyzerTests
         ]);
 
         var recovery = Assert.Single(analyzer.RecoveryByAbility);
-        Assert.InRange(recovery.RecoveredMs, 7_500, 8_500);
+        Assert.InRange(recovery.RecoveredMs, 6_500, 7_500);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class ChronoshiftAnalyzerTests
         ]);
 
         var recovery = Assert.Single(analyzer.RecoveryByAbility);
-        Assert.InRange(recovery.RecoveredMs, 22_500, 23_500);
+        Assert.InRange(recovery.RecoveredMs, 20_500, 21_500);
     }
 
     [Fact]
@@ -121,12 +121,12 @@ public sealed class ChronoshiftAnalyzerTests
 
     /// <summary>
     /// Pins the accelerated cooldown's fast-rate expiry to the exact instant the Chronoshift modifier is
-    /// removed. BigCd cast at 0 (30s) is boosted to 9x when the channel opens at 3000, which schedules its
-    /// end at 6000; the fabricated channel end at 6000 removes the modifier at that same tick. Because the
-    /// scheduled end only materializes for a stream event with a strictly greater timestamp, the
-    /// modifier-removal reaches SpellUsable first and rescales the cooldown back to the base rate, so the
-    /// EndCooldown reports the slow ~30s recharge duration rather than the stale ~3.3s fast one. A
-    /// less-than-or-equal drain would fire the end at the fast rate before the removal and this fails.
+    /// removed. BigCd cast at 0 (30s) has 24s left when the channel opens at 6000 and is boosted to 8x,
+    /// which schedules its end at 9000; the fabricated channel end at 9000 removes the modifier at that same
+    /// tick. Because the scheduled end only materializes for a stream event with a strictly greater
+    /// timestamp, the modifier-removal reaches SpellUsable first and rescales the cooldown back to the base
+    /// rate, so the EndCooldown reports the slow ~30s recharge duration rather than the stale ~3.75s fast
+    /// one. A less-than-or-equal drain would fire the end at the fast rate before the removal and this fails.
     /// </summary>
     [Fact]
     public async Task ModifierRemovalCoincidingWithFastExpiry_EndsAtSlowRate()
@@ -134,15 +134,15 @@ public sealed class ChronoshiftAnalyzerTests
         var parser = await AnalyzeParser(
         [
             Cast(0, BigCdId),
-            BeginChannel(3000),
-            Filler(9000),
+            BeginChannel(6000),
+            Filler(12_000),
         ]);
 
         var endCooldown = parser.Events
             .OfType<UpdateSpellUsableEvent>()
             .Single(e => e.Ability.FSLID.Value == BigCdId && e.UpdateType == UpdateSpellUsableType.EndCooldown);
 
-        Assert.Equal(6000, endCooldown.Timestamp);
+        Assert.Equal(9000, endCooldown.Timestamp);
         Assert.InRange(endCooldown.ExpectedRechargeDuration, 25_000, 31_000);
     }
 

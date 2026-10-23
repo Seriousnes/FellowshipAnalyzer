@@ -129,18 +129,18 @@ public sealed partial class SpellUsableTests
         Assert.Equal(21_000, LastUpdate(probe, SpellB, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
-    /// <summary>Base 10s at rate 9 (1 + Chronoshift's 8.0) starts at ~1111ms.</summary>
+    /// <summary>Base 10s at rate 8 (1 + Chronoshift's 7.0) starts at 1250ms.</summary>
     [Fact]
     public async Task BeginCooldown_DuringAcceleration_StartsShorter()
     {
         var (parser, spellUsable, _) = await Run([]);
 
         parser.GetModule<StatTracker>()!.AddCooldownModifier(
-            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
+            CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
         var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000);
-        Assert.InRange(remaining, 1100, 1115);
+        Assert.Equal(1250, remaining);
     }
 
     /// <summary>
@@ -196,9 +196,9 @@ public sealed partial class SpellUsableTests
     }
 
     /// <summary>
-    /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
-    /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
-    /// (1 + haste) × 9. Only the overlap of the two is affected; SpellA has no haste contribution.
+    /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 7.0 adds to
+    /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 7, not
+    /// (1 + haste) × 8. Only the overlap of the two is affected; SpellA has no haste contribution.
     /// </summary>
     [Fact]
     public async Task HasteAndAddedRecovery_CombineAdditively_NotMultiplicatively()
@@ -209,17 +209,17 @@ public sealed partial class SpellUsableTests
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
 
         parser.GetModule<StatTracker>()!.AddCooldownModifier(
-            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
+            CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
 
-        Assert.Equal(1.0 + haste + 8.0, spellUsable.EffectiveRate(SpellC), precision: 6);
-        Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+        Assert.Equal(1.0 + haste + 7.0, spellUsable.EffectiveRate(SpellC), precision: 6);
+        Assert.Equal(8.0, spellUsable.EffectiveRate(SpellA), precision: 6);
         Assert.True(
-            spellUsable.EffectiveRate(SpellC) < (1.0 + haste) * 9.0,
+            spellUsable.EffectiveRate(SpellC) < (1.0 + haste) * 8.0,
             "an additive pool must recover slower than a multiplicative one would");
 
         spellUsable.BeginCooldown(SpellC, timestamp: 1000);
         Assert.Equal(
-            (int)(CdSecondsC * 1000 / (1.0 + haste + 8.0)),
+            (int)(CdSecondsC * 1000 / (1.0 + haste + 7.0)),
             spellUsable.CooldownRemaining(SpellC, atTimestamp: 1000));
     }
 
