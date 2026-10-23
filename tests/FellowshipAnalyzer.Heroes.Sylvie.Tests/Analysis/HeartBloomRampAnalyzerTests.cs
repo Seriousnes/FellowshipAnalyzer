@@ -120,6 +120,34 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
+    public async Task AHasteChangeDuringTheOverlapRetimesEachBloomsNextPulse()
+    {
+        const int first = PullStart + 1_000;
+        const int second = PullStart + 1_500;
+        const int hasteGained = PullStart + 4_000;
+        var hastedPeriod = SylvieKit.HeartBloomTickIntervalMs / 1.3;
+        var firstRetimed = hasteGained + (0.5 * hastedPeriod);
+        var secondRetimed = hasteGained + (0.75 * hastedPeriod);
+
+        var parser = await Analyze(
+            Combatant(Core.Common.Spells.SylvieTalents.FlowerPower),
+            Cast(first, Spells.HeartBloom),
+            Cast(second, Spells.HeartBloom),
+            Heal(first + SylvieKit.HeartBloomTickIntervalMs, Spells.HeartBloom, TankId, amount: 100),
+            Heal(second + SylvieKit.HeartBloomTickIntervalMs, Spells.HeartBloom, AllyId, amount: 10),
+            ApplyBuff(hasteGained, Core.Common.Spells.Spells.SpiritOfHeroism, PlayerId),
+            Heal((int)Math.Round(firstRetimed), Spells.HeartBloom, TankId, amount: 100),
+            Heal((int)Math.Round(secondRetimed), Spells.HeartBloom, AllyId, amount: 10),
+            Heal((int)Math.Round(firstRetimed + hastedPeriod), Spells.HeartBloom, TankId, amount: 100),
+            Heal((int)Math.Round(secondRetimed + hastedPeriod), Spells.HeartBloom, AllyId, amount: 10));
+
+        var casts = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts;
+
+        casts[0].Effective.ShouldBe(300);
+        casts[1].Effective.ShouldBe(30);
+    }
+
+    [Fact]
     public async Task WhereBlueyWasIsRecordedOnTheCast()
     {
         var parser = await Analyze(
