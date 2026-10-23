@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 
@@ -19,9 +18,6 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
     private readonly BuffUptime _graceBuff = new();
     private readonly BuffUptime _eventHorizonBuff = new();
 
-    private int _graceHeldMs;
-    private int? _graceAvailableSince;
-
     public int GraceCasts => _graceCasts.Count;
 
     public int EventHorizonCasts => _eventHorizonCasts.Count;
@@ -38,9 +34,6 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
 
     public double BarrageChannelsClippedPercentage =>
         BarrageChannels == 0 ? 0 : BarrageChannelsClipped / (double)BarrageChannels * 100;
-
-    public int GraceHeldMs =>
-        _graceHeldMs + (_graceAvailableSince is { } since ? Math.Max(0, Pull.EndTime - since) : 0);
 
     public int GraceBuffUptimeMs => _graceBuff.TotalAt(Pull.EndTime);
 
@@ -79,20 +72,6 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
 
         BarrageChannelsClipped++;
         BarrageChannelLostMs += lost;
-    }
-
-    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersGrace))]
-    private void OnGraceUsable(UpdateSpellUsableEvent e)
-    {
-        if (e.UpdateType == UpdateSpellUsableType.EndCooldown)
-        {
-            _graceAvailableSince ??= e.ExpectedRechargeTimestamp;
-        }
-        else if (e.UpdateType == UpdateSpellUsableType.BeginCooldown && _graceAvailableSince is { } since)
-        {
-            _graceHeldMs += Math.Max(0, e.Timestamp - since);
-            _graceAvailableSince = null;
-        }
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]

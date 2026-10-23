@@ -38,8 +38,6 @@
         var paired = pairings.Count(pairing => pairing.NearestGraceDeltaMs is { } delta && delta <= PairedWithinMs);
         var pairedShare = pairings.Count == 0 ? 0 : (double)paired / pairings.Count * 100;
 
-        var heldSeconds = analyzers.Sum(analyzer => (long)analyzer.GraceHeldMs) / 1000d;
-
         var marks = analyzers.Sum(analyzer => analyzer.MarkCasts);
         var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts);
         var channels = analyzers.Sum(analyzer => analyzer.BarrageChannels);
@@ -58,10 +56,6 @@
                 "Barrage Clipped",
                 $"{clipped} of {channels} Heartseeker Barrage channels ended early, losing {lostSeconds:0.#}s of channel time.",
                 channels == 0 ? null : ClipTier(clipped)),
-            new OverviewStat(
-                $"{heldSeconds:0.#}s",
-                "Grace Held",
-                "Time Skystrider's Grace spent available and not cast across every pull."),
             new OverviewStat(
                 $"{marks} + {barrages}",
                 "Mark and Barrage Casts",
