@@ -28,7 +28,9 @@
                         <time class="home-news-date">@item.Entry.Date.ToString("d MMM yyyy")</time>
                     </div>
 
-                    <div class="home-news-text">@item.Entry.Changes</div>
+                    <CascadingValue Value="@item.Hero" IsFixed="true">
+                        <div class="home-news-text">@item.Entry.Changes</div>
+                    </CascadingValue>
 
                     @if (item.Entry.Contributors.Count > 0)
                     {

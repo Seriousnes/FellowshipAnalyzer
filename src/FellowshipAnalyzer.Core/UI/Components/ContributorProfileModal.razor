@@ -100,7 +100,9 @@
                                         {
                                             <li class="changelog-entry">
                                                 <span class="changelog-date">@entry.Date.ToString("d MMM yyyy")</span>
-                                                <span class="changelog-text">@entry.Changes</span>
+                                                <CascadingValue Value="@group.Hero" IsFixed="true">
+                                                    <span class="changelog-text">@entry.Changes</span>
+                                                </CascadingValue>
                                             </li>
                                         }
                                     </ul>

@@ -1068,6 +1068,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     private const string ItemTypeGlobalName = "global::FellowshipAnalyzer.Core.Common.Items.Item";
 
+    private const string HeroNameGlobalName = "global::FellowshipAnalyzer.Core.Analysis.HeroName";
+
     /// <summary>
     /// Turns the <c>legendaries</c> section (hero → member → entry) into one <c>Legendaries</c> class of
     /// static <c>Item</c> members per hero, named for the power each item grants, plus the companion
@@ -1116,12 +1118,12 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             if (entries.Count == 0)
                 continue;
 
-            EmitLegendaryClass(spc, hero, entries);
+            EmitLegendaryClass(spc, hero, heroNames?.Contains(hero) == true ? HeroNameGlobalName + "." + hero : null, entries);
             EmitLegendaryConstants(spc, hero, entries);
         }
     }
 
-    private static void EmitLegendaryClass(SourceProductionContext spc, string hero, List<LegendaryEntry> entries)
+    private static void EmitLegendaryClass(SourceProductionContext spc, string hero, string? heroMember, List<LegendaryEntry> entries)
     {
         var ns = SpellsNamespace + "." + hero;
 
@@ -1132,14 +1134,15 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("namespace " + ns + ";");
         sb.AppendLine();
         sb.AppendLine("/// <summary>" + hero + "'s legendary items, generated from <c>data/spelldb.json</c>. Each member is named for the power its item grants and holds the item id.</summary>");
-        sb.AppendLine("public static partial class Legendaries");
+        sb.AppendLine("public partial class Legendaries : global::" + ItemsNamespace + ".IItemRegistry");
         sb.AppendLine("{");
         foreach (var entry in entries)
         {
             sb.AppendLine("    /// <summary>" + hero + "'s <c>" + entry.PowerName + "</c> legendary.</summary>");
             sb.AppendLine("    public static " + ItemTypeGlobalName + " " + entry.Member + " { get; } = new(" +
                           entry.ItemId.ToString(CultureInfo.InvariantCulture) + ", " +
-                          Literal(entry.PowerName) + ", " + Literal(entry.Icon) + ");");
+                          Literal(entry.PowerName) + ", " + Literal(entry.Icon) +
+                          (heroMember is null ? "" : ", " + heroMember) + ");");
             sb.AppendLine();
         }
         sb.AppendLine("}");

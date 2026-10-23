@@ -16,13 +16,13 @@
     /// <summary>
     /// The item: an equipped item from the log, a registry item such as a hero's <c>Legendaries</c>
     /// member, or a bare id. Every hero's legendaries share item ids, so link a legendary by its
-    /// registry item; a bare id reads the name of whichever item the registry holds for that id.
+    /// registry item; a bare id resolves to <see cref="Hero"/>'s own registry item for that id.
     /// </summary>
     [Parameter, EditorRequired]
     public OneOf<Core.Events.Item, Core.Common.Items.Item, int> Item { get; set; }
 
     /// <summary>
-    /// The hero the item is read for. One item id reads as a different item per hero,
+    /// The hero the item is read for, when a registry item names no hero of its own. One item id reads as a different item per hero,
     /// so the codex answers no item without one.
     /// </summary>
     [CascadingParameter]
@@ -41,29 +41,35 @@
     private string? _icon;
     private Core.Events.Item? _equipped;
     private string? _request;
+    private HeroName? _hero;
 
-    private string ItemUrl => Codex.PageUrl(CodexAddresses.Page(EntityType.Item, _itemId, Hero?.ToString()));
+    private string ItemUrl => Codex.PageUrl(CodexAddresses.Page(EntityType.Item, _itemId, _hero?.ToString()));
     private string? TooltipPath => _itemId > 0 ? CodexAddresses.Tooltip(EntityType.Item, _itemId) : null;
     private string IconUrl => _equipped is { } item ? Codex.IconUrl(_icon!, item.Quality) : Codex.IconUrl(_icon!);
 
     protected override void OnParametersSet()
     {
         _equipped = null;
+        _hero = Hero;
         Item.Switch(
             item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; _equipped = item; },
-            item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; },
+            item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; _hero = item.Hero ?? Hero; },
             id =>
             {
-                var s = ItemRegistry.MaybeGet(id);
+                var s = ItemRegistry.MaybeGet(id, Hero);
                 if (s is not null)
                 {
-                    _itemId = s.Id; _name = s.Name; _icon = s.Icon;
+                    _itemId = s.Id; _name = s.Name; _icon = s.Icon; _hero = s.Hero ?? Hero;
+                }
+                else
+                {
+                    _itemId = id; _name = null; _icon = null;
                 }
             }
         );
 
         _request = _itemId > 0
-            ? TooltipBody.Write(_equipped is { } worn ? ItemTooltip.For(worn, Hero) : ItemTooltip.For(Hero))
+            ? TooltipBody.Write(_equipped is { } worn ? ItemTooltip.For(worn, _hero) : ItemTooltip.For(_hero))
             : null;
     }
 }
