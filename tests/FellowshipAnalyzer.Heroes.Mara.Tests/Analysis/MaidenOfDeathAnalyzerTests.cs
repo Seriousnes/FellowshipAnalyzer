@@ -339,6 +339,29 @@ public sealed class MaidenOfDeathAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_HardCast_DoesNotCountItsCastTimeAsIdle()
+    {
+        const int castStart = 4000;
+        const int completion = 6000;
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
+            Cast(1000, Spells.Backstab, comboPoints: 0),
+            BeginCast(castStart, Spells.QueenFang),
+            Cast(completion, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(completion, Spells.MaidenOfDeathBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        var gap = window.Gaps.ShouldHaveSingleItem();
+        gap.StartTimestamp.ShouldBe(2500);
+        gap.DurationMs.ShouldBe(castStart - 2500);
+        window.IdleMs.ShouldBe(castStart - 2500);
+    }
+
+    [Fact]
     public async Task Analyze_TrailingIdleTime_IsCounted()
     {
         var events = new List<Event>
