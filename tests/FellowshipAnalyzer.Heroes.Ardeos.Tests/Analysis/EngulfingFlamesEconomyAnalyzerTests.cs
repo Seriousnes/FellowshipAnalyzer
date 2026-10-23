@@ -425,8 +425,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     };
 
     /// <summary>
-    /// A combatant wearing the Devouring Flame legendary, which enables
-    /// the Devouring Flame sub-metric.
+    /// A combatant wearing Asha's Chronoshift Spire.
     /// </summary>
     private static CombatantInfoEvent CombatantWithChronoshiftSpire() => new()
     {
