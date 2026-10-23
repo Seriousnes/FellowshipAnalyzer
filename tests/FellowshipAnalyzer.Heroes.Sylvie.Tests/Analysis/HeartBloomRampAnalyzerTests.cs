@@ -90,6 +90,29 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
+    public async Task BloomsPulsingAtTheSameMomentEachTakeOneHeal()
+    {
+        var parser = await Analyze(
+            Combatant(Core.Common.Spells.SylvieTalents.FlowerPower),
+            Cast(PullStart + 1_000, Spells.HeartBloom),
+            Heal(PullStart + 3_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 5_000, Spells.HeartBloom, TankId, amount: 100),
+            Cast(PullStart + 5_000, Spells.HeartBloom),
+            Heal(PullStart + 7_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 7_000, Spells.HeartBloom, AllyId, amount: 10),
+            Heal(PullStart + 9_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 9_000, Spells.HeartBloom, AllyId, amount: 10));
+
+        var casts = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts;
+
+        casts.Count.ShouldBe(2);
+        casts[0].Releases.ShouldBe(4);
+        casts[0].Effective.ShouldBe(400);
+        casts[1].Releases.ShouldBe(2);
+        casts[1].Effective.ShouldBe(20);
+    }
+
+    [Fact]
     public async Task HastedPulsesGoToTheBloomTheirIntervalMatches()
     {
         const int hasteRating = 1_000;

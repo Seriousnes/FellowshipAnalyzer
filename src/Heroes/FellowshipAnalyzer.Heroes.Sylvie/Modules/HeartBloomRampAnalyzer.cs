@@ -92,8 +92,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     /// <summary>
     /// The cast whose Heart Bloom released the pulse at <paramref name="timestamp"/>. With two charges two
     /// Heart Blooms are active at once. The releasing bloom is the active bloom with the least time between
-    /// <paramref name="timestamp"/> and its last or next expected pulse, and the older bloom on a tie. A Haste
-    /// change re-times each active bloom's next expected pulse from its remaining pulse progress.
+    /// <paramref name="timestamp"/> and its last or next expected pulse. On a tie it is the bloom with no release
+    /// recorded for that pulse, then the older bloom. A Haste change re-times each active bloom's next expected pulse
+    /// from its remaining pulse progress.
     /// After every bloom has withered, the releasing bloom is the latest cast's.
     /// </summary>
     private HeartBloomCapture? ReleasingBloom(int timestamp)
@@ -106,7 +107,10 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         }
 
         return alive.Count > 0
-            ? alive.MinBy(capture => capture.PulseOffset(timestamp))
+            ? alive
+                .OrderBy(capture => capture.PulseOffset(timestamp))
+                .ThenBy(capture => capture.HasReleasedAt(timestamp))
+                .First()
             : _casts.LastOrDefault();
     }
 
@@ -149,6 +153,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             Overheal += overheal;
             ReleaseInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
         }
+
+        public bool HasReleasedAt(int timestamp) =>
+            ReleaseInstants.Contains((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
 
         public void AdvanceTo(int timestamp)
         {
