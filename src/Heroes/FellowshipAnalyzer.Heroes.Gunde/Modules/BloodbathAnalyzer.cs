@@ -8,9 +8,10 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
 /// Bloodbath: each Grim Carve grants Bloodbath for 3 seconds, and Reign in Blood has +200% Cooldown
-/// Acceleration while it lasts. The term joins the pool <see cref="StatTracker"/> tracks at the Grim Carve
-/// cast and leaves at a fabricated <see cref="RemoveBuffEvent"/> at the scheduled expiry. A Grim Carve
-/// inside an open window moves the expiry to a full duration from that cast.
+/// Acceleration while it lasts. The Grim Carve cast fabricates a Bloodbath <see cref="ApplyBuffEvent"/> on the
+/// player and adds the term to the pool <see cref="StatTracker"/> tracks. A fabricated
+/// <see cref="RemoveBuffEvent"/> at the scheduled expiry removes the term. A Grim Carve inside an open window
+/// moves the expiry to a full duration from that cast.
 /// </summary>
 [RequiresTalent(GundeTalents.Bloodbath)]
 [Dependency<StatTracker>]
@@ -36,6 +37,13 @@ public sealed partial class BloodbathAnalyzer : Analyzer
     {
         if (_scheduledRemoval is null)
         {
+            Owner.EventEmitter.FabricateEvent(new ApplyBuffEvent
+            {
+                Timestamp = e.Timestamp,
+                SourceId = e.SourceId,
+                TargetId = e.SourceId,
+                Ability = BloodbathAbility(),
+            }, e);
             StatTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, ReignInBloodAcceleration, e);
             _windows.Add(new BloodbathWindow(e.Timestamp, e.Timestamp + DurationMs));
         }
@@ -49,9 +57,16 @@ public sealed partial class BloodbathAnalyzer : Analyzer
             Timestamp = e.Timestamp + DurationMs,
             SourceId = e.SourceId,
             TargetId = e.SourceId,
-            Ability = new Ability { Id = Talents.Bloodbath.FSLID },
+            Ability = BloodbathAbility(),
         }, e);
     }
+
+    private static Ability BloodbathAbility() => new()
+    {
+        Id = Talents.Bloodbath.FSLID,
+        Name = Talents.Bloodbath.Name,
+        Icon = Talents.Bloodbath.Icon,
+    };
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnExpiry(RemoveBuffEvent e)

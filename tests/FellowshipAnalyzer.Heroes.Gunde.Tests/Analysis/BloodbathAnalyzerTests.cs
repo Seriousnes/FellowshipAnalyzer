@@ -69,6 +69,18 @@ public sealed class BloodbathAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_WithBloodbath_ThePlayerHasAThreeSecondBloodbathBuff()
+    {
+        var (parser, _) = await RunAsync(Scenario(), talents: [Talents.Bloodbath.Id]);
+
+        var buff = parser.SelectedCombatant.Buffs
+            .Where(b => b.Ability.FSLID.Value == Talents.Bloodbath.FSLID.Value)
+            .ShouldHaveSingleItem();
+        buff.Start.ShouldBe(10_000);
+        buff.End.ShouldBe(10_000 + BloodbathAnalyzer.DurationMs);
+    }
+
+    [Fact]
     public async Task Analyze_WithoutBloodbath_NoAnalyzerRuns()
     {
         var (parser, _) = await RunAsync(Scenario(), talents: []);
