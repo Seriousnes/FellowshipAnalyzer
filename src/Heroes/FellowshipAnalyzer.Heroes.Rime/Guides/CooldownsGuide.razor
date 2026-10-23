@@ -40,31 +40,17 @@
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers();
-        var pullMs = analyzers.Sum(analyzer => analyzer.PullDurationMs);
         var stats = new List<OverviewStat>();
 
         foreach (var major in CooldownGatedMajors)
         {
             var name = MajorName(major);
             var casts = analyzers.Sum(analyzer => analyzer.UsageFor(major).Casts);
-            var heldMs = analyzers.Sum(analyzer => analyzer.UsageFor(major).HeldMs);
-            var uptimeMs = analyzers.Sum(analyzer => analyzer.UsageFor(major).BuffUptimeMs);
-            var heldShare = pullMs > 0 ? (double)heldMs / pullMs * 100 : 0;
-            var uptimeShare = pullMs > 0 ? (double)uptimeMs / pullMs * 100 : 0;
 
             stats.Add(new OverviewStat(
                 $"{casts}",
                 $"{name} Casts",
                 $"{name} casts across every pull."));
-            stats.Add(new OverviewStat(
-                TimeFormat.Timestamp(heldMs),
-                $"{name} Held",
-                $"Time {name} spent off cooldown and unused ({heldShare:F0}% of pull time).",
-                HeldTier(heldShare)));
-            stats.Add(new OverviewStat(
-                $"{uptimeShare:F0}%",
-                $"{name} Uptime",
-                $"Share of pull time the {name} buff was active."));
         }
 
         var wrathWindows = analyzers.Sum(analyzer => analyzer.WindowsFor(RimeMajorCooldown.WrathOfWinter).Count);
@@ -154,12 +140,6 @@
             Details = details,
         };
     }
-
-    private static QualitativePerformance HeldTier(double heldSharePercent) =>
-        heldSharePercent < 10 ? QualitativePerformance.Perfect
-        : heldSharePercent < 20 ? QualitativePerformance.Good
-        : heldSharePercent < 35 ? QualitativePerformance.Ok
-        : QualitativePerformance.Fail;
 
     private static QualitativePerformance LatencyTier(int latencyMs) =>
         latencyMs <= PerfectOrbLatencyMs ? QualitativePerformance.Perfect
