@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds a
 /// Cooldown Acceleration term of 7.0 to the pool <see cref="StatTracker"/> tracks: Asha's Arcane Embrace
-/// multiplies Cooldown Recovery by 8, which joins the additive pool as <c>8 - 1</c>, taking an ability with
+/// multiplies Cooldown Recovery by 8, a term of <c>8 - 1</c> in the additive pool, taking an ability with
 /// no haste contribution to 8× recovery. Chronoshift is a Weapon ability and takes the term for its own
 /// cooldown too, as the modifier's <see cref="CooldownModifier.GrantedBy"/>. The channel lasts a fixed 3 seconds
 /// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early.

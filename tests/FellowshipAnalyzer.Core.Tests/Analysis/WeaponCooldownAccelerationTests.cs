@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.UI;
 
@@ -38,6 +39,26 @@ public sealed class WeaponCooldownAccelerationTests
     [Fact]
     public void ModifierAWeaponGrants_AcceleratesEveryOtherAbility() =>
         Assert.True(new CooldownModifier(7.0) { GrantedBy = WeaponSpell }.Accelerates(Ability(MajorSpell)));
+
+    [Fact]
+    public void ExportedWeaponSpells_AreWeaponAbilities()
+    {
+        Assert.Equal(AbilityCategory.Weapon, Spells.Chronoshift.AbilityCategory);
+        Assert.Equal(AbilityCategory.Weapon, Items.FatedStrike.AbilityCategory);
+        Assert.Equal(AbilityCategory.Weapon, Items.TwilightSkybolt.AbilityCategory);
+    }
+
+    /// <summary>
+    /// Strand of Eternity's 0.10 skips Twilight Skybolt, a Weapon ability. Glorious Purpose's 2.0, granted
+    /// by Fated Strike, accelerates Fated Strike.
+    /// </summary>
+    [Fact]
+    public void ExportedWeaponSpells_TakeOnlyTheirOwnModifiers()
+    {
+        Assert.False(new CooldownModifier(0.10).Accelerates(Ability(Items.TwilightSkybolt)));
+        Assert.True(new CooldownModifier(2.0) { GrantedBy = Items.FatedStrike }.Accelerates(Ability(Items.FatedStrike)));
+        Assert.True(new CooldownModifier(7.0) { GrantedBy = Spells.Chronoshift }.Accelerates(Ability(Spells.Chronoshift)));
+    }
 
     /// <summary>
     /// Strand of Eternity's 0.10 and Chronoshift's own 7.0 on Chronoshift: only the 7.0 joins the pool, so

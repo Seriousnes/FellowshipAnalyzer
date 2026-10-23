@@ -93,7 +93,7 @@ For any rating R (Crit, Haste, Expertise, or Spirit), the post-DR percentage fro
 - If R > 162.9408:  
   P(R) = 25 + (R − 162.9408) × 0.13017661
 
-`StatTracker.RatingToPercentage` walks the brackets over `raw = rating × 0.16`: each bracket multiplies the running efficiency by its penalty and consumes `(edge − converted) ÷ efficiency` raw points. It returns a decimal fraction (0.298242 for 29.8242%). [^23]
+`StatTracker.RatingToPercentage` computes the brackets in order over `raw = rating × 0.16`. In each bracket the efficiency is the previous efficiency times the bracket penalty, and the bracket is `(edge − converted) ÷ efficiency` raw points wide. It returns a decimal fraction (0.298242 for 29.8242%). [^23]
 
 The in-game client displays the result to 2 decimal places. The analyzer does not round: `RatingToPercentage` returns the full-precision fraction, so any rounding is a presentation concern for the UI layer. [^23]
 
@@ -103,9 +103,9 @@ Take **200 Haste rating**, a plausible haste-focused Season 3 total. For scale, 
 
 1. Raw percentage: 200 × 0.16 = **32%**.
 2. First bracket: 10 raw points at efficiency 1.00 reach **10%**.
-3. Second bracket: 5.1020 raw points at 0.98 reach **15%** (15.1020 raw consumed).
-4. Third bracket: 5.3146 raw points at 0.9408 reach **20%** (20.4167 raw consumed).
-5. Fourth bracket: 5.6539 raw points at 0.884352 reach **25%** (26.0705 raw consumed).
+3. Second bracket: 5.1020 raw points at 0.98 reach **15%** (15.1020 raw in total).
+4. Third bracket: 5.3146 raw points at 0.9408 reach **20%** (20.4167 raw in total).
+5. Fourth bracket: 5.6539 raw points at 0.884352 reach **25%** (26.0705 raw in total).
 6. Above 25%: the 5.9295 raw points left convert at 0.81360384, adding **4.8242**.
 7. Sum: 25 + 4.8242 = **29.8242%** post-DR Haste.
 
@@ -135,7 +135,7 @@ As with other secondaries, DR applies only to rating-based Haste; flat Haste per
 With total Haste `h` as a fraction (0.30 for 30%), a hasted duration is `T_base ÷ (1 + h)`. [^24]
 
 - **Cast time**: `cast_base ÷ (1 + h)`, with `h` at the cast's start. `Haste.ScaleDuration` computes it.
-- **Global cooldown**: `1.5 s ÷ (1 + h)`, with `h` at the cast's start. `GlobalCooldown` computes it from the ability's `GcdInfo.Base` (1500 ms by default), and a `GcdInfo.Static` GCD takes no Haste.
+- **Global cooldown**: `1.5 s ÷ (1 + h)`, with `h` at the cast's start, and at least `GcdInfo.Minimum` (750 ms by default). `GlobalCooldown` computes it from the ability's `GcdInfo.Base` (1500 ms by default), and a `GcdInfo.Static` GCD takes no Haste.
 - **Channel ticks**: the tick period is `tick_base ÷ (1 + h)`, with `h` at the channel's start. The channel's duration is fixed and takes no Haste.
 - **Hasted periodic effects**: each tick comes after `tick_base` of hasted progress, where progress runs at `1 + h` per second. A Haste change re-times the tick in progress from that moment; the effect's duration is fixed. [^24]
 
@@ -143,7 +143,7 @@ For example, 50% Haste takes a 2 s cast to 1.333 s and the 1.5 s global cooldown
 
 ### Cooldown model
 
-A cooldown holds an amount of **cooldown progress** that drains at a **recovery rate**. [^24]
+A cooldown has an amount of **cooldown progress** left, which decreases at a **recovery rate** per second. [^24]
 
 **Duration at the start.** When a charge starts recharging, its duration in cooldown progress is
 
@@ -151,7 +151,7 @@ A cooldown holds an amount of **cooldown progress** that drains at a **recovery 
 
 Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts.
 
-**Recovery rate.** The cooldown drains at
+**Recovery rate.** The cooldown progress left decreases at
 
 - `rate = 1 + h_rate + Σ acceleration`
 
@@ -164,17 +164,17 @@ where `h_rate` is the current Haste when the export lists Haste in `cooldownTime
 | Glorious Purpose (Fated Strike) | `CooldownRecovery` × 3 | +2.0 |
 | The Monarch (MAJOR abilities) | 3% / 5% / 8% / 12% by tier | +tier + min(0.1 × h, 0.05) |
 
-A `CooldownRecovery` multiplier of `m` joins the pool as `m − 1`. Haste on a time-rate cooldown joins the same sum, so Chronoshift takes a cooldown with 20% time-rate Haste to `1 + 0.2 + 7 = 8.2×`.
+A `CooldownRecovery` multiplier of `m` is a term of `m − 1`. Haste on a time-rate cooldown is a term of the same sum, so Chronoshift takes a cooldown with 20% time-rate Haste to `1 + 0.2 + 7 = 8.2×`.
 
 The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any acceleration term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. `SpellUsable.EffectiveRate` computes the rate.
 
 **Weapon abilities.** A Weapon ability's cooldown takes no Cooldown Acceleration from Strand of Eternity, The Monarch or another ability's effect. It takes only the terms its own effects grant (`CooldownModifier.GrantedBy`): Chronoshift recovers at 8× while Chronoshift is channelled, and Fated Strike takes Glorious Purpose's +2.0. Ability Cooldown Reduction and the export's own Haste scaling apply to a Weapon ability.
 
-**Flat reductions.** A flat reduction ("reduces the cooldown by 1.5 seconds") removes that much cooldown progress. Ability Cooldown Reduction does not scale it. While the cooldown recovers at `rate`, a reduction of `X` shortens the time left by `X ÷ rate`: a 1 s reduction is worth 0.5 s at 2×. A reduction larger than the progress left completes that charge and carries the remainder to the next one; a reduction past the last charge is wasted. `SpellUsable.ReduceCooldown` reports the requested and the applied progress.
+**Flat reductions.** A flat reduction ("reduces the cooldown by 1.5 seconds") removes that much cooldown progress. Ability Cooldown Reduction does not scale it. While the cooldown recovers at `rate`, a reduction of `X` shortens the time left by `X ÷ rate`: a 1 s reduction is worth 0.5 s at 2×. A reduction larger than the progress left completes that charge, and the remainder reduces the next one; a reduction past the last charge is wasted. `SpellUsable.ReduceCooldown` reports the requested and the applied progress.
 
-**Charges.** Charges recharge one at a time from the first spend, unless the ability declares `IndependentCharges`. Each charge's recharge starts from the state current at its start.
+**Charges.** Charges recharge one at a time from the first cast, unless the ability declares `IndependentCharges`. Each charge's recharge starts from the state current at its start.
 
-**Worked example.** A 30 s, single-charge, Duration-scaled cooldown at 20% Haste with 10% ACR and Strand of Eternity: `D = 30 × 0.9 ÷ 1.2 = 22.5 s` of progress, recovering at 1.1×, so the cooldown is ready after 20.45 s. A Chronoshift channel 10 s in, with 11.5 s of progress left, takes the rate to 8.1× for 3 s, which drains 24.3 s of progress and finishes the cooldown 1.42 s into the channel.
+**Worked example.** A 30 s, single-charge, Duration-scaled cooldown at 20% Haste with 10% ACR and Strand of Eternity: `D = 30 × 0.9 ÷ 1.2 = 22.5 s` of progress, recovering at 1.1×, so the cooldown is ready after 20.45 s. A Chronoshift channel 10 s in, with 11.5 s of progress left, takes the rate to 8.1× for 3 s, which is 24.3 s of progress, so the cooldown is ready 1.42 s into the channel.
 
 ### Legendary items
 
@@ -187,7 +187,7 @@ A player wears one legendary item at a time, whatever its slot. The export marks
 For each secondary stat S with rating R, the analyzer should:
 
 1. Compute the raw percentage: `raw = R × 0.16`. [^22][^23]
-2. Walk the converted brackets 0-10, 10-15, 15-20 and 20-25, multiplying the running efficiency by each bracket's penalty (1.00; 0.98; 0.96; 0.94) and spending `(edge − converted) ÷ efficiency` raw points on each. [^22][^24]
+2. Compute the converted brackets 0-10, 10-15, 15-20 and 20-25 in order. Each bracket's efficiency is the previous efficiency times its penalty (1.00; 0.98; 0.96; 0.94), and each bracket is `(edge − converted) ÷ efficiency` raw points wide. [^22][^24]
 3. Convert the raw points left past 25% at the running efficiency × 0.92. [^22][^24]
 4. Sum the bracket contributions to obtain P_R, the post-DR percentage from rating. [^23]
 5. Add any flat percentage bonuses associated with S (gems, sets, talents), which are not subject to DR. [^22][^1]
@@ -296,7 +296,7 @@ The datamined build is queryable through the `fellowship-codex` MCP server (`fin
 ## Limitations and Open Questions
 
 Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the offline game-data export vendored at `data/v24736527`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
-The export writes the bracket edges as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` and the penalties as `penaltyPercentage` and `finalPenaltyPercentage`. The edges are points of the converted percentage and the penalties compound, as SimFell's engine applies them. Combat logs record ratings and no percentages, so they do not decide between bracket readings. [^22][^24]
+The export writes the bracket edges as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` and the penalties as `penaltyPercentage` and `finalPenaltyPercentage`. The edges are points of the converted percentage and the penalties compound, as SimFell's engine applies them. [^22][^24]
 The base-health constant has no primary source in the vendored export: it carries no named base-health value, and creature `health` spans 149.95 to 10000000. The 2856 and 2999 figures are inherited from the retired data dump and should be treated as unverified.
 Hero-specific base GCD values remain uncertain. [^4][^5]
 

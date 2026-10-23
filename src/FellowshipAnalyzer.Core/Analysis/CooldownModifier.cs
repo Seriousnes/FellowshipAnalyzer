@@ -65,7 +65,7 @@ public sealed record CooldownModifier(double Value, CooldownScope? Scope = null)
         Scope is null || (ability is not null && Scope.Matches(ability));
 
     /// <summary>
-    /// Whether the modifier joins <paramref name="ability"/>'s Cooldown Acceleration. A Weapon ability takes
+    /// Whether the modifier is a term of <paramref name="ability"/>'s Cooldown Acceleration. A Weapon ability takes
     /// only a modifier its own effect grants; every other ability takes the modifiers that
     /// <see cref="Covers"/> it.
     /// </summary>
