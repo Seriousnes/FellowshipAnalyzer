@@ -739,6 +739,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 case ScalarKind.Double when v.Number is { } nd:
                     parts.Add(prop.Name + " = " + Fmt(nd));
                     break;
+                case ScalarKind.Bool when v.Bool is { } nb:
+                    parts.Add(prop.Name + " = " + (nb ? "true" : "false"));
+                    break;
                 case ScalarKind.Enum when v.String is { } es && prop.EnumMembers is { } members && members.Contains(es):
                     parts.Add(prop.Name + " = " + prop.EnumGlobalName + "." + es);
                     break;
@@ -882,6 +885,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             SpecialType.System_Int32 => ScalarKind.Int,
             SpecialType.System_Double => ScalarKind.Double,
             SpecialType.System_String => ScalarKind.String,
+            SpecialType.System_Boolean => ScalarKind.Bool,
             _ => null,
         };
     }
@@ -1432,7 +1436,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         public int FSLID { get; } = FSLID;
     }
 
-    private enum ScalarKind { Int, Double, String, Enum }
+    private enum ScalarKind { Int, Double, String, Bool, Enum }
 
     private readonly struct ScalarProp(
         string Name, string JsonKey, ScalarKind Kind,
@@ -1479,19 +1483,22 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         public List<JsonValue>? Array { get; }
         public string? String { get; }
         public double? Number { get; }
+        public bool? Bool { get; }
 
-        private JsonValue(Dictionary<string, JsonValue>? o, List<JsonValue>? a, string? s, double? n)
+        private JsonValue(Dictionary<string, JsonValue>? o, List<JsonValue>? a, string? s, double? n, bool? b = null)
         {
             Object = o;
             Array = a;
             String = s;
             Number = n;
+            Bool = b;
         }
 
         public static JsonValue Obj(Dictionary<string, JsonValue> o) => new(o, null, null, null);
         public static JsonValue Arr(List<JsonValue> a) => new(null, a, null, null);
         public static JsonValue Str(string s) => new(null, null, s, null);
         public static JsonValue Num(double n) => new(null, null, null, n);
+        public static JsonValue Boolean(bool b) => new(null, null, null, null, b);
         public static JsonValue Empty() => new(null, null, null, null);
     }
 
@@ -1514,8 +1521,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 case '{': return ParseObject(s, ref pos);
                 case '[': return ParseArray(s, ref pos);
                 case '"': return JsonValue.Str(ParseString(s, ref pos));
-                case 't': pos += 4; return JsonValue.Empty();
-                case 'f': pos += 5; return JsonValue.Empty();
+                case 't': pos += 4; return JsonValue.Boolean(true);
+                case 'f': pos += 5; return JsonValue.Boolean(false);
                 case 'n': pos += 4; return JsonValue.Empty();
                 default: return JsonValue.Num(ParseNumber(s, ref pos));
             }
