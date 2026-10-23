@@ -170,6 +170,10 @@ Community and guide material suggest that such cooldown recovery modifiers stack
 
 For an analyzer, the general approach is to compute a generic Haste-adjusted cooldown and then apply ability-specific percentage or flat reductions according to the ability's tooltip logic.
 
+### Legendary items
+
+A player wears one legendary item at a time, whatever its slot. The export marks no legendary unique-equipped, and each hero has a legendary for the chest, head and legs slots, but only one is equipped. The equipped legendary grants Strand of Eternity's +10% Cooldown Acceleration.
+
 ## Implementation Formulas for a Log Analyzer
 
 ### Rating to percentage (post-DR)
