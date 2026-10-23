@@ -5,9 +5,13 @@ using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
+/// <summary>
+/// Executioner's Grin procs and the Culling Strikes that spent them. The buff holds up to two stacks.
+/// The next Culling Strike spends one stack. Every stack held when the buff is removed expired unspent.
+/// </summary>
 public sealed partial class ExecutionersGrinTracker : Analyzer
 {
-    private bool _held;
+    private int _held;
     private int? _unclaimedRemoval;
 
     public bool Equipped => Owner.SelectedCombatant.HasItem(Legendaries.ExecutionersGrin.Id);
@@ -32,7 +36,15 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
     private void OnGrinApplied()
     {
         Procs++;
-        _held = true;
+        _held = 1;
+        _unclaimedRemoval = null;
+    }
+
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ExecutionersGrin))]
+    private void OnGrinStacked()
+    {
+        Procs++;
+        _held++;
         _unclaimedRemoval = null;
     }
 
@@ -40,18 +52,18 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
     private void OnGrinReapplied()
     {
         Reapplications++;
-        _held = true;
+        _held = Math.Max(_held, 1);
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ExecutionersGrin))]
     private void OnGrinRemoved(RemoveBuffEvent @event)
     {
-        if (!_held)
+        if (_held == 0)
             return;
 
-        ExpiredUnspent++;
+        ExpiredUnspent += _held;
         _unclaimedRemoval = @event.Timestamp;
-        _held = false;
+        _held = 0;
     }
 
     [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.CullingStrike))]
@@ -78,9 +90,9 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
 
     private bool Consume(int timestamp)
     {
-        if (_held)
+        if (_held > 0)
         {
-            _held = false;
+            _held--;
             _unclaimedRemoval = null;
             return true;
         }

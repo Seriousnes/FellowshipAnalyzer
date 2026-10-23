@@ -111,6 +111,69 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     /// <summary>
+    /// Executioner's Grin holds up to two stacks, and a second proc arrives as a stack application.
+    /// Each Culling Strike spends one stack.
+    /// </summary>
+    [Fact]
+    public async Task TwoStacks_AreTwoProcsSpentByTwoCullingStrikes()
+    {
+        var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
+        [
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffStackEvent>(150, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.CullingStrikeHit(200, targetHp: 60, targetMaxHp: 100),
+            FuryEconomyAnalyzerTests.Buff<RemoveBuffStackEvent>(200, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<RemoveBuffEvent>(400, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.CullingStrikeHit(400, targetHp: 10, targetMaxHp: 100),
+        ]);
+
+        var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
+        tracker.Procs.ShouldBe(2);
+        tracker.SpentAboveThreshold.ShouldBe(1);
+        tracker.SpentBelowThreshold.ShouldBe(1);
+        tracker.ExpiredUnspent.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// Every stack still held when the buff is removed expired unspent.
+    /// </summary>
+    [Fact]
+    public async Task TwoStacks_OneSpent_TheOtherExpiresUnspent()
+    {
+        var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
+        [
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffStackEvent>(150, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<RemoveBuffStackEvent>(200, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.CullingStrikeHit(200, targetHp: 60, targetMaxHp: 100),
+            FuryEconomyAnalyzerTests.Buff<RemoveBuffEvent>(900, TariqSpells.ExecutionersGrin.FSLID),
+        ]);
+
+        var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
+        tracker.Procs.ShouldBe(2);
+        tracker.SpentAboveThreshold.ShouldBe(1);
+        tracker.ExpiredUnspent.ShouldBe(1);
+    }
+
+    /// <summary>
+    /// Two stacks held when the buff is removed are two procs expired unspent.
+    /// </summary>
+    [Fact]
+    public async Task TwoStacks_NeitherSpent_BothExpireUnspent()
+    {
+        var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
+        [
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffStackEvent>(150, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.Buff<RemoveBuffEvent>(900, TariqSpells.ExecutionersGrin.FSLID),
+        ]);
+
+        var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
+        tracker.Procs.ShouldBe(2);
+        tracker.ExpiredUnspent.ShouldBe(2);
+    }
+
+    /// <summary>
     /// The statistics card and the guide's proc subsection both depend on the Executioner's Grin
     /// legendary being equipped, so a parse without it must not offer either.
     /// </summary>
@@ -129,24 +192,23 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     /// <summary>
-    /// Patch 0.5.0 moved the Executioner's Grin legendary to the Stormlord Wraps, item 5900.
+    /// Wearing the Executioner's Grin legendary offers the statistics card once a proc lands.
     /// </summary>
     [Fact]
-    public async Task WithTheStormlordWrapsEquipped_TheStatisticsCardIsOffered()
+    public async Task WithTheLegendaryEquipped_TheStatisticsCardIsOffered()
     {
         var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
         [
             new CombatantInfoEvent
             {
                 SourceId = FuryEconomyAnalyzerTests.PlayerId,
-                Gear = [new Item { Id = 5900, Quality = 6 }],
+                Gear = [new Item { Id = Legendaries.ExecutionersGrin.Id, Quality = 6 }],
             },
             FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
             FuryEconomyAnalyzerTests.CullingStrikeHit(200, targetHp: 60, targetMaxHp: 100),
         ]);
 
         var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
-        Legendaries.ExecutionersGrin.Id.ShouldBe(5900);
         tracker.Equipped.ShouldBeTrue();
         tracker.Statistic.ShouldNotBeNull();
     }
