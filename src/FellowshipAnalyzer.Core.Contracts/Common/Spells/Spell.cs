@@ -58,8 +58,8 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     public ChargeGrant? ChargeGrant { get; init; }
 
     /// <summary>
-    /// <c>true</c> when Haste shortens the cast and channel time, as <c>time / (1 + haste)</c>; <c>null</c>
-    /// when the game-data export states it does not.
+    /// <c>true</c> when Haste shortens the cast time, as <c>time / (1 + haste)</c>; <c>null</c> when the
+    /// game-data export states it does not. A channel's duration takes no Haste either way.
     /// </summary>
     public bool? CastTimeScalesWithHaste { get; init; }
 

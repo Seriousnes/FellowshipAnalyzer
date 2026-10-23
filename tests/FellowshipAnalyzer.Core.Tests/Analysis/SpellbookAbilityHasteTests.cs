@@ -33,4 +33,20 @@ public class SpellbookAbilityHasteTests
             Category = SpellCategory.Rotational,
             CooldownReducedByHaste = false,
         }.CooldownReducedByHaste.ShouldBeFalse();
+
+    [Fact]
+    public void CastTime_DividesAHasteScaledCastDurationByHaste() =>
+        new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = 1, CastDuration = 2.0, CastTimeScalesWithHaste = true },
+            Category = SpellCategory.Rotational,
+        }.CastTime(0.5).ShouldBe(2.0 / 1.5, 1e-9);
+
+    [Fact]
+    public void CastTime_KeepsTheFullChannelDurationUnderHaste() =>
+        new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = 1027, ChannelDuration = 2.0, ChannelTickInterval = 0.4, CastTimeScalesWithHaste = true },
+            Category = SpellCategory.Rotational,
+        }.CastTime(0.5).ShouldBe(2.0);
 }
