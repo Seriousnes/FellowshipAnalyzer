@@ -3,12 +3,12 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
-/// <summary>Reduces Repository of Frozen Light's cooldown by 0.3 seconds for each stack on a Frozen Light buff removed at or after 21 seconds from its application.</summary>
+/// <summary>Reduces Repository of Frozen Light's cooldown by 0.3 seconds for each stack on a Frozen Light buff removed at or after 30 seconds from its application.</summary>
 [ActiveWhen<HasRepositoryOfFrozenLightGear>]
 [After<SpellUsable>]
 public sealed partial class RepositoryOfFrozenLightAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
 {
-    private const int BuffDurationMs = 21_000;
+    private const int BuffDurationMs = 30_000;
 
     private const int ReductionPerStackMs = 300;
 

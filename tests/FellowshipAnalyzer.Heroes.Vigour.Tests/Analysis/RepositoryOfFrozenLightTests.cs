@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis;
 public sealed class RepositoryOfFrozenLightTests
 {
     private const int CastAt = PullStart + 1_000;
-    private const int RemovedAt = CastAt + 23_000;
+    private const int RemovedAt = CastAt + 31_000;
     private const int Stacks = 15;
     private const int ReductionMs = Stacks * 300;
 

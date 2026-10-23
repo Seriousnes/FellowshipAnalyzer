@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 public sealed class RepositoryOfFrozenLightTests
 {
     private const int CastAt = 2_000;
-    private const int RemovedAt = 25_000;
+    private const int RemovedAt = 33_000;
     private const int Stacks = 15;
     private const int ReductionMs = Stacks * 300;
 

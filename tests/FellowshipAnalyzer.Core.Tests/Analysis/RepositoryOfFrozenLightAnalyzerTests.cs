@@ -15,7 +15,7 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="RepositoryOfFrozenLightAnalyzer"/>: a Frozen Light removal at or after 21 seconds from
+/// Tests for <see cref="RepositoryOfFrozenLightAnalyzer"/>: a Frozen Light removal at or after 30 seconds from
 /// its application takes 0.3 seconds off Repository of Frozen Light's cooldown for each stack still on the buff.
 /// </summary>
 public sealed class RepositoryOfFrozenLightAnalyzerTests
@@ -38,7 +38,7 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
             ApplyBuff(2500, AllyId),
             ApplyBuffStack(2500, AllyId, 15),
             RemoveBuffStack(5000, AllyId, 7),
-            RemoveBuff(23_500, AllyId),
+            RemoveBuff(32_500, AllyId),
         ]);
 
         Assert.Equal(new CooldownReductionResult(2100, 2100), analyzer.CooldownReduction);
@@ -63,14 +63,14 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     }
 
     [Fact]
-    public async Task RemovalBefore21Seconds_DoesNotReduceCooldown()
+    public async Task RemovalBefore30Seconds_DoesNotReduceCooldown()
     {
         var analyzer = await Analyze(
         [
             Cast(1000),
             ApplyBuff(2500, AllyId),
             ApplyBuffStack(2500, AllyId, 15),
-            RemoveBuff(23_499, AllyId),
+            RemoveBuff(32_499, AllyId),
         ]);
 
         Assert.Equal(new CooldownReductionResult(0, 0), analyzer.CooldownReduction);
@@ -85,7 +85,7 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
             ApplyBuff(2500, AllyId),
             ApplyBuffStack(2500, AllyId, 15),
             RemoveBuffStack(6000, AllyId, 0),
-            RemoveBuff(23_500, AllyId),
+            RemoveBuff(32_500, AllyId),
         ]);
 
         Assert.Equal(new CooldownReductionResult(0, 0), analyzer.CooldownReduction);
@@ -104,6 +104,23 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
         ]);
 
         Assert.Equal(new CooldownReductionResult(0, 0), analyzer.CooldownReduction);
+    }
+
+    [Fact]
+    public void ConsumedFinalStack_DropsTheStackChangeAndZeroesTheRemovalStack()
+    {
+        var removal = RemoveBuff(23_500, AllyId);
+
+        var normalized = new FrozenLightRemovalNormalizer().Normalize(
+        [
+            ApplyBuff(2500, AllyId),
+            ApplyBuffStack(2500, AllyId, 15),
+            RemoveBuffStack(21_500, AllyId, 1),
+            removal,
+        ], PlayerId);
+
+        Assert.DoesNotContain(normalized, e => e is RemoveBuffStackEvent);
+        Assert.Equal(0, removal.Stack);
     }
 
     [Fact]
