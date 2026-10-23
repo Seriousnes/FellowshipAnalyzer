@@ -13,7 +13,7 @@ public class SpellbookAbilityHasteTests
     public void CooldownReducedByHaste_DefaultsToThePrimarySpell() =>
         new SpellbookAbility
         {
-            PrimarySpell = new Spell { Id = 1, Cooldown = 10, CooldownScalesWithHaste = true },
+            PrimarySpell = new Spell { Id = 1, Cooldown = 10, CooldownHaste = CooldownHasteScaling.Duration },
             Category = SpellCategory.Rotational,
         }.CooldownReducedByHaste.ShouldBeTrue();
 
@@ -29,7 +29,7 @@ public class SpellbookAbilityHasteTests
     public void CooldownReducedByHaste_SetOnTheAbility_OverridesThePrimarySpell() =>
         new SpellbookAbility
         {
-            PrimarySpell = new Spell { Id = 1, Cooldown = 10, CooldownScalesWithHaste = true },
+            PrimarySpell = new Spell { Id = 1, Cooldown = 10, CooldownHaste = CooldownHasteScaling.Duration },
             Category = SpellCategory.Rotational,
             CooldownReducedByHaste = false,
         }.CooldownReducedByHaste.ShouldBeFalse();

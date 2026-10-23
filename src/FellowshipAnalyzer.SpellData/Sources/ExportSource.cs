@@ -2,6 +2,7 @@ using System.Text.Json;
 
 using Fellowship.SDK.Documents;
 
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.UI;
 
 using EntityTypes = Fellowship.SDK.EntityTypes;
@@ -16,7 +17,7 @@ public record ExportAbility(
     string? Name,
     string? Category,
     double? Cooldown,
-    bool CooldownScalesWithHaste,
+    CooldownHasteScaling? CooldownHaste,
     double? Cost,
     string? Resource,
     bool CostIsFraction,
@@ -154,7 +155,7 @@ public sealed class ExportSource
                 case AbilityDocument ability:
                     abilities[ability.Id] = new ExportAbility(
                         ability.Id, ability.Name, ability.Category?.ToString(), ability.Cooldown,
-                        ability.CooldownDurationScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true, ability.Cost,
+                        HasteScaling(ability), ability.Cost,
                         ability.Resource, CostIsFraction(root), Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
                         ability.CastTime, ability.ChannelTime, ability.ChannelTick,
                         [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())]);
@@ -264,6 +265,11 @@ public sealed class ExportSource
     private const string NoCategory = "None";
 
     private const string HasteStat = "Haste";
+
+    private static CooldownHasteScaling? HasteScaling(AbilityDocument ability) =>
+        ability.CooldownTimeRateScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true ? CooldownHasteScaling.TimeRate
+        : ability.CooldownDurationScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true ? CooldownHasteScaling.Duration
+        : null;
 
     private static EntityRef? Reference(Fellowship.SDK.Models.EntityReference? reference) =>
         reference is null ? null : new EntityRef(EntityTypes.Slug(reference.Type), reference.Id, reference.Name);
