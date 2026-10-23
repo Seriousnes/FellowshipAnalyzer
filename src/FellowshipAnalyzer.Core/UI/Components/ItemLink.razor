@@ -13,8 +13,13 @@
 </a>
 
 @code {
+    /// <summary>
+    /// The item: an equipped item from the log, a registry item such as a hero's <c>Legendaries</c>
+    /// member, or a bare id. Every hero's legendaries share item ids, so link a legendary by its
+    /// registry item; a bare id reads the name of whichever item the registry holds for that id.
+    /// </summary>
     [Parameter, EditorRequired]
-    public OneOf<Core.Events.Item, int> Item { get; set; }
+    public OneOf<Core.Events.Item, Core.Common.Items.Item, int> Item { get; set; }
 
     /// <summary>
     /// The hero the item is read for. One item id reads as a different item per hero,
@@ -46,6 +51,7 @@
         _equipped = null;
         Item.Switch(
             item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; _equipped = item; },
+            item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; },
             id =>
             {
                 var s = ItemRegistry.MaybeGet(id);
