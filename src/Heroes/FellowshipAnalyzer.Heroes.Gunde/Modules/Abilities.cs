@@ -7,6 +7,14 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 public class Abilities : CoreAbilities
 {
+    private const int BleedingHeartsHeartSplitterCharges = 2;
+
+    /// <summary>
+    /// Whether the player has Bleeding Hearts equipped, which gives Heart Splitter a second charge. An unowned
+    /// spellbook reads the base ability.
+    /// </summary>
+    private bool BleedingHearts => Owner?.SelectedCombatant.HasLegendary(Legendaries.BleedingHearts.Id) == true;
+
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
@@ -18,11 +26,12 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.HeartSplitter,
+            PrimarySpell = BleedingHearts
+                ? Spells.HeartSplitter with { Charges = BleedingHeartsHeartSplitterCharges }
+                : Spells.HeartSplitter,
             AdditionalSpells = [Spells.HeartSplitterDamage, Spells.HeartSplitterDotBonusDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -36,7 +45,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.BloodArcDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -51,7 +59,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.GrimCarveDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -59,7 +66,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ReaverEdgeDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {

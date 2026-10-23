@@ -1,5 +1,3 @@
-@using FellowshipAnalyzer.Core.Common.Items
-@using Items = FellowshipAnalyzer.Core.Common.Items.Items
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inherits GuideComponent<GundeCombatLogParser>
 
@@ -8,7 +6,7 @@
         <p>
             Avoid consuming <SpellLink Spell="Spells.SerratedEdge" /> on filler abilities.           
 
-            @if (this.Owner.SelectedCombatant.Legendary is { } legendary)
+            @if (OrderLegendary is { } legendary)
             {
                 <text>With <ItemLink Item="legendary" /> equipped, spend it in this order:</text>
             }
@@ -58,6 +56,11 @@
 
     private List<SerratedEdgeAnalyzer> Analyzers =>
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
+
+    private FellowshipAnalyzer.Core.Events.Item? OrderLegendary =>
+        Analyzers.FirstOrDefault()?.OrderLegendaryId is { } id
+            ? Owner.SelectedCombatant.Legendaries.FirstOrDefault(item => item.Id == id)
+            : null;
 
     private int TotalGrants => Analyzers.Sum(analyzer => analyzer.RatedGrants);
 

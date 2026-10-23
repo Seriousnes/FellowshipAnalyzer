@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Gunde.Normalizers;
@@ -34,9 +33,18 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
 
-    public bool BleedingHeartRingEquipped => Owner.SelectedCombatant.HasItem(Items.BandOfTheBleedingHeart.Id);
+    public bool BleedingHeartsEquipped => Owner.SelectedCombatant.HasLegendary(Legendaries.BleedingHearts.Id);
 
-    public bool SinisterApronEquipped => Owner.SelectedCombatant.HasItem(Items.CarversSinisterApron.Id);
+    public bool BloodyMessEquipped => Owner.SelectedCombatant.HasLegendary(Legendaries.BloodyMess.Id);
+
+    /// <summary>
+    /// The equipped legendary whose spend order <see cref="ConsumerPriority"/> follows, or <c>null</c> when neither
+    /// Bleeding Hearts nor Bloody Mess is equipped. Bleeding Hearts decides the order when both are equipped.
+    /// </summary>
+    public int? OrderLegendaryId =>
+        BleedingHeartsEquipped ? Legendaries.BleedingHearts.Id
+        : BloodyMessEquipped ? Legendaries.BloodyMess.Id
+        : null;
 
     public List<int> ConsumerPriority => field ??= BuildConsumerPriority();
 
@@ -113,12 +121,12 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     private List<int> BuildConsumerPriority()
     {
-        if (BleedingHeartRingEquipped)
+        if (OrderLegendaryId == Legendaries.BleedingHearts.Id)
         {
             return [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
         }
 
-        if (SinisterApronEquipped)
+        if (OrderLegendaryId == Legendaries.BloodyMess.Id)
         {
             return Shape == GundePullShape.Aoe
                 ? [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]

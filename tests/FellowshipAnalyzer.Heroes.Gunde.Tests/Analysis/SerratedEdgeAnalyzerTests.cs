@@ -11,6 +11,7 @@ using Shouldly;
 
 using Xunit;
 
+using Legendaries = FellowshipAnalyzer.Core.Common.Spells.Gunde.Legendaries;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Tests.Analysis;
@@ -27,9 +28,11 @@ public sealed class SerratedEdgeAnalyzerTests
     /// <summary>Curated Grim Carve cooldown.</summary>
     private const int GrimCarveCooldownMs = 15_000;
 
-    private static readonly int BleedingHeartRing = FellowshipAnalyzer.Core.Common.Items.Items.BandOfTheBleedingHeart.Id;
+    private const int LegendaryQuality = 6;
 
-    private static readonly int SinisterApron = FellowshipAnalyzer.Core.Common.Items.Items.CarversSinisterApron.Id;
+    private static readonly int BleedingHearts = Legendaries.BleedingHearts.Id;
+
+    private static readonly int BloodyMess = Legendaries.BloodyMess.Id;
 
     [Fact]
     public async Task Analyze_BossPull_HeartSplitterConsumingTheBuff_IsThePriority()
@@ -197,16 +200,16 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_BossPull_WithTheBleedingHeartRing_PutsRuptureFirst()
+    public async Task Analyze_BossPull_WithBleedingHearts_PutsRuptureFirst()
     {
         var analyzer = await AnalyzeAsync(
         [
             Granted(1_000),
             Cast(Spells.Rupture.FSLID, 2_000),
             Removed(2_000),
-        ], boss: true, equipped: BleedingHeartRing);
+        ], boss: true, equipped: [BleedingHearts]);
 
-        analyzer.BleedingHeartRingEquipped.ShouldBeTrue();
+        analyzer.BleedingHeartsEquipped.ShouldBeTrue();
         analyzer.ConsumerPriority.ShouldBe(
             [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
 
@@ -216,14 +219,14 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_TrashPull_WithTheBleedingHeartRing_KeepsTheSameOrder()
+    public async Task Analyze_TrashPull_WithBleedingHearts_KeepsTheSameOrder()
     {
         var analyzer = await AnalyzeAsync(
         [
             Granted(1_000),
             Cast(Spells.HeartSplitter.FSLID, 2_000),
             Removed(2_000),
-        ], boss: false, equipped: BleedingHeartRing);
+        ], boss: false, equipped: [BleedingHearts]);
 
         analyzer.ConsumerPriority.ShouldBe(
             [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
@@ -234,16 +237,16 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_BossPull_WithTheSinisterApron_PutsRuptureAheadOfGrimCarve()
+    public async Task Analyze_BossPull_WithBloodyMess_PutsRuptureAheadOfGrimCarve()
     {
         var analyzer = await AnalyzeAsync(
         [
             Granted(1_000),
             Cast(Spells.GrimCarve.FSLID, 2_000),
             Removed(2_000),
-        ], boss: true, equipped: SinisterApron);
+        ], boss: true, equipped: [BloodyMess]);
 
-        analyzer.SinisterApronEquipped.ShouldBeTrue();
+        analyzer.BloodyMessEquipped.ShouldBeTrue();
         analyzer.ConsumerPriority.ShouldBe(
             [Spells.Rupture.FSLID.Value, Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value]);
 
@@ -253,14 +256,14 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_TrashPull_WithTheSinisterApron_PutsGrimCarveFirst()
+    public async Task Analyze_TrashPull_WithBloodyMess_PutsGrimCarveFirst()
     {
         var analyzer = await AnalyzeAsync(
         [
             Granted(1_000),
             Cast(Spells.GrimCarve.FSLID, 2_000),
             Removed(2_000),
-        ], boss: false, equipped: SinisterApron);
+        ], boss: false, equipped: [BloodyMess]);
 
         analyzer.ConsumerPriority.ShouldBe(
             [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]);
@@ -281,8 +284,8 @@ public sealed class SerratedEdgeAnalyzerTests
             Removed(2_000),
         ], boss: true);
 
-        analyzer.BleedingHeartRingEquipped.ShouldBeFalse();
-        analyzer.SinisterApronEquipped.ShouldBeFalse();
+        analyzer.BleedingHeartsEquipped.ShouldBeFalse();
+        analyzer.BloodyMessEquipped.ShouldBeFalse();
         analyzer.ConsumerPriority.ShouldBe(
             [Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
 
@@ -290,7 +293,7 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_WithTheBleedingHeartRing_RuptureOffCooldownMakesFillerAvoidable()
+    public async Task Analyze_WithBleedingHearts_RuptureOffCooldownMakesFillerAvoidable()
     {
         var analyzer = await AnalyzeAsync(
         [
@@ -299,12 +302,82 @@ public sealed class SerratedEdgeAnalyzerTests
             Granted(2_000),
             Cast(Spells.ReaverEdge.FSLID, 3_000),
             Removed(3_001),
-        ], boss: true, equipped: BleedingHeartRing);
+        ], boss: true, equipped: [BleedingHearts]);
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
         grant.Readiness.Count.ShouldBe(3);
         Readiness(grant, Spells.Rupture.FSLID).Ready.ShouldBeTrue();
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_WithBothLegendaries_FollowsTheBleedingHeartsOrder()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.Rupture.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: false, equipped: [BleedingHearts, BloodyMess]);
+
+        analyzer.BleedingHeartsEquipped.ShouldBeTrue();
+        analyzer.BloodyMessEquipped.ShouldBeTrue();
+        analyzer.OrderLegendaryId.ShouldBe(BleedingHearts);
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
+        analyzer.Grants.ShouldHaveSingleItem().Outcome.ShouldBe(SerratedEdgeOutcome.Priority);
+    }
+
+    [Fact]
+    public async Task Analyze_WithBloodyMessAlone_OrderLegendaryIsBloodyMess()
+    {
+        var analyzer = await AnalyzeAsync([Granted(1_000), Removed(2_000)], boss: false, equipped: [BloodyMess]);
+
+        analyzer.OrderLegendaryId.ShouldBe(BloodyMess);
+    }
+
+    [Fact]
+    public async Task Analyze_WithNoLegendary_OrderLegendaryIsNull()
+    {
+        var analyzer = await AnalyzeAsync([Granted(1_000), Removed(2_000)], boss: true);
+
+        analyzer.OrderLegendaryId.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task Analyze_WithBleedingHearts_TheSecondHeartSplitterChargeMakesFillerAvoidable()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Cast(Spells.Rupture.FSLID, 500),
+            Cast(Spells.HeartSplitter.FSLID, 1_000),
+            Cast(Spells.GrimCarve.FSLID, 1_500),
+            Granted(2_000),
+            Cast(Spells.ReaverEdge.FSLID, 3_000),
+            Removed(3_001),
+        ], boss: true, equipped: [BleedingHearts]);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        Readiness(grant, Spells.Rupture.FSLID).Ready.ShouldBeFalse();
+        Readiness(grant, Spells.GrimCarve.FSLID).Ready.ShouldBeFalse();
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeTrue();
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
+    }
+
+    [Fact]
+    public async Task Analyze_WithoutBleedingHearts_OneHeartSplitterUsesItsOnlyCharge()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Cast(Spells.HeartSplitter.FSLID, 1_000),
+            Cast(Spells.GrimCarve.FSLID, 1_500),
+            Granted(2_000),
+            Cast(Spells.ReaverEdge.FSLID, 3_000),
+            Removed(3_001),
+        ], boss: true, equipped: [BloodyMess]);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeFalse();
     }
 
     [Fact]
@@ -535,10 +608,10 @@ public sealed class SerratedEdgeAnalyzerTests
         Ability = new Ability { Id = abilityId },
     };
 
-    private static CombatantInfoEvent Equipped(int itemId) => new()
+    private static CombatantInfoEvent Equipped(List<int> itemIds) => new()
     {
         SourceId = PlayerId,
-        Gear = [new Item { Id = itemId }],
+        Gear = [.. itemIds.Select(itemId => new Item { Id = itemId, Quality = LegendaryQuality })],
     };
 
     private static ApplyBuffEvent Granted(int timestamp) => new()
@@ -572,9 +645,9 @@ public sealed class SerratedEdgeAnalyzerTests
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null,
             EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
-    private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss, int? equipped = null)
+    private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss, List<int>? equipped = null)
     {
-        List<Event> stream = equipped is { } itemId ? [Equipped(itemId), .. events] : events;
+        List<Event> stream = equipped is { } itemIds ? [Equipped(itemIds), .. events] : events;
         var (parser, _) = await RunAsync(stream, boss ? BossDungeon() : TrashDungeon());
         return parser.SerratedEdgeAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
