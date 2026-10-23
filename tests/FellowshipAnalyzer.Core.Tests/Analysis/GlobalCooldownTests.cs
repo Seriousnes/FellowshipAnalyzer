@@ -66,6 +66,60 @@ public sealed class GlobalCooldownTests
     }
 
     [Fact]
+    public async Task CompletedHardCast_ShouldStartOneGcdAtBeginCast()
+    {
+        var events = new List<Event>
+        {
+            CreateBeginCast(1000, TestSpellId),
+            CreateCast(3000, TestSpellId),
+        };
+
+        var (parser, _) = await RunWithGcd(events, includeNormalizer: true);
+
+        var beginCast = parser.Events.OfType<BeginCastEvent>().Single();
+        var cast = parser.Events.OfType<CastEvent>().Single();
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Timestamp);
+        Assert.Equal(1500, gcd.Duration);
+        Assert.Same(gcd, beginCast.GlobalCooldown);
+        Assert.Same(gcd, cast.GlobalCooldown);
+    }
+
+    [Fact]
+    public async Task CancelledHardCast_ShouldKeepGcdFromBeginCast()
+    {
+        var events = new List<Event>
+        {
+            CreateBeginCast(1000, TestSpellId),
+        };
+
+        var (parser, _) = await RunWithGcd(events, includeNormalizer: true);
+
+        var beginCast = parser.Events.OfType<BeginCastEvent>().Single();
+        Assert.True(beginCast.IsCancelled);
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Timestamp);
+        Assert.Equal(1500, gcd.Duration);
+        Assert.Same(gcd, beginCast.GlobalCooldown);
+    }
+
+    [Fact]
+    public async Task InstantCast_ShouldStartGcdAtCast()
+    {
+        var events = new List<Event>
+        {
+            CreateCast(1000, TestSpellId),
+        };
+
+        var (parser, _) = await RunWithGcd(events, includeNormalizer: true);
+
+        var cast = parser.Events.OfType<CastEvent>().Single();
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Timestamp);
+        Assert.Same(gcd, cast.GlobalCooldown);
+    }
+
+    [Fact]
     public async Task ActivationCast_WithNoDuplicate_ShouldTriggerGcd()
     {
         var events = new List<Event>
@@ -304,6 +358,13 @@ public sealed class GlobalCooldownTests
         TargetId = EnemyId,
         Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Activation = activation,
+    };
+
+    private static BeginCastEvent CreateBeginCast(int timestamp, int spellId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 
     private static BeginChannelEvent CreateBeginChannel(int timestamp, int spellId) => new()

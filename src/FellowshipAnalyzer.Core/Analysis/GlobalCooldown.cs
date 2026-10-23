@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Fabricates <see cref="GlobalCooldownEvent"/> for every on-GCD cast or channel start,
+/// Fabricates <see cref="GlobalCooldownEvent"/> for every on-GCD hard cast start, instant cast or channel start,
 /// and attaches it to the triggering event's <c>GlobalCooldown</c> property so that
 /// Timeline rendering can display GCD bars without re-scanning all events.
 /// </summary>
@@ -12,10 +12,33 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
 {
     private int _lastGcdEnd;
 
+    [On<BeginCastEvent>(By = Actor.Player)]
+    private void OnBeginCast(BeginCastEvent e)
+    {
+        if (e.Channel is not null) return;
+
+        var gcdMs = GetGcdDuration(e.Ability.Id);
+        if (gcdMs <= 0) return;
+
+        if (e.Timestamp < _lastGcdEnd)
+        {
+            var overlapMs = _lastGcdEnd - e.Timestamp;
+            _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
+                Color: FaVar.Amber,
+                Summary: $"Cast start during active GCD ({overlapMs}ms overlap)",
+                Details: $"The GCD was still active for {overlapMs}ms when this cast start was registered."));
+        }
+
+        var gcdEvent = FabricateGcdEvent(e.Ability.Id, e.Timestamp, gcdMs);
+        e.GlobalCooldown = gcdEvent;
+        e.CastEvent?.GlobalCooldown = gcdEvent;
+        _lastGcdEnd = e.Timestamp + gcdMs;
+    }
+
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
-        if (e.Channel is not null) return;
+        if (e.Channel is not null || e.GlobalCooldown is not null) return;
 
         var gcdMs = GetGcdDuration(e.Ability.Id);
         if (gcdMs <= 0) return;
