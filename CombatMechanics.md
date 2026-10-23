@@ -266,7 +266,7 @@ With correct modeling of ratings, Haste, DR, and cooldown scaling, the app can c
 - Drift and desync: how far key cooldowns were delayed, especially around encounter mechanics.
 - GCD utilization: percentage of time spent GCD-locked versus idle, excluding forced downtime.
 - Stat utilization: how much value is obtained from the current secondary distribution, expressed as post-DR percentage against raw percentage so a player can see exactly how many points DR is costing them at their rating. [^22][^1][^19]
-- Buff and debuff uptime: adjusted for Haste‑affected durations and tick schedules.
+- Buff and debuff uptime: adjusted for Haste‑scaled tick schedules.
 
 By surfacing these as per-pull and per-ability metrics, the analyzer can give actionable feedback that goes beyond raw DPS/HPS numbers.
 
