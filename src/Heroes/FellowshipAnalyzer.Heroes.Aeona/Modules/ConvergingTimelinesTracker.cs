@@ -12,7 +12,8 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <see cref="AeonaBuild.ConvergingTimelinesOnOblivion"/>, a cleanse grants
 /// <see cref="AeonaBuild.ConvergingTimelinesOnCleanse"/>. Effect 2820 is applied by Lonesome Song's ability 2018 and
 /// multiplies Cooldown Recovery by 3, a term of <c>3 - 1</c> in the additive pool; it counts as an Oblivion application.
-/// Each effect has its own modifier, so the two terms add while both are active. A refresh inside a running window
+/// One Oblivion cast counts once in <see cref="Applications"/> and <see cref="OblivionApplications"/>, even when it
+/// grants both effects. Each effect has its own modifier, so the two terms add while both are active. A refresh inside a running window
 /// replaces that effect's modifier and extends the window.
 /// </remarks>
 [Dependency<StatTracker>]
@@ -27,6 +28,7 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
     private readonly Aura _lonesomeSong = new();
 
     private bool _lastCastWasOblivion;
+    private bool _castCounted;
 
     /// <summary>Applications and refreshes of Converging Timelines on the player.</summary>
     public int Applications { get; private set; }
@@ -48,10 +50,10 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
     ];
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Oblivion))]
-    private void OnOblivionCast(CastEvent e) => _lastCastWasOblivion = true;
+    private void OnOblivionCast(CastEvent e) => BeginCast(oblivion: true);
 
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
-    private void OnCleanseCast(CastEvent e) => _lastCastWasOblivion = false;
+    private void OnCleanseCast(CastEvent e) => BeginCast(oblivion: false);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ConvergingTimelines))]
     private void OnApplied(ApplyBuffEvent e) => GrantConvergingTimelines(e);
@@ -71,11 +73,16 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ConvergingTimelinesLonesomeSong))]
     private void OnLonesomeSongRemoved(RemoveBuffEvent e) => Close(_lonesomeSong, e);
 
+    private void BeginCast(bool oblivion)
+    {
+        _lastCastWasOblivion = oblivion;
+        _castCounted = false;
+    }
+
     private void GrantConvergingTimelines(Event trigger)
     {
-        Applications++;
-        if (_lastCastWasOblivion) OblivionApplications++;
-        else CleanseApplications++;
+        if (_lastCastWasOblivion) CountOblivion();
+        else CountCleanse();
 
         var magnitude = _lastCastWasOblivion ? AeonaBuild.ConvergingTimelinesOnOblivion : AeonaBuild.ConvergingTimelinesOnCleanse;
         Grant(_convergingTimelines, magnitude, trigger);
@@ -83,9 +90,23 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
 
     private void GrantLonesomeSong(Event trigger)
     {
+        CountOblivion();
+        Grant(_lonesomeSong, LonesomeSongAcceleration, trigger);
+    }
+
+    private void CountOblivion()
+    {
+        if (_lastCastWasOblivion && _castCounted) return;
+
         Applications++;
         OblivionApplications++;
-        Grant(_lonesomeSong, LonesomeSongAcceleration, trigger);
+        _castCounted = _lastCastWasOblivion;
+    }
+
+    private void CountCleanse()
+    {
+        Applications++;
+        CleanseApplications++;
     }
 
     private void Grant(Aura aura, double magnitude, Event trigger)

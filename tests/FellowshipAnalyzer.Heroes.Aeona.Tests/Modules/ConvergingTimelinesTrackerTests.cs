@@ -141,6 +141,22 @@ public sealed class ConvergingTimelinesTrackerTests
     }
 
     [Fact]
+    public async Task OneOblivionGrantingBothEffects_SumsToThree_AndCountsOneApplication()
+    {
+        var parser = await Analyze(BossPull(),
+            Info([], AeonaLegendaries.LonesomeSong),
+            Activation(1_000, Spells.Oblivion),
+            ApplyBuff(1_000, Spells.ConvergingTimelines),
+            ApplyBuff(1_000, Spells.ConvergingTimelinesLonesomeSong));
+
+        var tracker = parser.ConvergingTimelinesTracker.ShouldNotBeNull();
+        tracker.Applications.ShouldBe(1);
+        tracker.OblivionApplications.ShouldBe(1);
+        tracker.CleanseApplications.ShouldBe(0);
+        ConvergingTimelinesAcceleration(parser).ShouldBe(3.0, 0.0001);
+    }
+
+    [Fact]
     public async Task RemovingTheCleanseEffect_KeepsTheLonesomeSongTerm()
     {
         var parser = await Analyze(BossPull(),

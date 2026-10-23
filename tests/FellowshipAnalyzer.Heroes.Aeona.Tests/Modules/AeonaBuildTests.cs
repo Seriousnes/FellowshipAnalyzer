@@ -39,13 +39,13 @@ public sealed class AeonaBuildTests
     }
 
     [Fact]
-    public async Task WithLonesomeSong_OblivionGrantsTheLargerAcceleration()
+    public async Task WithLonesomeSong_OblivionKeepsTheBaseConvergingTimelinesAcceleration()
     {
         var parser = await Analyze(BossPull(), Info([], AeonaLegendaries.LonesomeSong));
 
         var build = parser.AeonaBuild.ShouldNotBeNull();
         build.LonesomeSong.ShouldBeTrue();
-        build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
+        build.ConvergingTimelinesOnOblivion.ShouldBe(1.0);
     }
 
 }
