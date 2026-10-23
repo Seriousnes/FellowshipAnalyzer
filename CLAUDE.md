@@ -8,6 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **IMPORTANT** - Never include comments referencing design docs or plan points. Comments are reserved exclusively for API/usage notes.
 - **Never** add inline comments or comments within methods for any reason.
 
+### Changelog entries
+- **IMPORTANT** - Every change to `src/FellowshipAnalyzer.Core/` or to a hero project needs a changelog entry in the same branch, or CI's `Check changelog` job (`.github/scripts/check-changelog.sh`) fails the PR.
+  - A change to `src/FellowshipAnalyzer.Core/` adds an entry to `src/FellowshipAnalyzer.Core/Analysis/CoreChangelog.razor`.
+  - A change to `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/` adds an entry to that hero's `Changelog.razor`. A `CoreChangelog.razor` entry also satisfies the check.
+  - This applies to every agent and subagent that commits.
+- An entry is one or two short sentences that state what changed for the player. It has no rationale and no implementation detail.
+- An entry names spells, talents and items through `<SpellLink Spell="..." />` and `<ItemLink Item="@..." />`, never as raw text. A legendary takes `<ItemLink Item="@Legendaries.X" />`, because every hero has the same three legendary item ids.
+- An entry is dated with the day of the change and credits the contributor, for example `Change(new(2026, 10, 23), @<text>...</text>, Seriousnes)`.
+
 ## Project
 
 FellowshipAnalyzer parses and analyzes combat logs from the online RPG "Fellowship". Logs are uploaded to fellowshiplogs.com; this app calls the Fellowship Logs GraphQL API, runs hero-specific analyzers over combat events, and renders guide/statistics views.
