@@ -35,7 +35,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.BlindingSlashDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -43,7 +42,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.OmnistrikeDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -51,7 +49,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.SolarBladesDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -85,7 +82,6 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-            CooldownReducedByHaste = true,
         },
         new()
         {
