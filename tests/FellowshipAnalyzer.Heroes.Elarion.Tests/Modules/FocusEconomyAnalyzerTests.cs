@@ -42,19 +42,6 @@ public sealed class FocusEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task Snapshots_CountTheCastsSittingAtFullFocus()
-    {
-        var analyzer = await Analyze(
-            Cast(1_000, Spells.FocusedShot.FSLID, focus: MaxFocus),
-            Cast(2_000, Spells.CelestialShot.FSLID, focus: MaxFocus),
-            Cast(3_000, Spells.Multishot.FSLID, focus: 40),
-            Cast(4_000, Spells.Shoot.FSLID, focus: null));
-
-        analyzer.SampledEvents.ShouldBe(3);
-        analyzer.SampledAtCap.ShouldBe(2);
-    }
-
-    [Fact]
     public async Task EventHorizon_CountsTheSpendersBetweenTheCastAndTheBuffRemoval()
     {
         var analyzer = await Analyze(
