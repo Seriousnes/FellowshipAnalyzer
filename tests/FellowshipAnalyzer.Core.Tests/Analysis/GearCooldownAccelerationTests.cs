@@ -47,7 +47,25 @@ public sealed class GearCooldownAccelerationTests
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
-        Assert.NotNull(combatant.Legendary);
+        Assert.Single(combatant.Legendaries);
+        Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
+    }
+
+    [Fact]
+    public void ThreeLegendaries_ResolveTheAccelerationOnce()
+    {
+        var combatant = new FullCombatant(new CombatantInfoEvent
+        {
+            Gear =
+            [
+                new Item { Id = 5899, Quality = LegendaryQuality },
+                new Item { Id = 5898, Quality = LegendaryQuality },
+                new Item { Id = 5900, Quality = LegendaryQuality },
+            ],
+        });
+
+        Assert.Equal(3, combatant.Legendaries.Count);
+        Assert.True(combatant.HasLegendary(5900));
         Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
     }
 
@@ -56,7 +74,7 @@ public sealed class GearCooldownAccelerationTests
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
-        Assert.Null(combatant.Legendary);
+        Assert.Empty(combatant.Legendaries);
         Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
     }
 
