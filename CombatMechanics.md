@@ -14,7 +14,8 @@ A robust analyzer needs to: (1) convert rating to post‑DR secondary percentage
 ## Secondary Stats and Rating System
 
 Fellowship has four main secondary stats on gear: Critical Strike, Haste, Expertise, and Spirit, all of which are stored as rating values that are converted to percentages. [^2][^1][^7]
-These secondary stats modify core combat behavior: Critical Strike increases crit chance (with a special base 5%), Haste speeds up most time-based effects, Expertise increases damage/healing/shields, and Spirit primarily affects ultimate resource generation and hero‑specific proc effects. [^2][^1][^7]
+These secondary stats modify core combat behavior: Critical Strike increases crit chance (with a special base 5%), Haste speeds up most time-based effects, Expertise increases damage/healing/shields, and Spirit sets the Spirit Refund chance. [^2][^1][^7]
+The Spirit Refund chance is `Spirit / (1 + Spirit)`, and a Spirit Refund returns the hero's spender resource shortly after the spend. Spirit also feeds hero-specific scaling. [^24]
 
 Secondary stats are always sourced as ratings from gear, gems, and some effects, while some talents, set bonuses, and gem effects add flat percentages that stack after the rating-to-percentage and diminishing-returns steps. [^2][^1]
 
@@ -381,5 +382,5 @@ The tiers were also cut on the **post-DR** percentage, so each tier contributed 
 
 23. `src/FellowshipAnalyzer.Core/Analysis/StatTracker.cs` - `RatingToPercentage` is this codebase's implementation of the Season 3 rating to percentage conversion and is the authority for what the analyzer computes. `BaseCritChance` holds the 5% base crit and `CritPercentage(rating, withBase: true)` adds it.
 
-24. SimFell, the Fellowship combat simulator replayed against FellowshipLogs combat logs (`G:/source/SimFell`). `Engine/StatBlock.cs` `StatDiminishingReturns` holds the rating conversion; `Domain/Ability.cs` holds cast time, the cooldown duration at the start and the channel tick period; `Domain/Hero.cs` `CooldownRate` and `CooldownState` hold the recovery rate, weapon abilities, flat reductions and charges; `Engine/HastedTimer.cs` holds hasted periodic progress; `Engine/SimulationContext.cs` holds the global cooldown.
+24. SimFell, the Fellowship combat simulator replayed against FellowshipLogs combat logs (`G:/source/SimFell`). `Engine/StatBlock.cs` `StatDiminishingReturns` holds the rating conversion; `Domain/Ability.cs` holds cast time, the cooldown duration at the start and the channel tick period; `Domain/Hero.cs` `CooldownRate` and `CooldownState` hold the recovery rate, weapon abilities, flat reductions and charges, and `RollSpiritRefund` holds the Spirit Refund chance; `Engine/HastedTimer.cs` holds hasted periodic progress; `Engine/SimulationContext.cs` holds the global cooldown.
 
