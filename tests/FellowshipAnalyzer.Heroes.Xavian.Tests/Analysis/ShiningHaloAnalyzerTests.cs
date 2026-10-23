@@ -16,27 +16,13 @@ public sealed class ShiningHaloAnalyzerTests
         (await Analyze(events)).ShiningHaloAnalyzers.ShouldHaveSingleItem().Analyzer;
 
     [Fact]
-    public async Task Uptime_IsTheShareOfThePullSpentInTheHalo()
+    public async Task Casts_CountEveryShiningHalo()
     {
         var analyzer = await Analyzer(
             Cast(PullStart, Spells.ShiningHalo),
-            ApplyBuff(PullStart, Spells.ShiningHaloSelfBuff),
-            RemoveBuff(PullStart + 12_000, Spells.ShiningHaloSelfBuff),
-            ApplyBuff(PullStart + 30_000, Spells.ShiningHaloSelfBuff),
-            RemoveBuff(PullStart + 48_000, Spells.ShiningHaloSelfBuff));
+            Cast(PullStart + 30_000, Spells.ShiningHalo));
 
-        analyzer.Casts.ShouldBe(1);
-        analyzer.ActiveMs.ShouldBe(30_000);
-        analyzer.Uptime.ShouldBe(0.5, 0.001);
-    }
-
-    [Fact]
-    public async Task AHaloStillUpAtThePullEnd_RunsToThePullEnd()
-    {
-        var analyzer = await Analyzer(
-            ApplyBuff(PullEnd - 6_000, Spells.ShiningHaloSelfBuff));
-
-        analyzer.ActiveMs.ShouldBe(6_000);
+        analyzer.Casts.ShouldBe(2);
     }
 
     [Fact]

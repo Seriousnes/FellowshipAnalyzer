@@ -20,22 +20,12 @@
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var entries = Parser.ShiningHaloAnalyzers.ToList();
-        var pullMs = entries.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
-        if (pullMs == 0) return [];
-
-        var analyzers = entries.Select(entry => entry.Analyzer).ToList();
-        var uptime = analyzers.Sum(analyzer => (long)analyzer.ActiveMs) / (double)pullMs * 100;
+        var analyzers = Parser.ShiningHaloAnalyzers.Select(entry => entry.Analyzer).ToList();
         var flashes = analyzers.Sum(analyzer => analyzer.BrilliantFlashCasts);
         var inHalo = analyzers.Sum(analyzer => analyzer.BrilliantFlashInHalo);
 
         return
         [
-            new(
-                $"{uptime:F1}%",
-                "Uptime",
-                "Share of pull time you stood in your Shining Halo.",
-                UptimeTier(uptime)),
             new($"{analyzers.Sum(analyzer => analyzer.Casts)}", "Casts"),
             new(
                 $"{inHalo}/{flashes}",
@@ -47,15 +37,11 @@
     private IEnumerable<PerCastData> BuildPerPullData() =>
         Parser.ShiningHaloAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
-            Performance = UptimeTier(analyzer.Uptime * 100),
+            Performance = null,
             Stats =
             [
-                new PerCastStat($"{analyzer.Uptime * 100:F0}%", "Uptime"),
                 new PerCastStat($"{analyzer.Casts}", "Casts"),
                 new PerCastStat($"{analyzer.BrilliantFlashInHalo}/{analyzer.BrilliantFlashCasts}", "BF In SH"),
             ],
         });
-
-    private static QualitativePerformance UptimeTier(double uptime) =>
-        PerformanceTiers.FromThresholds(uptime, 80, 70, 60);
 }

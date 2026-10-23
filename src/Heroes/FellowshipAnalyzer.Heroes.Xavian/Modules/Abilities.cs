@@ -35,7 +35,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.BlindingSlashDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -43,7 +42,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.OmnistrikeDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -51,7 +49,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.SolarBladesDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -59,7 +56,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ShiningHaloDamage],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -67,14 +63,12 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.SkyCrashDamage],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.OmegaReprieval,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -88,14 +82,12 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.AuraOfSolace,
             Category = SpellCategory.Defensive,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -108,7 +100,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.RupturedDawn,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
