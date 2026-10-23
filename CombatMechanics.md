@@ -30,9 +30,6 @@ Health and damage scaling share the same shape, with those base values substitut
 
 Season 3 uses `base_main_stat = 120`, `base_health = 2856`; Season 2 used `base_main_stat = 1700`, `base_health = 28560`.
 
-The two `DifficultyScaleMultiplier` series are not one series: `difficultyScaling.health` and `difficultyScaling.damage` are identical from difficulty 1 through 37 and diverge from 38 upward, where health reads 82.30 against damage 81.50, and the gap widens from there. [^22]
-The export corroborates the 120 without naming it as a constant: 179 of the 213 creature records that carry an attribute block read `strength`/`agility`/`intellect` of 120, and the next largest group is 25 records at 100. Base health has no counterpart in the export at all, so the 2856 figure is inherited from the retired data dump and is unverified here.
-
 The practical consequence for a log analyzer is that **every absolute number changed scale between seasons**: ratings, health pools, and damage amounts from a Season 2 log are roughly an order of magnitude larger than their Season 3 equivalents, so any threshold, breakpoint, or sanity check expressed as an absolute value must be season-aware. [^22]
 
 ## Rating to Percentage Conversion
@@ -296,9 +293,9 @@ The datamined build is queryable through the `fellowship-codex` MCP server (`fin
 
 ## Limitations and Open Questions
 
-Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the offline game-data export vendored at `data/v24736527`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
+Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The narrative here comes from community reverse-engineering and third-party guides. [^22][^1][^7]
 The export writes the bracket edges as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` and the penalties as `penaltyPercentage` and `finalPenaltyPercentage`. The edges are points of the converted percentage and the penalties compound, as SimFell's engine applies them. [^22][^24]
-The base-health constant has no primary source in the vendored export: it carries no named base-health value, and creature `health` spans 149.95 to 10000000. The 2856 and 2999 figures are inherited from the retired data dump and should be treated as unverified.
+The base-health constant has no primary source in the export: it carries no named base-health value, and creature `health` spans 149.95 to 10000000. The 2856 and 2999 figures are inherited from the retired data dump and should be treated as unverified.
 Hero-specific base GCD values remain uncertain. [^4][^5]
 
 For a production-grade analyzer, these uncertainties should be handled via configuration, sanity-checked against logs from high-end players, and revisited as new theorycrafting emerges or patches change the underlying math. [^6][^21]
