@@ -42,7 +42,7 @@ public sealed class FinalStratagemAnalyzerTests
         cast.CooldownRecoveredMs.ShouldBe(0);
         cast.AbilitiesReset.ShouldBe(0);
         cast.ChargesRecovered.ShouldBe(0);
-        cast.AbilitiesAlreadyAvailable.ShouldBe(cast.Abilities.Count);
+        cast.AbilitiesAlreadyAvailable.ShouldBe(cast.DamageAbilities.Count());
     }
 
     [Fact]
@@ -115,6 +115,49 @@ public sealed class FinalStratagemAnalyzerTests
         stalkerStep.ChargesAvailable.ShouldBe(stalkerStep.MaxCharges - 1);
         stalkerStep.ChargesRecovered.ShouldBe(1);
         stalkerStep.RemainingMs.ShouldBe(rechargeMs - 1000);
+    }
+
+    [Fact]
+    public async Task Analyze_DefensiveAndUtilityResets_AreNotCounted()
+    {
+        var events = new List<Event>
+        {
+            Cast(1000, Spells.StalkerStep),
+            Cast(1100, Spells.ShadowWard),
+            Cast(1200, Spells.WebCrack),
+            Cast(1300, Spells.Kick),
+            Cast(2000, Spells.FinalStratagem),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        int[] excluded = [Spells.StalkerStep.Id, Spells.ShadowWard.Id, Spells.WebCrack.Id, Spells.Kick.Id];
+        cast.Abilities.Where(state => excluded.Contains(state.AbilityId))
+            .ShouldAllBe(state => !state.GainsDamage && state.RemainingMs > 0);
+        cast.AbilitiesReset.ShouldBe(0);
+        cast.CooldownRecoveredMs.ShouldBe(0);
+        cast.ChargesRecovered.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_BroodingShadowsAndDamageCooldowns_AreCounted()
+    {
+        var events = new List<Event>
+        {
+            Cast(1000, Spells.BroodingShadows),
+            Cast(1100, Spells.WidowBite),
+            Cast(1200, Spells.MaidenOfDeath),
+            Cast(2000, Spells.FinalStratagem),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        int[] counted = [Spells.BroodingShadows.Id, Spells.WidowBite.Id, Spells.MaidenOfDeath.Id];
+        cast.Abilities.Where(state => counted.Contains(state.AbilityId)).ShouldAllBe(state => state.GainsDamage);
+        cast.AbilitiesReset.ShouldBe(counted.Length);
+        cast.ChargesRecovered.ShouldBe(counted.Length);
     }
 
     [Fact]
