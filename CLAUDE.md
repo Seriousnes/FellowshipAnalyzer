@@ -8,6 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **IMPORTANT** - Never include comments referencing design docs or plan points. Comments are reserved exclusively for API/usage notes.
 - **Never** add inline comments or comments within methods for any reason.
 
+### Game data facts
+- **IMPORTANT** - The `fellowship-codex` MCP server is the source of truth for game data: ids, items, abilities, effects, talents, costs, cooldowns, durations and which hero an item belongs to. Before stating or acting on a game-data fact, look it up there first. This applies to every agent and subagent.
+- Pass `hero` to `get_entity` when an id can read differently per hero. Legendary and weapon item ids, such as 5898-5900 and 5986, are shared across heroes, and each hero reads that id as their own item.
+- Do not argue with the codex or route around it. Local logs, the raw-report corpus, guesses and older exports do not override it. Local logs are often from an earlier patch. If the codex contradicts another source, follow the codex and report the contradiction once. Do not re-litigate it.
+
 ### Changelog entries
 - **IMPORTANT** - Every change to `src/FellowshipAnalyzer.Core/` or to a hero project needs a changelog entry in the same branch, or CI's `Check changelog` job (`.github/scripts/check-changelog.sh`) fails the PR.
   - A change to `src/FellowshipAnalyzer.Core/` adds an entry to `src/FellowshipAnalyzer.Core/Analysis/CoreChangelog.razor`.
