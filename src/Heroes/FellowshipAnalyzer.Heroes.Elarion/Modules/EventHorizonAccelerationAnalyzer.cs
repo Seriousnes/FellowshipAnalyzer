@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
 /// Event Horizon: while the Event Horizon buff is on the player, Cooldown Acceleration increases by an
-/// amount equal to the player's Haste. The term follows every Haste change inside the buff.
+/// amount equal to the player's Haste. The term equals the player's current Haste while the buff is on.
 /// </summary>
 [Before<SpellUsable>]
 [Dependency<StatTracker>]
