@@ -13,18 +13,6 @@ public sealed partial class ShiningHaloAnalyzer : Analyzer
 
     public int BrilliantFlashInHalo { get; private set; }
 
-    public int ActiveMs =>
-        AuraWindowLedger.ActiveMs([.. Owner.SelectedCombatant.GetAuraWindows(Spells.ShiningHaloSelfBuff, Pull.StartTime, Pull.EndTime)]);
-
-    public double Uptime
-    {
-        get
-        {
-            var duration = Pull.EndTime - Pull.StartTime;
-            return duration > 0 ? Math.Clamp((double)ActiveMs / duration, 0, 1) : 0;
-        }
-    }
-
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.ShiningHalo))]
     private void OnCast() => Casts++;
 
