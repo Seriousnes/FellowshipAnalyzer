@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 
 using Xunit;
 
@@ -32,14 +33,15 @@ public sealed class RimeSpellbookTests
     }
 
     [Fact]
-    public void ColdSnap_UsesTheDataCooldownAndIsNotReducedByHaste()
+    public void ColdSnap_UsesTheDataCooldownWithHasteOnItsTimeRate()
     {
         var entry = new RimeAbilities().Spellbook()
             .Single(e => e.PrimarySpell.Id == RimeSpells.ColdSnap.Id);
 
         Assert.Equal(12, entry.PrimarySpell.Cooldown);
         Assert.Equal(2, entry.Charges);
-        Assert.False(entry.CooldownReducedByHaste);
-        Assert.Equal(12, entry.GetCooldown(haste: 1.0));
+        Assert.Equal(CooldownHasteScaling.TimeRate, entry.CooldownHaste);
+        Assert.True(entry.CooldownReducedByHaste);
+        Assert.Equal(6, entry.GetCooldown(haste: 1.0));
     }
 }
