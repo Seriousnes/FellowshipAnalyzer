@@ -7,14 +7,6 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
 public class Abilities : CoreAbilities
 {
-    private const int IronSentinelHoldTheLineCharges = 2;
-
-    /// <summary>
-    /// Whether the player has Iron Sentinel equipped, which gives Hold the Line a second charge and Cooldown
-    /// Acceleration equal to the player's Haste. An unowned spellbook reads the base ability.
-    /// </summary>
-    private bool IronSentinel => Owner?.SelectedCombatant.HasLegendary(Legendaries.IronSentinel.Id) == true;
-
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
@@ -44,7 +36,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ShieldSlamDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -78,7 +69,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.ShieldsUp,
             Category = SpellCategory.Defensive,
             Gcd = null,
-            CooldownReducedByHaste = true,
             IsDefensive = true,
         },
         new()
@@ -102,12 +92,9 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = IronSentinel
-                ? Spells.HoldTheLine with { Charges = IronSentinelHoldTheLineCharges }
-                : Spells.HoldTheLine,
+            PrimarySpell = Spells.HoldTheLine,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = IronSentinel,
         },
         new()
         {

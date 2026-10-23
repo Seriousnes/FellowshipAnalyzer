@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 using Shouldly;
@@ -38,6 +39,28 @@ public sealed class HelenaSpellbookTests
     }
 
     [Fact]
+    public void ShieldSlamAndShieldsUp_TakeTimeRateHasteFromTheSpellData()
+    {
+        var spellbook = new HelenaAbilities().Spellbook().ToList();
+
+        Spells.ShieldSlam.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        Spells.ShieldsUp.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        Entry(spellbook, Spells.ShieldSlam).CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        Entry(spellbook, Spells.ShieldsUp).CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+    }
+
+    [Fact]
+    public void HoldTheLine_ChargeGrantIsIronSentinel()
+    {
+        var grant = Spells.HoldTheLine.ChargeGrant.ShouldNotBeNull();
+
+        grant.Source.ShouldBe(GrantSource.LegendaryItem);
+        grant.Id.ShouldBe(Legendaries.IronSentinel.Id);
+        grant.Charges.ShouldBe(2);
+        grant.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+    }
+
+    [Fact]
     public void PowerStrikeShieldThrowAndShockwave_RecoverWithHaste()
     {
         var spellbook = new HelenaAbilities().Spellbook().ToList();
@@ -71,7 +94,7 @@ public sealed class HelenaSpellbookTests
             .GetAbility(Spells.HoldTheLine.FSLID).ShouldNotBeNull();
 
         holdTheLine.Charges.ShouldBe(2);
-        holdTheLine.CooldownReducedByHaste.ShouldBeTrue();
+        holdTheLine.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
 
         parser.Events
             .OfType<UpdateSpellUsableEvent>()
