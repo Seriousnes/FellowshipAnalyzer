@@ -39,13 +39,13 @@ public sealed class TariqSpellbookTests
     }
 
     /// <summary>
-    /// <c>CooldownReducedByHaste</c> defaults to the export's <c>Spell.CooldownScalesWithHaste</c>. No
-    /// Tariq entry departs from the export, so every entry's haste scaling matches it.
+    /// <c>CooldownHaste</c> defaults to the export's <c>Spell.CooldownHaste</c>. No Tariq entry departs
+    /// from the export, so every entry's cooldown Haste scaling matches it.
     /// </summary>
     [Fact]
     public void EveryEntry_HasTheCooldownHasteScalingTheExportStates()
     {
         foreach (var spell in new TariqAbilities().Spellbook())
-            spell.CooldownReducedByHaste.ShouldBe(spell.PrimarySpell.CooldownScalesWithHaste == true, spell.PrimarySpell.Name);
+            spell.CooldownHaste.ShouldBe(spell.PrimarySpell.CooldownHaste, spell.PrimarySpell.Name);
     }
 }
