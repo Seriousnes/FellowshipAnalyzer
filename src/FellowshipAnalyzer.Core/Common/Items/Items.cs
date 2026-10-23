@@ -13,4 +13,6 @@ public partial class Items : IItemRegistry
     public static Item FragmentsOfFrozenTime { get; } = new(5986, "Fragments of Frozen Time", "Icon_Lisa_Weapon_FrostDragon_Weapon_R1_T0.jpg", HeroName.Aeona);
     public static Item IceshapersBrand { get; } = new(5986, "Iceshaper's Brand", "Icon_Mosse_FrostDrake_Weapon_R1_T0.jpg", HeroName.Sylvie);
     public static Item AncientIceshapersTome { get; } = new(5986, "Ancient Iceshaper's Tome", "Icon_Vigour_Weapon_FrostDrake_Weapon_R1_T0.jpg", HeroName.Vigour);
+
+    public static IReadOnlyList<Item> RepositoryOfFrozenLightWeapons { get; } = [FragmentsOfFrozenTime, IceshapersBrand, AncientIceshapersTome];
 }
