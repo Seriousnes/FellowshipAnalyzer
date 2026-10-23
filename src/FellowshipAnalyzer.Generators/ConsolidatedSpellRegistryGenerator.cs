@@ -1110,9 +1110,10 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 }
 
                 var powerName = entry.TryGetValue("powerName", out var nameValue) ? nameValue.String ?? memberName : memberName;
+                var itemName = entry.TryGetValue("itemName", out var itemNameValue) && itemNameValue.String is { Length: > 0 } ownName ? ownName : powerName;
                 var icon = entry.TryGetValue("icon", out var iconValue) ? iconValue.String ?? "" : "";
 
-                entries.Add(new LegendaryEntry(memberName, (int)Math.Round(itemId), powerName, icon));
+                entries.Add(new LegendaryEntry(memberName, (int)Math.Round(itemId), itemName, powerName, icon));
             }
 
             if (entries.Count == 0)
@@ -1141,7 +1142,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             sb.AppendLine("    /// <summary>" + hero + "'s <c>" + entry.PowerName + "</c> legendary.</summary>");
             sb.AppendLine("    public static " + ItemTypeGlobalName + " " + entry.Member + " { get; } = new(" +
                           entry.ItemId.ToString(CultureInfo.InvariantCulture) + ", " +
-                          Literal(entry.PowerName) + ", " + Literal(entry.Icon) +
+                          Literal(entry.ItemName) + ", " + Literal(entry.Icon) +
                           (heroMember is null ? "" : ", " + heroMember) + ");");
             sb.AppendLine();
         }
@@ -1457,10 +1458,11 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         public int Id { get; } = Id;
     }
 
-    private readonly struct LegendaryEntry(string Member, int ItemId, string PowerName, string Icon)
+    private readonly struct LegendaryEntry(string Member, int ItemId, string ItemName, string PowerName, string Icon)
     {
         public string Member { get; } = Member;
         public int ItemId { get; } = ItemId;
+        public string ItemName { get; } = ItemName;
         public string PowerName { get; } = PowerName;
         public string Icon { get; } = Icon;
     }
