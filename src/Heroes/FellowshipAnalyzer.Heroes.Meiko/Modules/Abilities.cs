@@ -107,7 +107,6 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-            CooldownReducedByHaste = true,
         },
         new()
         {
