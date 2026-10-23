@@ -69,10 +69,9 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
             return (int)Resolve(gcd.Static);
 
         var baseGcd = gcd.Base is not null ? Resolve(gcd.Base) : 1500;
-        var minimumGcd = gcd.Minimum is not null ? Resolve(gcd.Minimum) : 750;
         var hastePercent = _haste.Current * 100.0;
         var hasteReduced = baseGcd * 100.0 / (100.0 + hastePercent);
-        return (int)Math.Max(minimumGcd, hasteReduced);
+        return gcd.Minimum is not null ? (int)Math.Max(Resolve(gcd.Minimum), hasteReduced) : (int)hasteReduced;
     }
 
     private GlobalCooldownEvent FabricateGcdEvent(int spellId, int timestamp, int durationMs)

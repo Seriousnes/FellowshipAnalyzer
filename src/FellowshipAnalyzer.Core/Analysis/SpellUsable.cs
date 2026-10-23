@@ -511,10 +511,81 @@ public partial class SpellUsable(
             / rate);
 
     [On<ChangeCooldownModifierEvent>]
-    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e) => RescaleChangedCooldowns(e.Timestamp);
+    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
+    {
+        RescaleChangedCooldowns(e.Timestamp);
+        SampleRechargeDurations(e.Timestamp);
+    }
 
     [On<ChangeHasteEvent>]
-    private void OnChangeHaste(ChangeHasteEvent e) => RescaleChangedCooldowns(e.Timestamp);
+    private void OnChangeHaste(ChangeHasteEvent e)
+    {
+        RescaleChangedCooldowns(e.Timestamp);
+        SampleRechargeDurations(e.Timestamp);
+    }
+
+    [On<DungeonStartEvent>]
+    private void OnDungeonStartSample(DungeonStartEvent e) => SampleRechargeDurations(e.Timestamp);
+
+    /// <summary>
+    /// The time-weighted mean of <see cref="RechargeDuration"/> for <paramref name="spellId"/> across
+    /// <paramref name="start"/> to <paramref name="end"/>, from the recharge durations in force while
+    /// the dungeon ran. Reads the current <see cref="RechargeDuration"/> when the window holds none.
+    /// </summary>
+    public int RechargeDurationDuring(int spellId, int start, int end)
+    {
+        var key = _abilities.GetAbility(spellId)?.PrimarySpell.FSLID.Value ?? spellId;
+        if (end <= start || !_rechargeHistory.TryGetValue(key, out var history) || history.Count == 0)
+            return RechargeDuration(spellId);
+
+        double weighted = 0;
+        var duration = history[0].Duration;
+        var at = start;
+        foreach (var (timestamp, value) in history)
+        {
+            if (timestamp <= start)
+            {
+                duration = value;
+                continue;
+            }
+
+            if (timestamp >= end) break;
+
+            weighted += (double)duration * (timestamp - at);
+            at = timestamp;
+            duration = value;
+        }
+
+        weighted += (double)duration * (end - at);
+        return (int)Math.Round(weighted / (end - start));
+    }
+
+    /// <summary>
+    /// The time-weighted mean of <see cref="RechargeDuration"/> for <paramref name="spellId"/> across
+    /// <paramref name="pull"/>, so a pull analyzer reads the recharge its own pull's stats gave.
+    /// </summary>
+    public int RechargeDurationDuring(int spellId, PullStartEvent pull) =>
+        RechargeDurationDuring(spellId, pull.StartTime, pull.EndTime);
+
+    private readonly Dictionary<int, List<(int Timestamp, int Duration)>> _rechargeHistory = [];
+
+    private void SampleRechargeDurations(int timestamp)
+    {
+        foreach (var ability in _abilities.GetAbilities())
+        {
+            int spellId = ability.PrimarySpell.FSLID;
+            var duration = RechargeDuration(spellId);
+            if (duration <= 0) continue;
+
+            if (!_rechargeHistory.TryGetValue(spellId, out var history))
+                _rechargeHistory[spellId] = history = [];
+
+            if (history.Count > 0 && history[^1].Timestamp == timestamp)
+                history[^1] = (timestamp, duration);
+            else if (history.Count == 0 || history[^1].Duration != duration)
+                history.Add((timestamp, duration));
+        }
+    }
 
     private void RescaleChangedCooldowns(int timestamp)
     {
