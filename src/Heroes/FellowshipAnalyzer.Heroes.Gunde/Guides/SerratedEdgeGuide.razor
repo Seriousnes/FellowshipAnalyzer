@@ -59,8 +59,10 @@
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
 
     private FellowshipAnalyzer.Core.Events.Item? OrderLegendary =>
-        Owner.SelectedCombatant.Legendaries.FirstOrDefault(item =>
-            item.Id == Legendaries.BleedingHearts.Id || item.Id == Legendaries.BloodyMess.Id);
+        Owner.SelectedCombatant.HasLegendary(Legendaries.BleedingHearts.Id)
+            || Owner.SelectedCombatant.HasLegendary(Legendaries.BloodyMess.Id)
+            ? Owner.SelectedCombatant.Legendary
+            : null;
 
     private int TotalGrants => Analyzers.Sum(analyzer => analyzer.RatedGrants);
 
