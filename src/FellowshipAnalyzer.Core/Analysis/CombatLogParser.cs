@@ -27,7 +27,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
-[AddNormalizer<FrozenLightRemovalNormalizer>]
 [AddNormalizer<ResourceChangeNormalizer>]
 [AddModule<DebugAnnotations>]
 [AddAnalyzer<Combatants>]

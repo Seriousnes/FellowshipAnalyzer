@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
@@ -107,23 +106,6 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     }
 
     [Fact]
-    public void ConsumedFinalStack_DropsTheStackChangeAndZeroesTheRemovalStack()
-    {
-        var removal = RemoveBuff(23_500, AllyId);
-
-        var normalized = new FrozenLightRemovalNormalizer().Normalize(
-        [
-            ApplyBuff(2500, AllyId),
-            ApplyBuffStack(2500, AllyId, 15),
-            RemoveBuffStack(21_500, AllyId, 1),
-            removal,
-        ], PlayerId);
-
-        Assert.DoesNotContain(normalized, e => e is RemoveBuffStackEvent);
-        Assert.Equal(0, removal.Stack);
-    }
-
-    [Fact]
     public async Task ExpiryWithThreeStacks_ReducesCooldownByNineTenthsOfASecond()
     {
         var analyzer = await Analyze(
@@ -226,12 +208,9 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
 
-        protected override Type[] GetNormalizerTypes() => [typeof(FrozenLightRemovalNormalizer)];
-
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
-            if (type == typeof(FrozenLightRemovalNormalizer)) return new FrozenLightRemovalNormalizer();
             return base.CreateInstance(type);
         }
     }
