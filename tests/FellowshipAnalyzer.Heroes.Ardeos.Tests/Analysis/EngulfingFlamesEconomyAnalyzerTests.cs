@@ -329,7 +329,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.DevouringFlameAnyUptime.ShouldBe(0.6, 0.0001);
         analyzer.DevouringFlameDoubleUptime.ShouldBe(0.2, 0.0001);
         analyzer.DevouringFlamePrimaryAverageInstances.ShouldBe(0.8, 0.0001);
-        analyzer.DevouringFlameModeledBonusPercent.ShouldBe(4.8, 0.0001);
+        analyzer.DevouringFlameModeledBonusPercent.ShouldBe(5.6, 0.0001);
     }
 
     [Fact]
@@ -399,13 +399,13 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     };
 
     /// <summary>
-    /// A combatant wearing the legendary Draconic Bracers of the Devouring Flame (item 5225), which enable
+    /// A combatant wearing the Devouring Flame legendary, which enables
     /// the Devouring Flame sub-metric.
     /// </summary>
     private static CombatantInfoEvent CombatantWithDevouringBracers() => new()
     {
         SourceId = PlayerId,
-        Gear = [new Item { Id = FellowshipAnalyzer.Core.Common.Items.Items.DraconicBracersOfTheDevouringFlame.Id, Quality = 6 }],
+        Gear = [new Item { Id = Legendaries.DevouringFlame.Id, Quality = 6 }],
     };
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)

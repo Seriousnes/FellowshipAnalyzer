@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common;
-using FellowshipAnalyzer.Core.Common.Items;
+using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Core;
 
@@ -8,10 +8,11 @@ public sealed class ArdeosDotTracker : DotTracker
 {
     public override List<Dot> Dots => field ??= Equipped();
 
-    public bool BoomtasticRingEquipped => Owner.SelectedCombatant.HasItem(Items.RingOfBoomtasticExplosions.Id);
+    /// <summary>True when the Explosivo legendary is equipped. Apocalypse then burns its targets.</summary>
+    public bool ExplosivoEquipped => Owner.SelectedCombatant.HasLegendary(Legendaries.Explosivo.Id);
 
     private List<Dot> Equipped() =>
-        BoomtasticRingEquipped
+        ExplosivoEquipped
             ? ArdeosDots.All
             : [.. ArdeosDots.All.Where(dot => dot != ArdeosDots.Apocalypse)];
 }
