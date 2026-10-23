@@ -71,7 +71,10 @@ public partial class HealingEfficiencyTracker : Analyzer
     /// </summary>
     protected virtual int ExecutionMsOf(CastEvent castEvent)
     {
-        if (castEvent.GlobalCooldown is { Duration: > 0 } gcd) return gcd.Duration;
+        if (castEvent.GlobalCooldown is { Duration: > 0 } gcd)
+            return castEvent.Channel is null
+                ? Math.Max(castEvent.Timestamp, gcd.Timestamp + gcd.Duration) - gcd.Timestamp
+                : gcd.Duration;
 
         var castDuration = Common.Spells.SpellRegistry.MaybeGet(castEvent.Ability.Id)?.CastDuration;
         return castDuration is > 0 ? (int)(castDuration.Value * 1000) : 0;
