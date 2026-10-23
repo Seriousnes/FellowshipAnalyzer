@@ -285,7 +285,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     /// <summary>
     /// Chronoshift's 7.0 Cooldown Acceleration term holds Engulfing Flames' 20000ms recharge at 2500ms
     /// from 1000 to 4000, so the pull's recharge is (20000 × 16000 + 2500 × 3000) / 19000 = 17237ms, and
-    /// 19 seconds at maximum charges is one recharge period.
+    /// 19 seconds at maximum charges is 16000 / 20000 + 3000 / 2500 = 2 recharge periods.
     /// </summary>
     [Fact]
     public async Task Overcap_ChronoshiftInsidePull_CountsAgainstThePullsRecharge()
@@ -302,7 +302,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         parser.SpellUsable!.RechargeDuration(Spells.EngulfingFlames.Id).ShouldBe(20_000);
         parser.SpellUsable.RechargeDurationDuring(Spells.EngulfingFlames.Id, analyzer.Pull).ShouldBe(17_237);
         analyzer.CappedSeconds.ShouldBe(19d);
-        analyzer.WastedCharges.ShouldBe(1);
+        analyzer.WastedCharges.ShouldBe(2);
     }
 
     [Fact]

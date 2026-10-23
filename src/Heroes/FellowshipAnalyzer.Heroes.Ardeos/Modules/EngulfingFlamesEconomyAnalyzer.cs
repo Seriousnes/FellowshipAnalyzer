@@ -50,7 +50,18 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
                 rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
                     ? (int)(cooldown * 1000)
                     : FallbackRechargeMs;
-            return rechargeMs > 0 ? (int)(CappedMs / rechargeMs) : 0;
+            if (rechargeMs <= 0)
+                return 0;
+
+            var spellUsable = Owner.SpellUsable!;
+            if (spellUsable.RechargeDuration(Spells.EngulfingFlames.Id) <= 0)
+                return (int)(CappedMs / rechargeMs);
+
+            double recharges = 0;
+            foreach (var (segmentStart, segmentEnd) in CappedSegments(Spells.EngulfingFlames.Charges))
+                recharges += spellUsable.RechargesDuring(Spells.EngulfingFlames.Id, segmentStart, segmentEnd);
+
+            return (int)Math.Floor(recharges + 1e-9);
         }
     }
 
@@ -142,10 +153,20 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 
     private long ComputeCappedMilliseconds(int maxCharges)
     {
+        long cappedMs = 0;
+        foreach (var (segmentStart, segmentEnd) in CappedSegments(maxCharges))
+            cappedMs += segmentEnd - segmentStart;
+
+        return cappedMs;
+    }
+
+    private List<(int Start, int End)> CappedSegments(int maxCharges)
+    {
         var startTime = Pull.StartTime;
         var endTime = Pull.EndTime;
+        var segments = new List<(int Start, int End)>();
         if (endTime <= startTime)
-            return 0;
+            return segments;
 
         var transitions = new List<(int Time, int Charges)>(_chargeSamples.Count + 1)
         {
@@ -154,16 +175,15 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
         foreach (var (timestamp, charges) in _chargeSamples)
             transitions.Add((Math.Clamp(timestamp, startTime, endTime), charges));
 
-        long cappedMs = 0;
         for (var i = 0; i < transitions.Count; i++)
         {
             var segmentStart = transitions[i].Time;
             var segmentEnd = i + 1 < transitions.Count ? transitions[i + 1].Time : endTime;
             if (segmentEnd > segmentStart && transitions[i].Charges >= maxCharges)
-                cappedMs += segmentEnd - segmentStart;
+                segments.Add((segmentStart, segmentEnd));
         }
 
-        return cappedMs;
+        return segments;
     }
 
     private DevouringFlameMetrics ComputeDevouringFlame()
