@@ -10,6 +10,6 @@ public sealed partial class VigourCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "MY91KkT7NwrFfmWt/5/4",
+        ExampleReport = "a:2CL3gJ6VdjRtfa41/32/3",
     };
 }

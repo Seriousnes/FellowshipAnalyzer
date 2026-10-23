@@ -18,10 +18,6 @@ public sealed partial class FocusEconomyAnalyzer : Analyzer
 
     public int FocusedShotCastsNearCap { get; private set; }
 
-    public int SampledEvents { get; private set; }
-
-    public int SampledAtCap { get; private set; }
-
     public List<EventHorizonWindow> EventHorizonCasts =>
         field ??=
         [
@@ -33,17 +29,6 @@ public sealed partial class FocusEconomyAnalyzer : Analyzer
         ];
 
     public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
-
-    [On<CastEvent>(By = Actor.Player)]
-    private void OnPlayerCast(CastEvent e)
-    {
-        if (FocusSnapshot(e) is not { } focus)
-            return;
-
-        SampledEvents++;
-        if (focus.Max > 0 && focus.Amount >= focus.Max)
-            SampledAtCap++;
-    }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FocusedShot))]
     private void OnFocusedShotCast(CastEvent e)

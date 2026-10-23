@@ -31,6 +31,21 @@ public sealed class CooldownReductionTests
     }
 
     [Fact]
+    public async Task GuardiansFluidity_CountsBothLashingStormkickIds()
+    {
+        var parser = await AnalyzeWithTalents(
+            [Talents.GuardiansFluidity],
+            Cast(PullStart + 1_000, Spells.StoneShieldAlt),
+            Cast(PullStart + 1_100, Spells.StoneShieldAlt),
+            Cast(PullStart + 2_000, Spells.LashingStormkick),
+            Cast(PullStart + 3_000, Spells.LashingStormkickAlt));
+
+        var analyzer = parser.GetModule<GuardiansFluidityAnalyzer>().ShouldNotBeNull();
+
+        analyzer.Reduction.Total.ShouldBe(2 * GuardiansFluidityAnalyzer.ReductionMs);
+    }
+
+    [Fact]
     public async Task GuardiansFluidity_IsAbsentWithoutTheTalent()
     {
         var parser = await Analyze(Cast(PullStart + 1_000, Spells.RisingEarth));

@@ -23,6 +23,7 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
 
     public List<ShieldMasteryContribution> ByTarget => Result.ByTarget;
 
+    /// <summary>Milliseconds of cooldown progress Shield Mastery generated on Shield Throw and Shields Up, and how much of it shortened a running cooldown.</summary>
     public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
     public int HitsTaken => _hitsTaken;

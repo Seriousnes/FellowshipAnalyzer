@@ -36,10 +36,6 @@
         var nearCap = analyzers.Sum(analyzer => analyzer.FocusedShotCastsNearCap);
         var nearCapPercent = focusedShots == 0 ? 0 : (double)nearCap / focusedShots * 100;
 
-        var sampled = analyzers.Sum(analyzer => analyzer.SampledEvents);
-        var atCap = analyzers.Sum(analyzer => analyzer.SampledAtCap);
-        var atCapPercent = sampled == 0 ? 0 : (double)atCap / sampled * 100;
-
         var windows = analyzers.Sum(analyzer => analyzer.EventHorizonCasts.Count);
 
         return
@@ -49,10 +45,6 @@
                 "Focused Shot Near Cap",
                 $"{nearCap} of {focusedShots} Focused Shot casts started at {FocusEconomyAnalyzer.NearCapFocus} Focus or more.",
                 PerformanceTiers.FromThresholds(100 - nearCapPercent, 95, 85, 70)),
-            new OverviewStat(
-                $"{atCapPercent:0.#}%",
-                "Casts at Full Focus",
-                $"{atCap} of {sampled} casts were already at the cap."),
             new OverviewStat(
                 $"{windows}",
                 "Event Horizon Casts",

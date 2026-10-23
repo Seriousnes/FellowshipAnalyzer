@@ -30,11 +30,15 @@ public sealed partial class SpellUsableTests
     private const int SpellC = 103;
     private const int SpellD = 104;
     private const int SpellE = 105;
+    private const int SpellF = 106;
+    private const int SpellG = 107;
+    private const int CdSecondsG = 10;
     private const int CdSecondsA = 10;
     private const int CdSecondsB = 20;
     private const int CdSecondsC = 10;
     private const int CdSecondsD = 20;
     private const int CdSecondsE = 20;
+    private const int CdSecondsF = 10;
 
     /// <summary>The buff <see cref="SpellD"/> grants itself, whose removal starts its recharge.</summary>
     private static readonly Effect DeferredBuff = new() { Id = 2744, Name = "Deferred Buff" };
@@ -125,18 +129,18 @@ public sealed partial class SpellUsableTests
         Assert.Equal(21_000, LastUpdate(probe, SpellB, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
-    /// <summary>Base 10s at rate 9 (1 + Chronoshift's 8.0) starts at ~1111ms.</summary>
+    /// <summary>Base 10s at rate 8 (1 + Chronoshift's 7.0) starts at 1250ms.</summary>
     [Fact]
     public async Task BeginCooldown_DuringAcceleration_StartsShorter()
     {
         var (parser, spellUsable, _) = await Run([]);
 
         parser.GetModule<StatTracker>()!.AddCooldownModifier(
-            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
+            CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
         var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000);
-        Assert.InRange(remaining, 1100, 1115);
+        Assert.Equal(1250, remaining);
     }
 
     /// <summary>
@@ -192,9 +196,9 @@ public sealed partial class SpellUsableTests
     }
 
     /// <summary>
-    /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
-    /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
-    /// (1 + haste) × 9. Only the overlap of the two is affected; SpellA has no haste contribution.
+    /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 7.0 adds to
+    /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 7, not
+    /// (1 + haste) × 8. Only the overlap of the two is affected; SpellA has no haste contribution.
     /// </summary>
     [Fact]
     public async Task HasteAndAddedRecovery_CombineAdditively_NotMultiplicatively()
@@ -205,17 +209,17 @@ public sealed partial class SpellUsableTests
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
 
         parser.GetModule<StatTracker>()!.AddCooldownModifier(
-            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
+            CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
 
-        Assert.Equal(1.0 + haste + 8.0, spellUsable.EffectiveRate(SpellC), precision: 6);
-        Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+        Assert.Equal(1.0 + haste + 7.0, spellUsable.EffectiveRate(SpellC), precision: 6);
+        Assert.Equal(8.0, spellUsable.EffectiveRate(SpellA), precision: 6);
         Assert.True(
-            spellUsable.EffectiveRate(SpellC) < (1.0 + haste) * 9.0,
+            spellUsable.EffectiveRate(SpellC) < (1.0 + haste) * 8.0,
             "an additive pool must recover slower than a multiplicative one would");
 
         spellUsable.BeginCooldown(SpellC, timestamp: 1000);
         Assert.Equal(
-            (int)(CdSecondsC * 1000 / (1.0 + haste + 8.0)),
+            (int)(CdSecondsC * 1000 / (1.0 + haste + 7.0)),
             spellUsable.CooldownRemaining(SpellC, atTimestamp: 1000));
     }
 
@@ -235,6 +239,32 @@ public sealed partial class SpellUsableTests
             LastUpdate(probe, SpellC, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
+    [Fact]
+    public async Task DurationHasteSpell_DividesItsDurationByHasteAtTheStart()
+    {
+        var (parser, spellUsable, probe) = await Run(
+        [
+            CreateHasteBuff(500),
+            CreateCast(1000, SpellF),
+        ]);
+
+        var haste = parser.GetModule<Haste>()!.Current;
+        Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
+        Assert.Equal(1.0, spellUsable.EffectiveRate(SpellF), precision: 6);
+        Assert.Equal(
+            1000 + (int)(CdSecondsF * 1000 / (1 + haste)),
+            LastUpdate(probe, SpellF, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
+    }
+
+    [Fact]
+    public async Task HasteIncreaseMidCooldown_LeavesADurationHasteSpellAtItsStartingDuration()
+    {
+        var (_, _, probe) = await Run([CreateCast(1000, SpellF), CreateHasteBuff(3000)]);
+
+        Assert.Equal(
+            1000 + CdSecondsF * 1000,
+            probe.Updates.Last(e => e.Ability.FSLID == SpellF).ExpectedRechargeTimestamp);
+    }
     [Fact]
     public async Task NonHasteSpell_CooldownUnaffectedByHaste()
     {
@@ -542,6 +572,16 @@ public sealed partial class SpellUsableTests
                 PrimarySpell = new Spell { Id = SpellE, Name = "Spell E", Cooldown = (double)CdSecondsE, Charges = 2 },
                 Category = SpellCategory.Rotational,
                 IndependentCharges = true,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownHaste = CooldownHasteScaling.Duration },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownHaste = CooldownHasteScaling.Duration },
+                Category = SpellCategory.Rotational,
             },
         ];
     }

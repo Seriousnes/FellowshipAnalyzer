@@ -6,11 +6,17 @@ using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
+/// <param name="GainsDamage">
+/// Whether resetting the ability gains damage: a rotational ability, a damage cooldown, or Brooding Shadows,
+/// whose stealth turns the next builder into a poison application. The rated counts on
+/// <see cref="FinalStratagemCast"/> read only these abilities.
+/// </param>
 public sealed record StratagemAbilityState(
     int AbilityId,
     int RemainingMs,
     int ChargesAvailable,
-    int MaxCharges)
+    int MaxCharges,
+    bool GainsDamage)
 {
     public bool WasAvailable => ChargesAvailable > 0;
 
@@ -25,13 +31,15 @@ public sealed record FinalStratagemCast
 
     public List<StratagemAbilityState> Abilities { get; init; } = [];
 
-    public int AbilitiesReset => Abilities.Count(state => state.RemainingMs > 0 || !state.WasAvailable);
+    public IEnumerable<StratagemAbilityState> DamageAbilities => Abilities.Where(state => state.GainsDamage);
 
-    public int AbilitiesAlreadyAvailable => Abilities.Count(state => state.ChargesRecovered == 0);
+    public int AbilitiesReset => DamageAbilities.Count(state => state.RemainingMs > 0 || !state.WasAvailable);
 
-    public int CooldownRecoveredMs => Abilities.Sum(state => state.RemainingMs);
+    public int AbilitiesAlreadyAvailable => DamageAbilities.Count(state => state.ChargesRecovered == 0);
 
-    public int ChargesRecovered => Abilities.Sum(state => state.ChargesRecovered);
+    public int CooldownRecoveredMs => DamageAbilities.Sum(state => state.RemainingMs);
+
+    public int ChargesRecovered => DamageAbilities.Sum(state => state.ChargesRecovered);
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -73,7 +81,8 @@ public sealed partial class FinalStratagemAnalyzer : Analyzer
                 spellId,
                 SpellUsable.CooldownRemaining(spellId, castEvent.Timestamp),
                 Math.Min(SpellUsable.ChargesAvailable(spellId), maxCharges),
-                maxCharges));
+                maxCharges,
+                GainsDamage(ability)));
         }
 
         states.Sort(static (left, right) => right.RemainingMs.CompareTo(left.RemainingMs));
@@ -88,6 +97,10 @@ public sealed partial class FinalStratagemAnalyzer : Analyzer
             Abilities = states,
         });
     }
+
+    private static bool GainsDamage(SpellbookAbility ability) =>
+        ability.Category is SpellCategory.Rotational or SpellCategory.RotationalAoe or SpellCategory.Cooldowns
+        || ability.PrimarySpell.Id == Spells.BroodingShadows.Id;
 }
 
 internal class DoesNotHaveMacabreStratagem : IModuleActivePredicate

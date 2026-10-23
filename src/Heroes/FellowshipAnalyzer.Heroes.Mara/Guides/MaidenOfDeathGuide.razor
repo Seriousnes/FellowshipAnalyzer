@@ -37,10 +37,6 @@
         var idleMs = analyzers.Sum(analyzer => analyzer.IdleMs);
         var lostCasts = analyzers.Sum(analyzer => analyzer.LostCasts);
 
-        var recasts = analyzers.Sum(analyzer => analyzer.MaidenOfDeathRecasts.Count);
-        var heldMs = analyzers.Sum(analyzer => analyzer.TotalHeldMs);
-        var averageHeldSeconds = recasts == 0 ? 0d : heldMs / 1000d / recasts;
-
         return
         [
             new OverviewStat(
@@ -58,11 +54,6 @@
                 "Idle in Window",
                 $"Time inside a window spent in gaps of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s.",
                 IdleTier(lostCasts, windows)),
-            new OverviewStat(
-                TimeFormat.Seconds(heldMs, 1),
-                "Maiden of Death Held",
-                "Time between Maiden of Death casts beyond its recharge.",
-                HeldTier(averageHeldSeconds, recasts)),
         ];
     }
 
@@ -173,13 +164,6 @@
         : lostCasts == 0 ? QualitativePerformance.Perfect
         : lostCasts <= windows ? QualitativePerformance.Good
         : lostCasts <= windows * 2 ? QualitativePerformance.Ok
-        : QualitativePerformance.Fail;
-
-    private static QualitativePerformance? HeldTier(double averageHeldSeconds, int recasts) =>
-        recasts == 0 ? null
-        : averageHeldSeconds < 3 ? QualitativePerformance.Perfect
-        : averageHeldSeconds < 8 ? QualitativePerformance.Good
-        : averageHeldSeconds < 15 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
     private static QualitativePerformance WindowTier(MaidenOfDeathWindow window)

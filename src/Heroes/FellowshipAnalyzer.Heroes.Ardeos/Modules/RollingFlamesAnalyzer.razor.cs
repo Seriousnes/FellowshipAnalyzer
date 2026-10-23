@@ -29,6 +29,7 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
         spellCdr[Spells.InfernalWave.Id] +=
             Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, INFERNAL_WAVE_CDR);
 
+    /// <summary>Engulfing Flames cooldown progress from each source spell, in milliseconds.</summary>
     public List<RollingFlamesCdr> CooldownReductions =>
     [
         new(Spells.SearingBlaze, spellCdr[Spells.SearingBlaze.Id]),

@@ -96,7 +96,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = CoreItems.TwilightSkybolt,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {

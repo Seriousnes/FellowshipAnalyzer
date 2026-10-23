@@ -109,14 +109,12 @@ public sealed partial class SynchronicityAnalyzer : Analyzer
 
     /// <summary>
     /// Whether <paramref name="abilityId"/> belongs to an ability that spends Chrona, which is an
-    /// ability with a <see cref="ResourceTypes.Primary"/> entry in its generated <c>Costs</c>. Every
-    /// Aeona Chrona cost in <c>data/spelldb.json</c> is zero, so the test is the entry's presence rather
-    /// than its amount. A damage effect resolves back to its ability through
-    /// <see cref="Core.Analysis.Abilities.GetAbility"/>, which keys the spellbook by an entry's
-    /// additional spells as well as its primary.
+    /// ability with a positive <see cref="ResourceTypes.Primary"/> cost in its generated <c>Costs</c>. A
+    /// damage effect resolves back to its ability through <see cref="Core.Analysis.Abilities.GetAbility"/>,
+    /// which keys the spellbook by an entry's additional spells as well as its primary.
     /// </summary>
     private bool SpendsChrona(FSLID abilityId) =>
-        Abilities.GetAbility(abilityId)?.PrimarySpell.Cost(ResourceTypes.Primary) is not null;
+        Abilities.GetAbility(abilityId)?.PrimarySpell.Cost(ResourceTypes.Primary) is > 0;
 
     private int MeasureGenerationBelowThreshold()
     {

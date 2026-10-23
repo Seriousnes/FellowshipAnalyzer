@@ -3,8 +3,9 @@
 <GuideSection Title="Final Stratagem">
     <LeftPanel>
         <p>
-            Spend your cooldowns down first, before casting <SpellLink Spell="Spells.FinalStratagem" />.
-            Any abilities not on cooldown is potential waste, and can significantly affect your burst windows.
+            Cast <SpellLink Spell="Spells.WidowBite" />, <SpellLink Spell="Spells.MaidenOfDeath" /> and
+            <SpellLink Spell="Spells.BroodingShadows" /> before <SpellLink Spell="Spells.FinalStratagem" />, so
+            its reset gives each of them back. A reset on an ability that was ready gains nothing.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -41,16 +42,16 @@
             new OverviewStat(
                 TimeFormat.Seconds(recoveredMs, 1),
                 "Recharge Recovered",
-                "Total recharge time the resets removed.",
+                "Total recharge time the resets removed from damage abilities.",
                 RecoveryTier(averageAbilities, casts)),
             new OverviewStat(
                 $"{charges}",
                 "Charges Recovered",
-                "Hero ability charges the resets recovered."),
+                "Damage ability charges the resets recovered."),
             new OverviewStat(
                 $"{averageAbilities:0.0}",
                 "Abilities Reset",
-                "Hero abilities with something recharging at the cast, per cast.",
+                "Damage abilities with something recharging at the cast, per cast. Brooding Shadows counts as a damage ability.",
                 RecoveryTier(averageAbilities, casts)),
         ];
     }
@@ -66,20 +67,20 @@
             new(
                 TimeFormat.Seconds(cast.CooldownRecoveredMs, 1),
                 "Recharge Recovered",
-                "Recharge time the reset removed across every hero ability."),
+                "Recharge time the reset removed across every damage ability."),
             new(
                 $"{cast.AbilitiesReset}",
                 "Abilities Reset",
-                "Hero abilities with something recharging at the cast.",
+                "Damage abilities with something recharging at the cast. Brooding Shadows counts as a damage ability.",
                 Performance: AbilitiesTier(cast.AbilitiesReset)),
             new(
                 $"{cast.ChargesRecovered}",
                 "Charges Recovered",
-                "Hero ability charges the reset recovered."),
+                "Damage ability charges the reset recovered."),
             new(
                 $"{cast.AbilitiesAlreadyAvailable}",
                 "Already Available",
-                "Hero abilities already at full charges."),
+                "Damage abilities already at full charges."),
         };
 
         return new PerCastRow
@@ -87,7 +88,6 @@
             Performance = AbilitiesTier(cast.AbilitiesReset),
             Stats = [.. stats],
             Timestamp = cast.Timestamp,
-            Sequence = [new SpellCastEntry(cast.AbilityId)],
             AdditionalContent = new AdditionalContent("Ability State", @<div>
                 <ul>
                     @foreach (var ability in cast.Abilities)
@@ -110,8 +110,8 @@
     }
 
     private static QualitativePerformance AbilitiesTier(int abilitiesReset) =>
-        PerformanceTiers.FromThresholds(abilitiesReset, 4, 3, 2);
+        PerformanceTiers.FromThresholds(abilitiesReset, 3, 2, 1);
 
     private static QualitativePerformance? RecoveryTier(double averageAbilities, int casts) =>
-        casts == 0 ? null : PerformanceTiers.FromThresholds(averageAbilities, 4, 3, 2);
+        casts == 0 ? null : PerformanceTiers.FromThresholds(averageAbilities, 3, 2, 1);
 }

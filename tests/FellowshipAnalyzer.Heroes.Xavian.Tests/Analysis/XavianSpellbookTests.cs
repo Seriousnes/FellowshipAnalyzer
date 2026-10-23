@@ -38,12 +38,21 @@ public sealed class XavianSpellbookTests
     }
 
     [Fact]
-    public void InterruptAndTaunt_DoNotScaleWithHaste()
+    public void OnlyHasteScaledCooldowns_AreReducedByHaste()
     {
-        Entry(Spells.Interrupt).CooldownReducedByHaste.ShouldBeFalse();
-        Entry(Spells.Taunt).CooldownReducedByHaste.ShouldBeFalse();
+        Spellbook.Where(entry => entry.CooldownReducedByHaste)
+            .Select(entry => entry.PrimarySpell.FSLID)
+            .ShouldBe(
+                [Spells.BlindingSlash.FSLID, Spells.Omnistrike.FSLID, Spells.SolarBlades.FSLID, Spells.SolarShield.FSLID],
+                ignoreOrder: true);
     }
 
     [Fact]
     public void SkyCrash_HasTwoCharges() => Entry(Spells.SkyCrash).Charges.ShouldBe(2);
+
+    [Fact]
+    public void Taunt_HasTwoCharges() => Entry(Spells.Taunt).Charges.ShouldBe(2);
+
+    [Fact]
+    public void RupturedDawn_HasAFortyFiveSecondCooldown() => Entry(Spells.RupturedDawn).GetCooldown(0.5).ShouldBe(45);
 }

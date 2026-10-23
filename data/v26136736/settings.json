@@ -1,0 +1,5505 @@
+{
+  "heroes": [
+    {
+      "name": "Elarion",
+      "armorType": "Mail",
+      "primaryStat": "Agility",
+      "color": "7F49F5",
+      "portrait": "hero_portrait_Bowguy_01"
+    },
+    {
+      "name": "Ardeos",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "EB6328",
+      "portrait": "hero_portrait_Firemage_default"
+    },
+    {
+      "name": "Gunde",
+      "armorType": "Leather",
+      "primaryStat": "Strength",
+      "color": "5A1F20",
+      "portrait": "hero_potrtrait_Gunde_01"
+    },
+    {
+      "name": "Tariq",
+      "armorType": "Mail",
+      "primaryStat": "Strength",
+      "color": "163EB9",
+      "portrait": "hero_portrait_Ink_01"
+    },
+    {
+      "name": "Aeona",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "FC9FEC",
+      "portrait": "hero_portrait_Lisa_default"
+    },
+    {
+      "name": "Mara",
+      "armorType": "Leather",
+      "primaryStat": "Agility",
+      "color": "4519A3",
+      "portrait": "hero_portrait_Mara_01"
+    },
+    {
+      "name": "Meiko",
+      "armorType": "Leather",
+      "primaryStat": "Agility",
+      "color": "28E05C",
+      "portrait": "hero_portrait_meiko_default"
+    },
+    {
+      "name": "Sylvie",
+      "armorType": "Leather",
+      "primaryStat": "Intellect",
+      "color": "EA4F84",
+      "portrait": "hero_portrait_Mosse_01_default"
+    },
+    {
+      "name": "Rime",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "1EA3EE",
+      "portrait": "hero_portrait_rime_default"
+    },
+    {
+      "name": "Xavian",
+      "armorType": "Plate",
+      "primaryStat": "Strength",
+      "color": "077365",
+      "portrait": "T_HeroPortrait_Sune"
+    },
+    {
+      "name": "Vigour",
+      "armorType": "Mail",
+      "primaryStat": "Intellect",
+      "color": "DDDBC5",
+      "portrait": "hero_portrait_vigor_default"
+    },
+    {
+      "name": "Helena",
+      "armorType": "Plate",
+      "primaryStat": "Strength",
+      "color": "B46831",
+      "portrait": "hero_portrait_warmaster_01"
+    }
+  ],
+  "rarities": [
+    {
+      "tier": 0,
+      "name": "Common",
+      "displayName": "Common",
+      "gemDisplayName": "Common"
+    },
+    {
+      "tier": 1,
+      "name": "Uncommon",
+      "displayName": "Uncommon",
+      "gemDisplayName": "Uncommon"
+    },
+    {
+      "tier": 2,
+      "name": "Rare",
+      "displayName": "Rare",
+      "gemDisplayName": "Rare"
+    },
+    {
+      "tier": 3,
+      "name": "Epic",
+      "displayName": "Epic",
+      "gemDisplayName": "Epic"
+    },
+    {
+      "tier": 4,
+      "name": "Champion",
+      "displayName": "Heroic",
+      "gemDisplayName": "Flawless"
+    },
+    {
+      "tier": 5,
+      "name": "Heroic",
+      "displayName": "Regal",
+      "gemDisplayName": "Heroic"
+    },
+    {
+      "tier": 6,
+      "name": "Legendary",
+      "displayName": "Legendary",
+      "gemDisplayName": "Legendary"
+    }
+  ],
+  "abilityCategories": [
+    {
+      "name": "None",
+      "value": 0
+    },
+    {
+      "name": "Basic",
+      "value": 1
+    },
+    {
+      "name": "Core",
+      "value": 2
+    },
+    {
+      "name": "Power",
+      "value": 3
+    },
+    {
+      "name": "Major",
+      "value": 4
+    },
+    {
+      "name": "Spirit",
+      "value": 5
+    },
+    {
+      "name": "Movement",
+      "value": 6
+    },
+    {
+      "name": "Control",
+      "value": 7
+    },
+    {
+      "name": "Defensive",
+      "value": 8
+    },
+    {
+      "name": "Utility",
+      "value": 9
+    },
+    {
+      "name": "Weapon",
+      "value": 10
+    },
+    {
+      "name": "Relic",
+      "value": 11
+    }
+  ],
+  "printFormats": {
+    "Damage": "{0}",
+    "DamageMagic": "\u003Crt.warning\u003E{0}\u003C/\u003E magic damage",
+    "DamagePhysical": "\u003Crt.warning\u003E{0}\u003C/\u003E physical damage",
+    "DamageRange": "{0} - {1}",
+    "DamageRangeMagic": "\u003Crt.warning\u003E{0} - {1}\u003C/\u003E magic damage",
+    "DamageRangePhysical": "\u003Crt.warning\u003E{0} - {1}\u003C/\u003E physical damage",
+    "UnitSecondSingular": "second",
+    "UnitSeconds": "\u003Crt.bold\u003E{0} seconds\u003C/\u003E",
+    "UnitPercent": "{0}%",
+    "NoModDesc": "{0}",
+    "ModDescAddBaseNegative": "-{0}",
+    "ModDescAddBasePositive": "\u002B{0}",
+    "ModDescAddFinalNegative": "-{0} final",
+    "ModDescAddFinalPositive": "\u002B{0} final",
+    "ModDescMultiplyAdditiveNegative": "{0} reduced",
+    "ModDescMultiplyAdditivePositive": "{0} increased",
+    "ModDescMultiplyCompoundNegative": "{0} less",
+    "ModDescMultiplyCompoundPositive": "{0} more",
+    "Healing": "\u003Crt.heal\u003E{0}\u003C/\u003E",
+    "HealingRange": "\u003Crt.heal\u003E{0} - {1}\u003C/\u003E"
+  },
+  "colors": {
+    "effect.physical": "FF0000",
+    "effect.disease": "EFE800",
+    "effect.poison": "AEED67",
+    "effect.curse": "D75BFF",
+    "effect.magic": "2C9DFF",
+    "effect.permanent": "F56464",
+    "effect.harmful": "FF0000",
+    "effect.beneficial": "FFFFFF",
+    "core.disabled-1000": "1D2022",
+    "core.disabled-900": "303437",
+    "core.primary-200": "E3B468",
+    "core.primary-300": "D3A55A",
+    "core.primary-500": "957950",
+    "core.primary-600": "7F6C51",
+    "core.primary-700": "645B52",
+    "core.primary-main": "B08E58",
+    "core.secondary-000": "C3CED9",
+    "core.secondary-100": "A9B5C0",
+    "core.secondary-1000": "0C1722",
+    "core.secondary-200": "909BA6",
+    "core.secondary-300": "77828D",
+    "core.secondary-400": "5D6874",
+    "core.secondary-500": "515C67",
+    "core.secondary-600": "434F5A",
+    "core.secondary-700": "2A3540",
+    "core.secondary-800": "1D2834",
+    "core.secondary-900": "111C27",
+    "core.text-disabled": "949392",
+    "core.text-info": "777C81",
+    "core.text-primary": "EAE3DB",
+    "core.text-secondary": "909BA6",
+    "game.dungeon-contract": "FF8A47",
+    "game.dungeon-hard": "AA99FF",
+    "game.dungeon-normal": "FFEA99",
+    "game.game-chat-party": "ACACFF",
+    "game.game.ability-dmg": "FFE100",
+    "game.game.ability-healing": "4ECC22",
+    "game.game.ability-meiko-1": "FD89FA",
+    "game.game.ability-meiko-2": "42CBB1",
+    "game.game.ability-meiko-3": "E7B034",
+    "game.game.character-boss": "930000",
+    "game.game.character-enemy": "CB0000",
+    "game.game.character-friendly": "00BB1D",
+    "game.game.character-groupmember": "00A0E5",
+    "game.game.character-npc": "909BA6",
+    "game.game.chat-log": "FFFF00",
+    "game.game.chat-stronghold": "FFFFFF",
+    "game.game.chat-whisper-from": "FF80FF",
+    "game.game.chat-whisper-to": "E25DE2",
+    "game.game.effect": "D265EF",
+    "game.game.gem-amethyst": "9966CB",
+    "game.game.gem-diamond": "D5D5D5",
+    "game.game.gem-emerald": "009C4A",
+    "game.game.gem-ruby": "A70947",
+    "game.game.gem-sapphire": "1488F4",
+    "game.game.gem-topaz": "FEDC63",
+    "game.game.hero-elarion": "7F49F5",
+    "game.game.hero-ardeos": "EB6328",
+    "game.game.hero-gunde": "5A1F20",
+    "game.game.hero-tariq": "163EB9",
+    "game.game.hero-aeona": "FC9FEC",
+    "game.game.hero-mara": "4519A3",
+    "game.game.hero-meiko": "28E05C",
+    "game.game.hero-sylvie": "EA4F84",
+    "game.game.hero-rime": "1EA3EE",
+    "game.game.hero-xavian": "077365",
+    "game.game.hero-vigour": "DDDBC5",
+    "game.game.hero-helena": "B46831",
+    "game.game.mana-player": "5F9AC9",
+    "game.game.rarity-champion": "FFE565",
+    "game.game.rarity-heroic": "BE2525",
+    "game.rarity-common": "DEDEDE",
+    "game.rarity-epic": "A335EE",
+    "game.rarity-legendary": "FF8000",
+    "game.rarity-rare": "0070DD",
+    "game.rarity-uncommon": "00E827",
+    "game.rarity-unique": "BA9D6F",
+    "game.role-dps": "C53939",
+    "game.role-support": "4AB235",
+    "game.role-tank": "2194BE",
+    "game.stat-primary": "FFFFFF",
+    "game.stat-secondary": "49EEEE",
+    "hud.game.frame-base": "0C1722",
+    "hud.game.frame-health-depletion": "2A3540",
+    "hud.game.frame-resource-depletion": "444F5A",
+    "hud.game.frame-stroke": "FFFFFF",
+    "league.game.league-1": "00E826",
+    "league.game.league-2": "0070DD",
+    "league.game.league-3": "A335EE",
+    "league.game.league-4": "FFE565",
+    "league.game.league-5": "BE2525",
+    "neutral.200": "CCCCCC",
+    "neutral.300": "969696",
+    "neutral.500": "6D6D6D",
+    "neutral.700": "212121",
+    "neutral.900": "0F0F0F",
+    "neutral.black": "000000",
+    "neutral.white": "FFFFFF",
+    "semantic.change": "F4C882",
+    "semantic.chat-private": "FF99CA",
+    "semantic.core.positive-600": "00FF61",
+    "semantic.leader": "FAC814",
+    "semantic.negative": "FF5B5B",
+    "semantic.negative-600": "FF2323",
+    "semantic.positive": "5FF5BE",
+    "semantic.warning": "E08600",
+    "stats.talent.tree-available": "30FF2F",
+    "colors.cards.placement.any": "E9CFA5",
+    "colors.rarity.common": "CCCCCC",
+    "colors.rarity.uncommon": "21B57E",
+    "colors.rarity.rare": "4C94DD",
+    "colors.rarity.epic": "B47BFF",
+    "colors.rarity.legendary": "C18800",
+    "colors.core.neutral-white": "FFFFFF",
+    "colors.core.neutral-100": "CCCCCC",
+    "colors.core.neutral-300": "979797",
+    "colors.core.primary": "D4A45A",
+    "colors.core.leader": "FAC812",
+    "colors.stat.primary": "FFFFFF",
+    "colors.stat.secondary": "4BEEEE",
+    "colors.stat.increase": "07EF9B",
+    "colors.stat.decrease": "FF2222",
+    "colors.items.outofresources": "FF2222"
+  },
+  "textStyles": {
+    "rt.bold": {
+      "color": "EAE3DB",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.absorb": {
+      "color": "D3A55A",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.effect": {
+      "color": "D265EF",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.warning": {
+      "color": "E08600",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.mana": {
+      "color": "5F9AC9",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.gold": {
+      "color": "B08E58",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.greyitalic": {
+      "color": "909BA6",
+      "weight": "600-Italic",
+      "size": 9,
+      "italic": true,
+      "cssWeight": "600"
+    },
+    "rt.debuff": {
+      "color": "FF5B5B",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.heal": {
+      "color": "5FF5BE",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.italic": {
+      "color": "FFFFFF",
+      "weight": "600-Italic",
+      "size": 9,
+      "italic": true,
+      "cssWeight": "600"
+    },
+    "rt.primarystat": {
+      "color": "EAE3DB",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.secondarystat": {
+      "color": "909BA6",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.tertiarystat": {
+      "color": "49EEEE",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability1": {
+      "color": "FD89FA",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability2": {
+      "color": "42CBB1",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability3": {
+      "color": "E7B034",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.damage": {
+      "color": "FFE100",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.combat-heal": {
+      "color": "4ECC22",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.brand-title-m-200": {
+      "color": "E3B468",
+      "weight": "600",
+      "size": 14,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.brand-title-m-main": {
+      "color": "B08E58",
+      "weight": "600",
+      "size": 14,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.strike": {
+      "color": "FFFFFF",
+      "weight": "400",
+      "size": 12,
+      "italic": false,
+      "cssWeight": "400"
+    },
+    "Bold": {
+      "color": "EAE3DB",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "Gold": {
+      "color": "B08E58",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    }
+  },
+  "gemTypes": [
+    "Amethyst",
+    "Diamond",
+    "Emerald",
+    "Ruby",
+    "Sapphire",
+    "Topaz"
+  ],
+  "slotIcons": {
+    "Head": "T_Icons_Gear_Head",
+    "Neck": "T_Icons_Gear_Neck",
+    "Shoulders": "T_Icons_Gear_Shoulders",
+    "Back": "T_Icons_Gear_Back",
+    "Chest": "T_Icons_Gear_Chest",
+    "Wrists": "T_Icons_Gear_Wrist",
+    "Hands": "T_Icons_Gear_Hands",
+    "Legs": "T_Icons_Gear_Waist",
+    "Feet": "T_Icons_Gear_Feet",
+    "Ring": "T_Icons_Gear_Ring",
+    "Relic": "T_Icons_Gear_Relic",
+    "Weapon": "T_Icons_Gear_Weapon"
+  },
+  "rarityOrnaments": {
+    "Epic": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Champion",
+    "Champion": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Paragon",
+    "Heroic": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Eternal",
+    "Legendary": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Legendary"
+  },
+  "talentTierPlates": {
+    "1": "T_Backgrounds_TalentTierUnlocked_1_2026",
+    "2": "T_Backgrounds_TalentTierUnlocked_2_2026",
+    "3": "T_Backgrounds_TalentTierUnlocked_3_2026",
+    "4": "T_Backgrounds_TalentTierUnlocked_4_2026",
+    "5": "T_Backgrounds_TalentTierUnlocked_5_2026",
+    "6": "T_Backgrounds_TalentTierUnlocked_6_2026",
+    "7": "T_Backgrounds_TalentTierUnlocked_7_2026"
+  },
+  "rarityColorRows": {
+    "Common": "game.rarity-common",
+    "Uncommon": "game.rarity-uncommon",
+    "Rare": "game.rarity-rare",
+    "Epic": "game.rarity-epic",
+    "Champion": "game.game.rarity-champion",
+    "Heroic": "game.game.rarity-heroic",
+    "Legendary": "game.rarity-legendary"
+  },
+  "sectionHeadingRows": {
+    "Ability": "game.game.hero-sylvie",
+    "Legendary": "game.rarity-legendary"
+  },
+  "maxTempers": {
+    "Common": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 0
+      }
+    ],
+    "Uncommon": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 4
+      }
+    ],
+    "Rare": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 5
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 5
+      }
+    ],
+    "Epic": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 6
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 6
+      }
+    ],
+    "Champion": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 7
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 7
+      }
+    ],
+    "Heroic": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 8
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 8
+      }
+    ],
+    "Legendary": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 0
+      }
+    ]
+  },
+  "dropItemLevels": [
+    {
+      "row": "Default",
+      "difficulty": 21,
+      "itemLevel": 315
+    },
+    {
+      "row": "Legendary",
+      "difficulty": 21,
+      "itemLevel": 360
+    }
+  ],
+  "glyphs": {
+    "name": "Glyph",
+    "augmentation": "Augmentation",
+    "tierLevel": "Equipped Tier",
+    "tierSources": "Tier Sources",
+    "tiers": 4
+  },
+  "difficultyScaling": {
+    "health": {
+      "1": 1,
+      "21": 37.37,
+      "22": 32.5,
+      "23": 34.68,
+      "24": 37,
+      "25": 39.48,
+      "26": 42.13,
+      "27": 44.95,
+      "28": 47.96,
+      "29": 51.17,
+      "30": 54.6,
+      "31": 58.26,
+      "32": 62.16,
+      "33": 66.33,
+      "34": 70.77,
+      "35": 75.51,
+      "36": 80.57,
+      "37": 85.97,
+      "38": 93.88,
+      "39": 102.52,
+      "40": 111.95,
+      "41": 122.25,
+      "42": 133.49,
+      "43": 145.78,
+      "44": 159.19,
+      "45": 173.83,
+      "46": 189.82,
+      "47": 207.29,
+      "48": 226.36,
+      "49": 247.18,
+      "50": 269.93,
+      "51": 294.76,
+      "52": 321.88
+    },
+    "damage": {
+      "1": 1,
+      "21": 37.37,
+      "22": 32.5,
+      "23": 34.68,
+      "24": 37,
+      "25": 39.48,
+      "26": 42.13,
+      "27": 44.95,
+      "28": 47.96,
+      "29": 51.17,
+      "30": 54.6,
+      "31": 58.26,
+      "32": 62.16,
+      "33": 66.33,
+      "34": 70.77,
+      "35": 75.51,
+      "36": 80.57,
+      "37": 85.97,
+      "38": 91.73,
+      "39": 97.88,
+      "40": 104.43,
+      "41": 111.43,
+      "42": 118.9,
+      "43": 126.86,
+      "44": 135.36,
+      "45": 144.43,
+      "46": 154.11,
+      "47": 164.43,
+      "48": 175.45,
+      "49": 187.21,
+      "50": 199.75,
+      "51": 213.13,
+      "52": 227.41
+    },
+    "maxDungeonScore": {
+      "1": 140,
+      "21": 455,
+      "22": 470,
+      "23": 485,
+      "24": 500,
+      "25": 515,
+      "26": 530,
+      "27": 545,
+      "28": 560,
+      "29": 575,
+      "30": 590,
+      "31": 605,
+      "32": 620,
+      "33": 635,
+      "34": 650,
+      "35": 665,
+      "36": 680,
+      "37": 695,
+      "38": 710,
+      "39": 725,
+      "40": 740,
+      "41": 755,
+      "42": 770,
+      "43": 785,
+      "44": 800,
+      "45": 815,
+      "46": 830,
+      "47": 845,
+      "48": 860,
+      "49": 875,
+      "50": 890,
+      "51": 905,
+      "52": 920
+    },
+    "modifierAbilityUnlock": 19,
+    "namespaces": {
+      "TargetDummy": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {},
+        "namespaces": {}
+      },
+      "Rime": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Ardeos": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Helena": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Mara": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Meiko": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Vigour": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Sylvie": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Brimborn": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Quetzal": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "DebugHero1": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "DebugHero2": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Racket": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Tariq": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Grim": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Gunde": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      },
+      "Elarion": {
+        "health": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "damage": {
+          "1": 1,
+          "21": 1,
+          "22": 1,
+          "23": 1,
+          "24": 1,
+          "25": 1,
+          "26": 1,
+          "27": 1,
+          "28": 1,
+          "29": 1,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "33": 1,
+          "34": 1,
+          "35": 1,
+          "36": 1,
+          "37": 1,
+          "38": 1,
+          "39": 1,
+          "40": 1,
+          "41": 1,
+          "42": 1,
+          "43": 1,
+          "44": 1,
+          "45": 1,
+          "46": 1,
+          "47": 1,
+          "48": 1,
+          "49": 1,
+          "50": 1,
+          "51": 1,
+          "52": 1
+        },
+        "namespaces": {}
+      }
+    }
+  },
+  "multiTargetDamageFalloff": {
+    "latex": "s = \\begin{cases} \\sqrt{\\dfrac{T}{N}} \u0026 N \u003E T \\\\ 1 \u0026 N \\le T \\end{cases}",
+    "displayText": "Each target takes full damage while N \u2264 T. When N \u003E T, each target takes \u221A(T \u00F7 N) of the damage. T is the threshold and N is the number of targets hit.",
+    "symbols": [
+      {
+        "symbol": "s",
+        "meaning": "Scaler on the damage each target takes."
+      },
+      {
+        "symbol": "T",
+        "meaning": "Threshold, truncated to a whole number. Up to T targets each take full damage."
+      },
+      {
+        "symbol": "N",
+        "meaning": "Number of targets hit. An ability with max targets hits at most that many."
+      }
+    ]
+  },
+  "leagueKinds": [
+    {
+      "name": "Unknown",
+      "value": 0
+    },
+    {
+      "name": "Ranked",
+      "value": 1
+    },
+    {
+      "name": "Eternal",
+      "value": 2
+    },
+    {
+      "name": "Pinnacle",
+      "value": 3
+    },
+    {
+      "name": "Casual",
+      "value": 4
+    }
+  ],
+  "leagues": [
+    {
+      "row": "Casual1",
+      "name": "Easy",
+      "tag": "League.ID.Casual1",
+      "kind": "Casual",
+      "minimumDifficulty": 1,
+      "maximumDifficulty": 1,
+      "difficulties": [
+        1
+      ]
+    },
+    {
+      "row": "Casual2",
+      "name": "Medium",
+      "tag": "League.ID.Casual2",
+      "kind": "Casual",
+      "minimumDifficulty": 1,
+      "maximumDifficulty": 1,
+      "difficulties": [
+        1
+      ]
+    },
+    {
+      "row": "Casual3",
+      "name": "Hard",
+      "tag": "League.ID.Casual3",
+      "kind": "Casual",
+      "minimumDifficulty": 1,
+      "maximumDifficulty": 1,
+      "difficulties": [
+        1
+      ]
+    },
+    {
+      "row": "League5",
+      "name": "Eternal",
+      "tag": "League.ID.League5",
+      "kind": "Eternal",
+      "minimumDifficulty": 21,
+      "maximumDifficulty": 52,
+      "difficulties": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52
+      ]
+    },
+    {
+      "row": "League6",
+      "name": "Pinnacle",
+      "tag": "League.ID.League6",
+      "kind": "Pinnacle",
+      "minimumDifficulty": 30,
+      "maximumDifficulty": 41,
+      "difficulties": [
+        30,
+        35,
+        41
+      ]
+    }
+  ],
+  "attunementTrees": [
+    {
+      "tag": "ItemTraitTrees.EASeason4Necklace",
+      "useRecipeRowUnlocks": true,
+      "rowsUnlockedAtItemGeneration": 3,
+      "rowToUpgradeRequirement": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      },
+      "nodes": [
+        {
+          "uiTreeIndex": 0,
+          "augmentationRowIndex": 0,
+          "parentNodes": [],
+          "childrenNodes": [
+            1,
+            2
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 1,
+          "augmentationRowIndex": 1,
+          "parentNodes": [
+            0
+          ],
+          "childrenNodes": [
+            3,
+            4
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 2,
+          "augmentationRowIndex": 1,
+          "parentNodes": [
+            0
+          ],
+          "childrenNodes": [
+            4,
+            5
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 3,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            1
+          ],
+          "childrenNodes": [
+            6,
+            7
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 4,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            1,
+            2
+          ],
+          "childrenNodes": [
+            6,
+            8
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 5,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            2
+          ],
+          "childrenNodes": [
+            7,
+            8
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 6,
+          "augmentationRowIndex": 3,
+          "parentNodes": [
+            3,
+            4
+          ],
+          "childrenNodes": [],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 7,
+          "augmentationRowIndex": 3,
+          "parentNodes": [
+            3,
+            5
+          ],
+          "childrenNodes": [],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 8,
+          "augmentationRowIndex": 3,
+          "parentNodes": [
+            4,
+            5
+          ],
+          "childrenNodes": [],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Necklace"
+          ],
+          "randomizedFromAugmentationCategories": false
+        }
+      ],
+      "layout": {
+        "widget": "UW_StaticNeclaceTree_EASeason4",
+        "width": 586,
+        "height": 500,
+        "root": {
+          "x": 0,
+          "y": 220
+        },
+        "rootLayers": [
+          {
+            "width": 150,
+            "height": 150,
+            "texture": "T_Buttons_WeaponTreeNodeGlow_RootNode",
+            "item": false
+          },
+          {
+            "width": 62,
+            "height": 62,
+            "texture": "T_Buttons_WeapontTraitTreeButton_Default",
+            "item": false
+          },
+          {
+            "width": 110,
+            "height": 110,
+            "item": true
+          },
+          {
+            "width": 110,
+            "height": 110,
+            "texture": "T_Buttons_WeaponTreeRootNode_FilledDefault",
+            "item": false
+          }
+        ],
+        "nodeWidth": 71,
+        "nodeHeight": 82,
+        "nodes": {
+          "1": {
+            "x": -96,
+            "y": 115
+          },
+          "2": {
+            "x": 96,
+            "y": 115
+          },
+          "3": {
+            "x": -180,
+            "y": -25.5
+          },
+          "4": {
+            "x": 0,
+            "y": 22.5
+          },
+          "5": {
+            "x": 179.99997,
+            "y": -25.5
+          },
+          "6": {
+            "x": -178,
+            "y": -173.5
+          },
+          "7": {
+            "x": 0,
+            "y": -210
+          },
+          "8": {
+            "x": 178,
+            "y": -165.5
+          }
+        }
+      }
+    },
+    {
+      "tag": "ItemTraitTrees.EASeason4Weapon",
+      "useRecipeRowUnlocks": true,
+      "rowsUnlockedAtItemGeneration": 5,
+      "rowToUpgradeRequirement": {},
+      "nodes": [
+        {
+          "uiTreeIndex": 0,
+          "augmentationRowIndex": 0,
+          "parentNodes": [],
+          "childrenNodes": [
+            1,
+            2
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.WeaponAbility"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 1,
+          "augmentationRowIndex": 1,
+          "parentNodes": [
+            0
+          ],
+          "childrenNodes": [
+            3,
+            4
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Heroic"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 2,
+          "augmentationRowIndex": 1,
+          "parentNodes": [
+            0
+          ],
+          "childrenNodes": [
+            4,
+            5
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Heroic"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 3,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            1
+          ],
+          "childrenNodes": [
+            6
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 4,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            1,
+            2
+          ],
+          "childrenNodes": [
+            6,
+            7
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 5,
+          "augmentationRowIndex": 2,
+          "parentNodes": [
+            2
+          ],
+          "childrenNodes": [
+            7
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 6,
+          "augmentationRowIndex": 3,
+          "parentNodes": [
+            3,
+            4
+          ],
+          "childrenNodes": [
+            8,
+            9
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Heroic"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 7,
+          "augmentationRowIndex": 3,
+          "parentNodes": [
+            4,
+            5
+          ],
+          "childrenNodes": [
+            9,
+            10
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Heroic"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 8,
+          "augmentationRowIndex": 4,
+          "parentNodes": [
+            6
+          ],
+          "childrenNodes": [
+            11
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 9,
+          "augmentationRowIndex": 4,
+          "parentNodes": [
+            6,
+            7
+          ],
+          "childrenNodes": [
+            11,
+            12
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 10,
+          "augmentationRowIndex": 4,
+          "parentNodes": [
+            7
+          ],
+          "childrenNodes": [
+            12
+          ],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.StatEnchant"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 11,
+          "augmentationRowIndex": 5,
+          "parentNodes": [
+            8,
+            9
+          ],
+          "childrenNodes": [],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Major"
+          ],
+          "randomizedFromAugmentationCategories": false
+        },
+        {
+          "uiTreeIndex": 12,
+          "augmentationRowIndex": 5,
+          "parentNodes": [
+            9,
+            10
+          ],
+          "childrenNodes": [],
+          "augmentationCategories": [
+            "ItemTrait.TraitCategory.Major"
+          ],
+          "randomizedFromAugmentationCategories": false
+        }
+      ],
+      "layout": {
+        "widget": "UW_StaticWeaponTree",
+        "width": 586,
+        "height": 500,
+        "root": {
+          "x": 0,
+          "y": 220
+        },
+        "rootLayers": [
+          {
+            "width": 150,
+            "height": 150,
+            "texture": "T_Buttons_WeaponTreeNodeGlow_RootNode",
+            "item": false
+          },
+          {
+            "width": 62,
+            "height": 62,
+            "texture": "T_Buttons_WeapontTraitTreeButton_Default",
+            "item": false
+          },
+          {
+            "width": 110,
+            "height": 110,
+            "item": true
+          },
+          {
+            "width": 110,
+            "height": 110,
+            "texture": "T_Buttons_WeaponTreeRootNode_FilledDefault",
+            "item": false
+          }
+        ],
+        "nodeWidth": 71,
+        "nodeHeight": 82,
+        "nodes": {
+          "1": {
+            "x": -90,
+            "y": 115
+          },
+          "2": {
+            "x": 90,
+            "y": 115
+          },
+          "3": {
+            "x": -180,
+            "y": 30
+          },
+          "4": {
+            "x": 0,
+            "y": 30
+          },
+          "5": {
+            "x": 180,
+            "y": 30
+          },
+          "6": {
+            "x": -90,
+            "y": -55
+          },
+          "7": {
+            "x": 90,
+            "y": -55
+          },
+          "8": {
+            "x": -180,
+            "y": -140
+          },
+          "9": {
+            "x": 0,
+            "y": -140
+          },
+          "10": {
+            "x": 180,
+            "y": -140
+          },
+          "11": {
+            "x": -90,
+            "y": -225
+          },
+          "12": {
+            "x": 90,
+            "y": -225
+          }
+        }
+      }
+    }
+  ],
+  "attunementNodeUpgradeCosts": [
+    {
+      "rank": 1,
+      "cost": 1000,
+      "currency": 4
+    },
+    {
+      "rank": 2,
+      "cost": 2000,
+      "currency": 4
+    },
+    {
+      "rank": 3,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 4,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 5,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 6,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 7,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 8,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 9,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 10,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 11,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 12,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 13,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 14,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 15,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 16,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 17,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 18,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 19,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 20,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 21,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 22,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 23,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 24,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 25,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 26,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 27,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 28,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 29,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 30,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 31,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 32,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 33,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 34,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 35,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 36,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 37,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 38,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 39,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 40,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 41,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 42,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 43,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 44,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 45,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 46,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 47,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 48,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 49,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 50,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 51,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 52,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 53,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 54,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 55,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 56,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 57,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 58,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 59,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 60,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 61,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 62,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 63,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 64,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 65,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 66,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 67,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 68,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 69,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 70,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 71,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 72,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 73,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 74,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 75,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 76,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 77,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 78,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 79,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 80,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 81,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 82,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 83,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 84,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 85,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 86,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 87,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 88,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 89,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 90,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 91,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 92,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 93,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 94,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 95,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 96,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 97,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 98,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 99,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 100,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 101,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 102,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 103,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 104,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 105,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 106,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 107,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 108,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 109,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 110,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 111,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 112,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 113,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 114,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 115,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 116,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 117,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 118,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 119,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 120,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 121,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 122,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 123,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 124,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 125,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 126,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 127,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 128,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 129,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 130,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 131,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 132,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 133,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 134,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 135,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 136,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 137,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 138,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 139,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 140,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 141,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 142,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 143,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 144,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 145,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 146,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 147,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 148,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 149,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 150,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 151,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 152,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 153,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 154,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 155,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 156,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 157,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 158,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 159,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 160,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 161,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 162,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 163,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 164,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 165,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 166,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 167,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 168,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 169,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 170,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 171,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 172,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 173,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 174,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 175,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 176,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 177,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 178,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 179,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 180,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 181,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 182,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 183,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 184,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 185,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 186,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 187,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 188,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 189,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 190,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 191,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 192,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 193,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 194,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 195,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 196,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 197,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 198,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 199,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 200,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 201,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 202,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 203,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 204,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 205,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 206,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 207,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 208,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 209,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 210,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 211,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 212,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 213,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 214,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 215,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 216,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 217,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 218,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 219,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 220,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 221,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 222,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 223,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 224,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 225,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 226,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 227,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 228,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 229,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 230,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 231,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 232,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 233,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 234,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 235,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 236,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 237,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 238,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 239,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 240,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 241,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 242,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 243,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 244,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 245,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 246,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 247,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 248,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 249,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 250,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 251,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 252,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 253,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 254,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 255,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 256,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 257,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 258,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 259,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 260,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 261,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 262,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 263,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 264,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 265,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 266,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 267,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 268,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 269,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 270,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 271,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 272,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 273,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 274,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 275,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 276,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 277,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 278,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 279,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 280,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 281,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 282,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 283,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 284,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 285,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 286,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 287,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 288,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 289,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 290,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 291,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 292,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 293,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 294,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 295,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 296,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 297,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 298,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 299,
+      "cost": 3000,
+      "currency": 4
+    },
+    {
+      "rank": 300,
+      "cost": 3000,
+      "currency": 4
+    }
+  ],
+  "attunementNodeColorRows": {
+    "otherwise": "core.disabled-900",
+    "byCategory": {
+      "ItemTrait.TraitCategory.Defensive": "game.rarity-uncommon",
+      "ItemTrait.TraitCategory.Heroic": "game.rarity-rare",
+      "ItemTrait.TraitCategory.Major": "game.rarity-epic"
+    }
+  },
+  "attunementTreeHeader": "Attunement Tree:",
+  "augmentationTooltip": {
+    "equippedRank": "Equipped Rank",
+    "rankSources": "Rank Sources",
+    "gearSlot": "- Gear slot: ",
+    "ranksOpen": "(\u002B",
+    "ranksClose": " Ranks)",
+    "itemTypes": [
+      {
+        "type": "Head",
+        "printed": "Head",
+        "slot": "Head"
+      },
+      {
+        "type": "Necklace",
+        "printed": "Necklace",
+        "slot": "Neck"
+      },
+      {
+        "type": "Shoulders",
+        "printed": "Shoulders",
+        "slot": "Shoulders"
+      },
+      {
+        "type": "Back",
+        "printed": "Back",
+        "slot": "Back"
+      },
+      {
+        "type": "Chest",
+        "printed": "Chest",
+        "slot": "Chest"
+      },
+      {
+        "type": "Wrists",
+        "printed": "Wrists",
+        "slot": "Wrists"
+      },
+      {
+        "type": "Hands",
+        "printed": "Hands",
+        "slot": "Hands"
+      },
+      {
+        "type": "Waist",
+        "printed": "Legs",
+        "slot": "Legs"
+      },
+      {
+        "type": "Feet",
+        "printed": "Feet",
+        "slot": "Feet"
+      },
+      {
+        "type": "Ring",
+        "printed": "Ring",
+        "slot": "Ring"
+      },
+      {
+        "type": "Trinket",
+        "printed": "Relic",
+        "slot": "Relic"
+      },
+      {
+        "type": "Weapon",
+        "printed": "Weapon",
+        "slot": "Weapon"
+      },
+      {
+        "type": "Charm",
+        "printed": "Charm",
+        "slot": "Charm"
+      }
+    ],
+    "categories": [
+      {
+        "categoryTag": "ItemTrait.TraitCategory.StatEnchant",
+        "heading": "Enchant",
+        "band": "Enchant"
+      },
+      {
+        "categoryTag": "ItemTrait.TraitCategory.Necklace",
+        "heading": "Protective Enchant",
+        "band": "Enchant"
+      },
+      {
+        "categoryTag": "ItemTrait.TraitCategory.Heroic",
+        "heading": "Sigil",
+        "band": "Augmentation"
+      },
+      {
+        "categoryTag": "ItemTrait.TraitCategory.Major",
+        "heading": "Aspect",
+        "band": "Augmentation"
+      },
+      {
+        "heading": "Augmentation",
+        "band": "Augmentation"
+      }
+    ]
+  },
+  "abilityTooltip": {
+    "unitsPerYard": 100,
+    "meleeMaximum": 250,
+    "printedAboveYards": 2,
+    "range": "range",
+    "meleeRange": "Melee Range",
+    "self": "Self",
+    "rangeUnit": "yd",
+    "instant": "Instant",
+    "cast": "Cast",
+    "channel": "Channel",
+    "chargeUp": "Charge-Up",
+    "castUnit": "s",
+    "cooldown": "Cooldown",
+    "cooldownUnit": "s"
+  },
+  "modifierTypes": [
+    {
+      "name": "GemPower",
+      "printed": "Radiance",
+      "header": "Radiance",
+      "maximumLimit": 2,
+      "maximumLimitWarning": "An item can have up to 2 Radiances active at a time.",
+      "recipes": [
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot1OneOption",
+          "slotIndex": 0,
+          "category": "Radiance",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot2OneOption",
+          "slotIndex": 1,
+          "category": "Radiance",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot3OneOption",
+          "slotIndex": 2,
+          "category": "Radiance",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot1ThreeOptions",
+          "slotIndex": 0,
+          "category": "Radiance",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot2ThreeOptions",
+          "slotIndex": 1,
+          "category": "Radiance",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot3ThreeOptions",
+          "slotIndex": 2,
+          "category": "Radiance",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot1AllOptions",
+          "slotIndex": 0,
+          "category": "Radiance Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot2AllOptions",
+          "slotIndex": 1,
+          "category": "Radiance Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.GemPower.Slot3AllOptions",
+          "slotIndex": 2,
+          "category": "Radiance Mastery",
+          "options": 1,
+          "allOptions": true
+        }
+      ]
+    },
+    {
+      "name": "HeroicTrait",
+      "printed": "Sigil",
+      "plural": "Sigils",
+      "header": "Sigil: ",
+      "maximumLimit": 2,
+      "maximumLimitWarning": "An item can have up to 2 Sigils active at a time.",
+      "recipes": [
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot1OneOption",
+          "slotIndex": 0,
+          "category": "Sigils",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot2OneOption",
+          "slotIndex": 1,
+          "category": "Sigils",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot3OneOption",
+          "slotIndex": 2,
+          "category": "Sigils",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot1ThreeOptions",
+          "slotIndex": 0,
+          "category": "Sigils",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot2ThreeOptions",
+          "slotIndex": 1,
+          "category": "Sigils",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot3ThreeOptions",
+          "slotIndex": 2,
+          "category": "Sigils",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot1AllOptions",
+          "slotIndex": 0,
+          "category": "Sigil Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot2AllOptions",
+          "slotIndex": 1,
+          "category": "Sigil Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.HeroicTrait.Slot3AllOptions",
+          "slotIndex": 2,
+          "category": "Sigil Mastery",
+          "options": 1,
+          "allOptions": true
+        }
+      ]
+    },
+    {
+      "name": "MajorTrait",
+      "printed": "Aspect",
+      "plural": "Aspects",
+      "header": "Aspect: ",
+      "maximumLimit": 2,
+      "maximumLimitWarning": "An item can have up to 2 Aspects active at a time.",
+      "recipes": [
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot1OneOption",
+          "slotIndex": 0,
+          "category": "Aspects",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot2OneOption",
+          "slotIndex": 1,
+          "category": "Aspects",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot3OneOption",
+          "slotIndex": 2,
+          "category": "Aspects",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot1ThreeOptions",
+          "slotIndex": 0,
+          "category": "Aspects",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot2ThreeOptions",
+          "slotIndex": 1,
+          "category": "Aspects",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot3ThreeOptions",
+          "slotIndex": 2,
+          "category": "Aspects",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot1AllOptions",
+          "slotIndex": 0,
+          "category": "Aspect Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot2AllOptions",
+          "slotIndex": 1,
+          "category": "Aspect Mastery",
+          "options": 1,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.MasterTrait.Slot3AllOptions",
+          "slotIndex": 2,
+          "category": "Aspect Mastery",
+          "options": 1,
+          "allOptions": true
+        }
+      ]
+    },
+    {
+      "name": "StatEnchant",
+      "printed": "Enchant",
+      "plural": "Enchants",
+      "header": "Enchant: ",
+      "maximumLimit": 2,
+      "maximumLimitWarning": "An item can have up to 2 Enchants active at a time.",
+      "recipes": [
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot1OneOption",
+          "slotIndex": 0,
+          "category": "Enchants",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot2OneOption",
+          "slotIndex": 1,
+          "category": "Enchants",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot3OneOption",
+          "slotIndex": 1,
+          "category": "Enchants",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot1ThreeOptions",
+          "slotIndex": 0,
+          "category": "Enchants",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot2ThreeOptions",
+          "slotIndex": 1,
+          "category": "Enchants",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot3ThreeOptions",
+          "slotIndex": 1,
+          "category": "Enchants",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot1AllOptions",
+          "slotIndex": 0,
+          "category": "Enchant Mastery",
+          "options": 3,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot2AllOptions",
+          "slotIndex": 1,
+          "category": "Enchant Mastery",
+          "options": 3,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.StatEnchant.Slot3AllOptions",
+          "slotIndex": 2,
+          "category": "Enchant Mastery",
+          "options": 3,
+          "allOptions": true
+        }
+      ]
+    },
+    {
+      "name": "AbilityRank",
+      "printed": "Glyph",
+      "plural": "Glyphs",
+      "header": "Glyph:",
+      "maximumLimit": 2,
+      "maximumLimitWarning": "An item can have up to 2 Glyphs active at a time.",
+      "recipes": [
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot1OneOption",
+          "slotIndex": 0,
+          "category": "Glyphs",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot2OneOption",
+          "slotIndex": 1,
+          "category": "Glyphs",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot3OneOption",
+          "slotIndex": 2,
+          "category": "Glyphs",
+          "options": 1,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot1ThreeOptions",
+          "slotIndex": 0,
+          "category": "Glyphs",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot2ThreeOptions",
+          "slotIndex": 1,
+          "category": "Glyphs",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot3ThreeOptions",
+          "slotIndex": 1,
+          "category": "Glyphs",
+          "options": 3,
+          "allOptions": false
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot1AllOptions",
+          "slotIndex": 0,
+          "category": "Glyph Mastery",
+          "options": 3,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot2AllOptions",
+          "slotIndex": 1,
+          "category": "Glyph Mastery",
+          "options": 3,
+          "allOptions": true
+        },
+        {
+          "recipe": "Crafting.Recipes.HeroItems.Slots.RerollSlotIntoSpecific.Blessing.Slot3AllOptions",
+          "slotIndex": 1,
+          "category": "Glyph Mastery",
+          "options": 3,
+          "allOptions": true
+        }
+      ]
+    }
+  ],
+  "emptyModifierSlot": {
+    "sign": "?",
+    "text": "Empty Modifier"
+  },
+  "statCalculation": {
+    "primaryPool": {
+      "minimumItemLevel": 15,
+      "levelDivisor": 15,
+      "growthBase": 1.08,
+      "multiplier": 6
+    },
+    "secondaryPool": {
+      "minimumItemLevel": 15,
+      "levelMultiplier": 72,
+      "multiplier": 2.4
+    },
+    "primaryPowerBase": 1.03,
+    "primaryAndStaminaMultiplier": 10,
+    "statRarityBase": 1,
+    "baseSlot": {
+      "staminaMultiplierAtThreshold": 1.5
+    },
+    "slotWeights": {
+      "Head": {
+        "statWeight": 0.088,
+        "armorWeight": 0.155
+      },
+      "Neck": {
+        "statWeight": 0.0616,
+        "armorWeight": 0
+      },
+      "Shoulders": {
+        "statWeight": 0.0792,
+        "armorWeight": 0.145
+      },
+      "Back": {
+        "statWeight": 0.0528,
+        "armorWeight": 0.08
+      },
+      "Chest": {
+        "statWeight": 0.088,
+        "armorWeight": 0.18
+      },
+      "Wrists": {
+        "statWeight": 0.0528,
+        "armorWeight": 0.085
+      },
+      "Hands": {
+        "statWeight": 0.0616,
+        "armorWeight": 0.09
+      },
+      "Legs": {
+        "statWeight": 0.088,
+        "armorWeight": 0.165
+      },
+      "Feet": {
+        "statWeight": 0.0704,
+        "armorWeight": 0.1
+      },
+      "Ring": {
+        "statWeight": 0.0528,
+        "armorWeight": 0
+      },
+      "Relic": {
+        "statWeight": 0.0528,
+        "armorWeight": 0
+      },
+      "Weapon": {
+        "statWeight": 0.132,
+        "armorWeight": 0.28
+      }
+    },
+    "armorWeights": {
+      "Plate": {
+        "armorWeight": 2.8,
+        "flatArmor": 200
+      },
+      "Mail": {
+        "armorWeight": 1.65,
+        "flatArmor": 105
+      },
+      "Leather": {
+        "armorWeight": 1.6,
+        "flatArmor": 96
+      },
+      "Cloth": {
+        "armorWeight": 1.41,
+        "flatArmor": 90
+      }
+    },
+    "attributes": {
+      "Stamina": {
+        "displayName": "Stamina",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Stamina",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Strength": {
+        "displayName": "Strength",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Strength",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Intellect": {
+        "displayName": "Intellect",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Intellect",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Agility": {
+        "displayName": "Agility",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Agility",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "CritChance": {
+        "displayName": "Critical Strike",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "CritRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Haste": {
+        "displayName": "Haste",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "HasteRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Expertise": {
+        "displayName": "Expertise",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "ExpertiseRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Spirit": {
+        "displayName": "Spirit",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "SpiritRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "CooldownReduction": {
+        "displayName": "Cooldown Reduction",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "CooldownReduction",
+        "baseStatMultiplier": 0.01,
+        "brackets": [
+          {
+            "maxBracketValue": 999,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.9
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.8
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.7
+          }
+        ],
+        "finalPenaltyPercentage": 0.6
+      },
+      "Mana": {
+        "displayName": "Max Mana",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "MaxMana",
+        "baseStatMultiplier": 0.03,
+        "finalPenaltyPercentage": 1
+      },
+      "HealthRegen": {
+        "displayName": "Health Regen Rate",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "HealthRegenTickTime",
+        "baseStatMultiplier": 0.03,
+        "finalPenaltyPercentage": 1
+      },
+      "ManaRegen": {
+        "displayName": "Mana Regen Rate",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "ManaRegenTickTime",
+        "baseStatMultiplier": 0.015,
+        "finalPenaltyPercentage": 1
+      },
+      "BonusArmor": {
+        "displayName": "Armor",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Armor",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "Dodge": {
+        "displayName": "Dodge",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "DodgeChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "Parry": {
+        "displayName": "Parry",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "ParryChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "MoveSpeed": {
+        "displayName": "Move Speed",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "MoveSpeed",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "BlockChance": {
+        "displayName": "Block Chance",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "BlockChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "LifeSteal": {
+        "displayName": "Life Steal",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "LifeSteal",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "ReflectHeal": {
+        "displayName": "Reflect Heal",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "ReflectHeal",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "FlatHealth": {
+        "displayName": "Health",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "BaseHealth",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "FlatMana": {
+        "displayName": "Mana",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "MaxMana",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "Tenacity": {
+        "displayName": "Tenacity",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Tenacity",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "AttackSpeed": {
+        "displayName": "Attack Speed",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "AttackSpeed",
+        "baseStatMultiplier": 0.05,
+        "finalPenaltyPercentage": 1
+      },
+      "Armor": {
+        "displayName": "Armor",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Armor",
+        "baseStatMultiplier": 1,
+        "brackets": [
+          {
+            "maxBracketValue": 50,
+            "penaltyPercentage": 0.9
+          },
+          {
+            "maxBracketValue": 100,
+            "penaltyPercentage": 0.8
+          }
+        ],
+        "finalPenaltyPercentage": 1
+      }
+    },
+    "rarityAdditions": {
+      "Default_NoGemSlot": {
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "StatEnchant",
+            "GemPower",
+            "AbilityRank",
+            "HeroicTrait",
+            "MajorTrait"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower",
+            "AbilityRank",
+            "AbilityRank",
+            "HeroicTrait",
+            "HeroicTrait",
+            "MajorTrait",
+            "MajorTrait"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower",
+            "AbilityRank",
+            "AbilityRank",
+            "HeroicTrait",
+            "HeroicTrait",
+            "MajorTrait",
+            "MajorTrait"
+          ],
+          "specialSlots": []
+        }
+      },
+      "Default_GemSlot": {
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "GemSocket"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "GemSocket"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "StatEnchant",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "GemSocket"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "GemSocket"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        }
+      },
+      "Necklace": {
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "GemSocket",
+            "NecklaceTraitTree"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "GemSocket",
+            "NecklaceTraitTree"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "StatEnchant",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "GemSocket",
+            "NecklaceTraitTree"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "GemSocket",
+            "NecklaceTraitTree"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        }
+      },
+      "Relic": {
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RelicPower"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RelicPower"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "StatEnchant",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RelicPower"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RelicPower"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        }
+      },
+      "Weapon": {
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "WeaponPower",
+            "WeaponTraitTree"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "WeaponPower",
+            "WeaponTraitTree"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "StatEnchant",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "WeaponPower",
+            "WeaponTraitTree"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "WeaponPower",
+            "WeaponTraitTree"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "StatEnchant",
+            "StatEnchant",
+            "GemPower",
+            "GemPower"
+          ],
+          "specialSlots": []
+        }
+      },
+      "Charm": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Legendary": {
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      }
+    },
+    "slotDefinitions": {
+      "GemSocket": {
+        "slotType": "GemSocket",
+        "minimumItemLevel": 45,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "GemPower": {
+        "slotType": "GemPower",
+        "minimumItemLevel": 75,
+        "gemPowerPool": [
+          "ItemID.GemType.Amethyst",
+          "ItemID.GemType.Diamond",
+          "ItemID.GemType.Emerald",
+          "ItemID.GemType.Ruby",
+          "ItemID.GemType.Sapphire",
+          "ItemID.GemType.Topaz"
+        ],
+        "augmentationPool": []
+      },
+      "AbilityRank": {
+        "slotType": "AbilityRank",
+        "minimumItemLevel": 120,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "GrantedAbility": {
+        "slotType": "GrantedAbility",
+        "minimumItemLevel": 0,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "RelicPower": {
+        "slotType": "GrantedAbility",
+        "minimumItemLevel": 105,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "WeaponPower": {
+        "slotType": "GrantedAbility",
+        "minimumItemLevel": 150,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "NecklaceTraitTree": {
+        "slotType": "TraitTree",
+        "minimumItemLevel": 180,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "WeaponTraitTree": {
+        "slotType": "TraitTree",
+        "minimumItemLevel": 270,
+        "gemPowerPool": [],
+        "augmentationPool": []
+      },
+      "HeroicTrait": {
+        "slotType": "ItemTrait",
+        "minimumItemLevel": 210,
+        "gemPowerPool": [],
+        "augmentationPool": [
+          "ItemTrait.TraitCategory.Heroic"
+        ]
+      },
+      "MajorTrait": {
+        "slotType": "ItemTrait",
+        "minimumItemLevel": 240,
+        "gemPowerPool": [],
+        "augmentationPool": [
+          "ItemTrait.TraitCategory.Major"
+        ]
+      },
+      "StatEnchant": {
+        "slotType": "ItemTrait",
+        "minimumItemLevel": 0,
+        "gemPowerPool": [],
+        "augmentationPool": [
+          "ItemTrait.TraitCategory.StatEnchant"
+        ]
+      }
+    }
+  },
+  "items": {
+    "maxItemLevel": 420,
+    "itemLevelsPerUpgrade": 15,
+    "slotNames": {
+      "Back": "Back",
+      "Charm": "Charm",
+      "Chest": "Chest",
+      "Feet": "Feet",
+      "Hands": "Hands",
+      "Head": "Head",
+      "Necklace": "Neck",
+      "Ring": "Ring",
+      "Shoulders": "Shoulders",
+      "Trinket": "Relic",
+      "Waist": "Legs",
+      "Weapon": "Weapon",
+      "Wrists": "Wrists"
+    },
+    "gemSocketPowerMultipliers": {
+      "1": 1,
+      "2": 1,
+      "3": 1
+    },
+    "itemGemPowers": {
+      "Head": 100,
+      "Neck": 100,
+      "Shoulders": 100,
+      "Back": 100,
+      "Chest": 100,
+      "Wrists": 100,
+      "Hands": 100,
+      "Legs": 100,
+      "Feet": 100,
+      "Ring": 100,
+      "Relic": 100,
+      "Weapon": 100
+    },
+    "powerPotential": {
+      "itemLevelScoreFactor": 14,
+      "temperScoreFactor": 20,
+      "modSlotScoreFactor": 20,
+      "gemSocketScoreFactor": 30,
+      "weaponAbilityScoreFactor": 80,
+      "relicAbilityScoreFactor": 80,
+      "weaponAttunementTreeScoreFactor": 20,
+      "necklaceAttunementTreeScoreFactor": 20,
+      "setBonusScoreFactor": 0,
+      "legendaryScoreFactor": 1000,
+      "allocatedTalentPointPowerPotential": 1.04,
+      "scorePerGemType": {
+        "Uncommon": 20,
+        "Rare": 35,
+        "Epic": 50,
+        "Champion": 65
+      },
+      "scorePerAllocatedWeaponAttunement": 40,
+      "scorePerAllocatedNecklaceAttunement": 60
+    },
+    "statEnchantPower": {
+      "interpolation": "RCIM_Constant",
+      "points": [
+        {
+          "time": 1,
+          "value": 4
+        },
+        {
+          "time": 150,
+          "value": 5
+        },
+        {
+          "time": 300,
+          "value": 6
+        }
+      ]
+    },
+    "temperDefaultStaminaMultiplier": 1,
+    "temperStaminaMultiplierAtItemLevel": [
+      {
+        "itemLevel": 315,
+        "temperValue": 2
+      }
+    ]
+  }
+}

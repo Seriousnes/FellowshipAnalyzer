@@ -17,12 +17,12 @@ public class LegendaryTests
 
         aeona.Select(l => (l.Member, l.ItemId, l.PowerId, l.Slot)).ShouldBe(
         [
-            ("ChronoTrigger", 5221, 618, "Ring"),
-            ("LonesomeSong", 5217, 619, "Back"),
-            ("MassEntropy", 5226, 620, "Wrists"),
+            ("ChronoTrigger", 5898, 618, "Chest"),
+            ("LonesomeSong", 5899, 619, "Head"),
+            ("MassEntropy", 5900, 620, "Legs"),
         ]);
         aeona.Single(l => l.Member == "MassEntropy").PowerName.ShouldBe("Mass Entropy");
-        aeona.Single(l => l.Member == "MassEntropy").ItemName.ShouldBe("Bands of the Withering Shores");
+        aeona.Single(l => l.Member == "MassEntropy").ItemName.ShouldBe("Timeweaver Leggings");
     }
 
     [Fact]

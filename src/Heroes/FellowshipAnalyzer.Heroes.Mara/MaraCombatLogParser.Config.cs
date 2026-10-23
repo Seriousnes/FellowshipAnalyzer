@@ -10,6 +10,6 @@ public sealed partial class MaraCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:6g3jkMGFqrZn1wmW/408/4",
+        ExampleReport = "a:V2XvpaMWxLTnjDAZ/43/5",
     };
 }

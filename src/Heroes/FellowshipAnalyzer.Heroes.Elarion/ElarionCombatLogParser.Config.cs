@@ -10,6 +10,6 @@ public sealed partial class ElarionCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:13Qj7ZaLRWryHhxB/20/91",
+        ExampleReport = "a:V2XvpaMWxLTnjDAZ/43/2",
     };
 }

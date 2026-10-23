@@ -10,6 +10,6 @@ public sealed partial class SylvieCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:gDf7m3N2wvk96dWP/22/118",
+        ExampleReport = "a:mhNX1WMfB2pCvyY6/39/5",
     };
 }

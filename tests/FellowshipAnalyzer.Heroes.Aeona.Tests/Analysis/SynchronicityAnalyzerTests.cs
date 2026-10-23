@@ -127,7 +127,7 @@ public sealed class SynchronicityAnalyzerTests
             Damage(2_000, Spells.OblivionDamage.FSLID, amount: 5_000),
             Damage(3_000, Spells.TimeShardDamage.FSLID, amount: 1_150));
 
-        Spells.Oblivion.Cost(ResourceTypes.Primary).ShouldBe(0);
+        Spells.Oblivion.Cost(ResourceTypes.Primary).ShouldNotBeNull().ShouldBeGreaterThan(0);
         analyzer.DamageAboveThreshold.ShouldBe(1_150);
     }
 

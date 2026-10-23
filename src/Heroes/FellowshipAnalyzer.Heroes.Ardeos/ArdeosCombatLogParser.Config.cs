@@ -10,6 +10,6 @@ public sealed partial class ArdeosCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "a:RaMDvgzWXBCnF4QT/16/25",
+        ExampleReport = "a:dXGv74VgMy9T1xLD/53/145",
     };
 }

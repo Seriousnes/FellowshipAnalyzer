@@ -60,7 +60,7 @@
             new OverviewStat(
                 $"{reduction.Wasted / 1000d:N0}s",
                 "Reduction Wasted",
-                $"Of the {reduction.Total / 1000d:N0}s Hold the Line generated on the other abilities, " +
+                $"Of the {reduction.Total / 1000d:N0}s of cooldown progress Hold the Line generated on the other abilities, " +
                 $"{reduction.Effective / 1000d:N0}s shortened something still recharging."),
         ];
     }
@@ -75,7 +75,7 @@
                 return new OverviewStat(
                     $"{efficiency:F0}%",
                     SpellName(entry.Key),
-                    $"{entry.Value.Effective / 1000d:N0}s of the {entry.Value.Total / 1000d:N0}s aimed at it " +
+                    $"{entry.Value.Effective / 1000d:N0}s of the {entry.Value.Total / 1000d:N0}s of cooldown progress aimed at it " +
                     "shortened a running cooldown.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })

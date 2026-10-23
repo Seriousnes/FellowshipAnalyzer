@@ -10,6 +10,6 @@ public sealed partial class XavianCombatLogParser
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
-        ExampleReport = "2b9qHKQTcp14XVPt/10/5",
+        ExampleReport = "a:2CL3gJ6VdjRtfa41/32/136",
     };
 }

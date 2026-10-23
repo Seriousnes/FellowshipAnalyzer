@@ -24,13 +24,11 @@
         if (pullMs == 0) return [];
 
         var analyzers = Analyzers.ToList();
-        var uptime = analyzers.Sum(analyzer => (long)analyzer.ActiveMs) / (double)pullMs * 100;
         var casts = analyzers.Sum(analyzer => analyzer.Casts);
         var onSelf = analyzers.Sum(analyzer => analyzer.CastsOnSelf);
 
         var stats = new List<OverviewStat>
         {
-            new($"{uptime:F1}%", "Uptime", Performance: UptimeTier(uptime)),
             new($"{casts / (pullMs / 60_000d):F1}", "Casts/Min"),
             new($"{onSelf}/{casts}", "On Self"),
         };
@@ -51,16 +49,12 @@
         Parser.SolarShieldAnalyzers.ToPullRows(Parser, (surface, pull) => surface is SolarShieldAnalyzer analyzer
             ? new PerCastRow
             {
-                Performance = UptimeTier(analyzer.Uptime * 100),
+                Performance = null,
                 Stats =
                 [
-                    new PerCastStat($"{analyzer.Uptime * 100:F0}%", "Uptime"),
                     new PerCastStat($"{analyzer.CastsPerMinute:F1}", "Casts/Min"),
                     new PerCastStat($"{analyzer.CastsOnSelf}/{analyzer.Casts}", "On Self"),
                 ],
             }
             : throw new InvalidOperationException($"Unexpected {surface.GetType().Name}"));
-
-    private static QualitativePerformance UptimeTier(double uptime) =>
-        PerformanceTiers.FromThresholds(uptime, 90, 85, 75);
 }

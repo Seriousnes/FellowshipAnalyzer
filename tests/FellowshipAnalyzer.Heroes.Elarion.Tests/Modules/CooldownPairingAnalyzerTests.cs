@@ -1,6 +1,5 @@
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -39,8 +38,6 @@ public sealed class CooldownPairingAnalyzerTests
         var pairing = analyzer.EventHorizonPairings.ShouldHaveSingleItem();
         pairing.Timestamp.ShouldBe(10_000);
         pairing.NearestGraceDeltaMs.ShouldBe(100);
-
-        analyzer.GraceHeldMs.ShouldBe(0);
     }
 
     [Fact]
@@ -147,56 +144,6 @@ public sealed class CooldownPairingAnalyzerTests
 
         analyzer.BarrageChannels.ShouldBe(0);
         analyzer.BarrageChannelsClippedPercentage.ShouldBe(0d);
-    }
-
-    [Fact]
-    public async Task GraceOffCooldownThenRecast_AccumulatesTheHeldTime()
-    {
-        var analyzer = await Analyze(
-            GraceUsable(5_000, UpdateSpellUsableType.EndCooldown),
-            GraceUsable(9_000, UpdateSpellUsableType.BeginCooldown));
-
-        analyzer.GraceHeldMs.ShouldBe(4_000);
-    }
-
-    [Fact]
-    public async Task GraceOffCooldownThenActuallyCast_ClosesTheHoldAtTheCast()
-    {
-        var analyzer = await Analyze(
-            GraceUsable(5_000, UpdateSpellUsableType.EndCooldown),
-            GraceCast(9_000));
-
-        analyzer.GraceCasts.ShouldBe(1);
-        analyzer.GraceHeldMs.ShouldBe(4_000);
-    }
-
-    [Fact]
-    public async Task GraceLeftAvailableAtPullEnd_RunsTheHoldToThePullEnd()
-    {
-        var analyzer = await Analyze(GraceUsable(5_000, UpdateSpellUsableType.EndCooldown));
-
-        analyzer.GraceHeldMs.ShouldBe(35_000);
-    }
-
-    [Fact]
-    public async Task GraceHeldTime_UsesTheExpectedRechargeTimestampNotTheEventTimestamp()
-    {
-        var lateUpdate = GraceUsable(9_000, UpdateSpellUsableType.EndCooldown);
-        lateUpdate.ExpectedRechargeTimestamp = 5_000;
-
-        var analyzer = await Analyze(
-            lateUpdate,
-            GraceUsable(9_000, UpdateSpellUsableType.BeginCooldown));
-
-        analyzer.GraceHeldMs.ShouldBe(4_000);
-    }
-
-    [Fact]
-    public async Task NeverHeldGrace_ReportsNoHeldTime()
-    {
-        var analyzer = await Analyze(GraceCast(1_000));
-
-        analyzer.GraceHeldMs.ShouldBe(0);
     }
 
     [Fact]
@@ -333,33 +280,6 @@ public sealed class CooldownPairingAnalyzerTests
         Activation = true,
         Ability = new SpellAbility { FSLID = abilityId, Name = name },
     };
-
-    private static UpdateSpellUsableEvent GraceUsable(int timestamp, UpdateSpellUsableType updateType)
-    {
-        var available = updateType == UpdateSpellUsableType.EndCooldown;
-        return new UpdateSpellUsableEvent
-        {
-            Timestamp = timestamp,
-            SourceId = PlayerId,
-            TargetId = PlayerId,
-            SourceIsFriendly = true,
-            TargetIsFriendly = true,
-            UpdateType = updateType,
-            IsOnCooldown = !available,
-            IsAvailable = available,
-            ChargesAvailable = available ? 1 : 0,
-            MaxCharges = 1,
-            OverallStartTimestamp = timestamp,
-            ChargeStartTimestamp = timestamp,
-            ExpectedRechargeTimestamp = timestamp,
-            ExpectedRechargeDuration = 120_000,
-            Ability = new SpellAbility
-            {
-                FSLID = Spells.SkystridersGrace.FSLID,
-                Name = Spells.SkystridersGrace.Name,
-            },
-        };
-    }
 
     private static ApplyBuffEvent ApplyGraceBuff(int timestamp) =>
         ApplyBuff(timestamp, Spells.SkystridersGraceBuff.FSLID, Spells.SkystridersGraceBuff.Name);

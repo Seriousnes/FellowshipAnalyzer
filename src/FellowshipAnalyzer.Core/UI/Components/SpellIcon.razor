@@ -35,7 +35,7 @@ else if (_icon is { Length: > 0 })
 
     private string IconUrl => Codex.IconUrl(_icon);
 
-    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(), _id));
+    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(_id), _id));
 
     private string SizeClass => Size switch
     {
@@ -44,7 +44,7 @@ else if (_icon is { Length: > 0 })
         _ => ""
     };
 
-    private string? TooltipPath => _id > 0 ? CodexAddresses.Tooltip(_kind.ToEntityType(), _id) : null;
+    private string? TooltipPath => _id > 0 ? CodexAddresses.Tooltip(_kind.ToEntityType(_id), _id) : null;
 
     protected override void OnParametersSet()
     {

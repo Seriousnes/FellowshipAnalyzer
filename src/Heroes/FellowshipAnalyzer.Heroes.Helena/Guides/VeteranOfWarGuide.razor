@@ -40,17 +40,17 @@
             new(
                 $"{efficiency:F1}%",
                 "Effective",
-                $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s generated shortened something that was " +
+                $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s of cooldown progress generated shortened something " +
                 "still recharging.",
                 PerformanceTiers.FromThresholds(efficiency, 85, 70, 50)),
             new(
                 $"{wasted / 1000d:N0}s",
                 "Wasted",
-                "Reduction generated against an ability that was already available."),
+                "Seconds of cooldown progress generated against an ability already available."),
             new(
                 $"{generated / 1000d:N0}s",
                 "Generated",
-                "Total reduction every combo produced across the dungeon."),
+                "Seconds of cooldown progress every combo generated across the dungeon."),
         };
 
         if (PunishingStrikesCasts > 0)
@@ -86,7 +86,7 @@
                 return new OverviewStat(
                     $"{reduction.Wasted / 1000d:N0}s",
                     SpellName(entry.Key),
-                    $"{efficiency:F0}% of the {reduction.Total / 1000d:N0}s this ability generated shortened a running cooldown.",
+                    $"{efficiency:F0}% of the {reduction.Total / 1000d:N0}s of cooldown progress this ability generated shortened a running cooldown.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })
             .ToList();
@@ -135,12 +135,12 @@
             new(
                 $"{analyzer.CooldownReduction.Efficiency * 100:F0}%",
                 "Effective",
-                "Share of this pull's generated reduction that shortened a running cooldown.",
+                "Share of this pull's generated cooldown progress that shortened a running cooldown.",
                 PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50)),
             new(
                 $"{analyzer.CooldownReduction.Wasted / 1000d:F0}s",
                 "Wasted",
-                "Reduction generated against an ability that was already available."),
+                "Seconds of cooldown progress generated against an ability already available."),
         };
 
         foreach (var contribution in analyzer.BySource.Take(3))
@@ -148,7 +148,7 @@
             stats.Add(new PerCastStat(
                 $"{contribution.CooldownReduction.Wasted / 1000d:F0}s",
                 SpellName(contribution.SourceSpellId),
-                $"{contribution.Events} casts generated {contribution.CooldownReduction.Total / 1000d:F0}s, of which {contribution.CooldownReduction.Effective / 1000d:F0}s shortened a running cooldown."));
+                $"{contribution.Events} casts generated {contribution.CooldownReduction.Total / 1000d:F0}s of cooldown progress, of which {contribution.CooldownReduction.Effective / 1000d:F0}s shortened a running cooldown."));
         }
 
         return [.. stats];

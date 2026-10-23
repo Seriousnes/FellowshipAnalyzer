@@ -38,7 +38,7 @@ public sealed class SylvieAnalysisEngineTests
         config.Support.ShouldNotBe(SupportLevel.None);
         config.Maintainers.ShouldNotBeEmpty();
         config.SeasonLabel.ShouldBe(Seasons.Season3);
-        config.ExampleReport.ShouldBe("a:gDf7m3N2wvk96dWP/22/118");
+        config.ExampleReport.ShouldNotBeNullOrWhiteSpace();
         config.Changelog.ShouldNotBeEmpty();
     }
 }

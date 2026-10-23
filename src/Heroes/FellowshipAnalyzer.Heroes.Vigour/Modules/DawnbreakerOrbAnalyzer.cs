@@ -23,30 +23,18 @@ public sealed class DawnbreakerOrbCast(int timestamp)
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
-[Dependency<SpellUsable>]
 public sealed partial class DawnbreakerOrbAnalyzer : Analyzer
 {
+    /// <summary>Milliseconds after a cast within which an Orb heal or damage event belongs to that cast.</summary>
     public const int FlightWindowMs = 8_000;
 
     private readonly List<DawnbreakerOrbCast> _casts = [];
-    private readonly ReadyTimeLedger _ready = new();
 
     public IReadOnlyList<DawnbreakerOrbCast> Casts => _casts;
 
     public int CastCount => _casts.Count;
 
     public double? AverageTargetsHit => _casts.Count == 0 ? null : _casts.Average(cast => cast.TargetsHit);
-
-    public int ReadyMs => _ready.ReadyMs(Pull.StartTime, Pull.EndTime);
-
-    public double ReadyShare => Pull.Duration > 0 ? Math.Min(1d, ReadyMs / (double)Pull.Duration) : 0;
-
-    [On<PullStartEvent>]
-    private void OnPullStart(PullStartEvent e) =>
-        _ready.Start(e.StartTime, SpellUsable.CooldownRemaining(Spells.DawnbreakerOrb.FSLID, e.StartTime) <= 0);
-
-    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
-    private void OnUsableChanged(UpdateSpellUsableEvent e) => _ready.Observe(e);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
     private void OnCast(CastEvent e) => _casts.Add(new DawnbreakerOrbCast(e.Timestamp));

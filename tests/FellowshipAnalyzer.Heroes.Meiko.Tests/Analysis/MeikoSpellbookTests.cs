@@ -16,6 +16,7 @@ public sealed class MeikoSpellbookTests
         nameof(Spells.EarthfistBarrage),
         nameof(Spells.RisingStorm),
         nameof(Spells.LashingStormkick),
+        nameof(Spells.LashingStormkickAlt),
         nameof(Spells.DoublePalmStrike),
         nameof(Spells.SpiritedVortex),
     ];
@@ -26,6 +27,7 @@ public sealed class MeikoSpellbookTests
         [nameof(Spells.EarthfistBarrage)] = Spells.EarthfistBarrage,
         [nameof(Spells.RisingStorm)] = Spells.RisingStorm,
         [nameof(Spells.LashingStormkick)] = Spells.LashingStormkick,
+        [nameof(Spells.LashingStormkickAlt)] = Spells.LashingStormkickAlt,
         [nameof(Spells.DoublePalmStrike)] = Spells.DoublePalmStrike,
         [nameof(Spells.SpiritedVortex)] = Spells.SpiritedVortex,
     };
@@ -68,8 +70,24 @@ public sealed class MeikoSpellbookTests
     [Fact]
     public void HasteScaledCooldowns_AreFlagged()
     {
-        foreach (var spell in new Spell[] { Spells.StoneShieldAlt, Spells.ShatterEarth, Spells.TwinSoulsBulwark, Spells.Serenity })
+        foreach (var spell in new Spell[] { Spells.StoneShieldAlt, Spells.Serenity })
             Assert.True(Entry(spell).CooldownReducedByHaste);
+    }
+
+    [Fact]
+    public void CooldownsWithoutHasteScaling_AreNotFlagged()
+    {
+        foreach (var spell in new Spell[] { Spells.ShatterEarth, Spells.TwinSoulsBulwark, Spells.Cyclone, Spells.Stagger, Spells.Taunt })
+            Assert.False(Entry(spell).CooldownReducedByHaste);
+    }
+
+    [Fact]
+    public void Patch050Cooldowns_AreReadFromTheSpellData()
+    {
+        Assert.Equal(45, Entry(Spells.ShatterEarth).GetCooldown());
+        Assert.Equal(60, Entry(Spells.StoneStomp).GetCooldown());
+        Assert.Equal(20, Entry(Spells.Gust).GetCooldown());
+        Assert.Equal(2, Entry(Spells.Taunt).Charges);
     }
 
     [Fact]

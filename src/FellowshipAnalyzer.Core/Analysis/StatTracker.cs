@@ -171,18 +171,19 @@ public sealed partial class StatTracker : Analyzer
     /// </summary>
     public double CurrentAbilityCooldownReduction(SpellbookAbility? ability) =>
         Math.Min(1.0, Owner.SelectedCombatant.Stats.AbilityCooldownReduction.Total(ability)
-            + TotalOf(_abilityCooldownReduction, ability));
+            + _abilityCooldownReduction.Where(modifier => modifier.Covers(ability)).Sum(modifier => modifier.Value));
 
     /// <summary>
     /// Total Cooldown Acceleration for <paramref name="ability"/> as a fraction (0.10 = +10%), summing the
     /// gear-derived seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier that
     /// applies to it. Uncapped: each value is a term on the shared recovery pool
     /// <see cref="SpellUsable.EffectiveRate"/> divides by. A <c>null</c> ability accrues only unscoped
-    /// modifiers.
+    /// modifiers. A Weapon ability accrues only the modifiers its own effects grant
+    /// (<see cref="CooldownModifier.Accelerates"/>).
     /// </summary>
     public double CurrentCooldownAcceleration(SpellbookAbility? ability) =>
-        Owner.SelectedCombatant.Stats.CooldownAcceleration.Total(ability)
-            + TotalOf(_cooldownAcceleration, ability);
+        Owner.SelectedCombatant.Stats.CooldownAcceleration.AccelerationTotal(ability)
+            + _cooldownAcceleration.Where(modifier => modifier.Accelerates(ability)).Sum(modifier => modifier.Value);
 
     /// <summary>
     /// Ability Cooldown Reduction for <paramref name="ability"/> from the gear-derived seed alone, capped
@@ -196,12 +197,12 @@ public sealed partial class StatTracker : Analyzer
     /// force at the pull before any runtime modifier was tracked.
     /// </summary>
     public double StartingCooldownAcceleration(SpellbookAbility? ability) =>
-        Owner.SelectedCombatant.Stats.CooldownAcceleration.Total(ability);
+        Owner.SelectedCombatant.Stats.CooldownAcceleration.AccelerationTotal(ability);
 
     /// <summary>
     /// Scales a cooldown duration by <paramref name="ability"/>'s current Ability Cooldown Reduction: at
-    /// 10% ACR a 30s cooldown becomes 27s. This applies to both base cooldowns at cast and flat cooldown
-    /// reductions, so at 10% ACR a 1000ms Rolling Flames reduction generates 900ms.
+    /// 10% ACR a 30s cooldown becomes 27s. It applies to a cooldown's duration when the cooldown starts, and
+    /// never to a flat cooldown reduction.
     /// </summary>
     public int ScaleByCooldownReduction(SpellbookAbility? ability, int milliseconds) =>
         (int)(milliseconds * (1.0 - CurrentAbilityCooldownReduction(ability)));
@@ -236,17 +237,6 @@ public sealed partial class StatTracker : Analyzer
         CooldownPool.CooldownAcceleration => _cooldownAcceleration,
         _ => throw new ArgumentOutOfRangeException(nameof(pool), pool, null),
     };
-
-    private static double TotalOf(List<CooldownModifier> modifiers, SpellbookAbility? ability)
-    {
-        var total = 0.0;
-        foreach (var modifier in modifiers)
-        {
-            if (modifier.Scope is null || (ability is not null && modifier.Scope.Matches(ability)))
-                total += modifier.Value;
-        }
-        return total;
-    }
 
     private void FabricateChangeCooldownModifier(CooldownPool pool, CooldownModifier modifier, bool added, Event? trigger, int? timestamp) =>
         Owner.EventEmitter.FabricateEvent(new ChangeCooldownModifierEvent
@@ -291,26 +281,39 @@ public sealed partial class StatTracker : Analyzer
 
     /// <summary>
     /// Converts a stat rating to a percentage using Fellowship's Season 3 diminishing-returns
-    /// formula. The raw percentage is <c>rating × 0.16</c>; diminishing returns then apply a
-    /// per-band multiplier to each 5-point band of that raw percentage (no reduction below 10%,
-    /// then ×0.98, ×0.96, ×0.94, and ×0.92 for everything past 25%). Returns a decimal fraction
-    /// (0.30 = 30%). Flat percentage bonuses from static effects (e.g. +5% haste) are additive
-    /// after this and are not modelled here.
+    /// formula. The raw percentage is <c>rating × 0.16</c>. The bracket edges, 10, 15, 20 and 25, are
+    /// points of the converted percentage, and each bracket's penalty compounds on every penalty before
+    /// it: rating in the 15 to 20 bracket converts at <c>0.98 × 0.96</c>, and rating past 25 at
+    /// <c>0.98 × 0.96 × 0.94 × 0.92</c>. Returns a decimal fraction (0.30 = 30%). Flat percentage bonuses
+    /// from static effects (e.g. +5% haste) are additive after this and are not modelled here.
     /// </summary>
     public static double RatingToPercentage(double rating)
     {
         if (rating <= 0) return 0;
 
-        var raw = rating * 0.16;
-        var pct =
-            Math.Min(raw, 10.0)
-            + Math.Clamp(raw - 10.0, 0.0, 5.0) * 0.98
-            + Math.Clamp(raw - 15.0, 0.0, 5.0) * 0.96
-            + Math.Clamp(raw - 20.0, 0.0, 5.0) * 0.94
-            + Math.Max(raw - 25.0, 0.0) * 0.92;
+        var raw = rating * RatingToRawPercent;
+        var converted = 0.0;
+        var efficiency = 1.0;
+        foreach (var (edge, penalty) in DiminishingReturnsBrackets)
+        {
+            efficiency *= penalty;
+            var rawWidth = (edge - converted) / efficiency;
+            if (raw <= rawWidth)
+                return (converted + raw * efficiency) / 100.0;
 
-        return pct / 100.0;
+            raw -= rawWidth;
+            converted = edge;
+        }
+
+        return (converted + raw * efficiency * FinalDiminishingReturnsPenalty) / 100.0;
     }
+
+    private const double RatingToRawPercent = 0.16;
+
+    private const double FinalDiminishingReturnsPenalty = 0.92;
+
+    private static readonly (double Edge, double Penalty)[] DiminishingReturnsBrackets =
+        [(10.0, 1.0), (15.0, 0.98), (20.0, 0.96), (25.0, 0.94)];
 
     /// <summary>
     /// Returns the crit percentage for a given rating.

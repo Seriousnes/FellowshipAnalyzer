@@ -4,6 +4,7 @@ using Fellowship.SDK.Client;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.UI.Components;
 
@@ -60,12 +61,19 @@ public static class ItemTooltip
                 stat => stat.Key,
                 stat => new StatRolls { Rating = stat.Value },
                 StringComparer.OrdinalIgnoreCase),
-            Modifiers = item.Traits.Count > 0
-                ? [.. item.Traits.Select(trait =>
-                    new ItemModifier(ModifierKind.Trait, new FSLID(trait.Id).NativeId, trait.Rank))]
-                : null,
+            Modifiers = Modifiers(item) is { Count: > 0 } modifiers ? modifiers : null,
         };
     }
+
+    /// <summary>
+    /// The item's augmentations, each in the modifier slot its augmentation type fills. An augmentation
+    /// no modifier slot holds is left off.
+    /// </summary>
+    private static List<ItemModifier> Modifiers(Item item) =>
+        [.. item.Traits
+            .Select(trait => (Id: new FSLID(trait.Id).NativeId, trait.Rank))
+            .Where(trait => Augmentations.ModifierOf(trait.Id) is not null)
+            .Select(trait => new ItemModifier(Augmentations.ModifierOf(trait.Id)!.Value, trait.Id, trait.Rank))];
 
     /// <summary>What the codex is to draw for an item the report states nothing more about than its id.</summary>
     public static ItemTooltipRequest For(HeroName? hero) => new() { Hero = hero?.ToString() };

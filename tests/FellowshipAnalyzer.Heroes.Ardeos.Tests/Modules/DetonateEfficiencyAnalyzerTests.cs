@@ -228,7 +228,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     public async Task Coverage_MarksActiveDoTsAndLeavesTheRestInactive()
     {
         var analyzer = await Analyze(
-            Combatant(boomtasticRing: true),
+            Combatant(explosivo: true),
             ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(100, Enemy1, Spells.ApocalypseDot.FSLID),
             Detonate(1000));
@@ -245,7 +245,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task Coverage_WithoutTheBoomtasticRing_OmitsApocalypse()
+    public async Task Coverage_WithoutExplosivo_OmitsApocalypse()
     {
         var analyzer = await Analyze(
             Combatant(),
@@ -382,12 +382,12 @@ public sealed class DetonateEfficiencyAnalyzerTests
 
     private static int TotalAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) => SampleAt(analyzer, timestamp).Total;
 
-    private static CombatantInfoEvent Combatant(bool talented = false, bool boomtasticRing = false) => new()
+    private static CombatantInfoEvent Combatant(bool talented = false, bool explosivo = false) => new()
     {
         SourceId = PlayerId,
         Talents = talented ? [new TalentInfo { Id = ApocalypticSurgeTalentId }] : [],
-        Gear = boomtasticRing
-            ? [new Item { Id = FellowshipAnalyzer.Core.Common.Items.Items.RingOfBoomtasticExplosions.Id }]
+        Gear = explosivo
+            ? [new Item { Id = Legendaries.Explosivo.Id, Quality = 6 }]
             : [],
     };
 
