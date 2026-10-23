@@ -21,7 +21,7 @@ public sealed partial class HighCommandAnalyzer : Analyzer
     /// <summary>Shields Up casts across the dungeon.</summary>
     public int ShieldsUpCasts { get; private set; }
 
-    /// <summary>The Hold the Line cooldown reduction Shields Up generated, and how much of it shortened a running cooldown.</summary>
+    /// <summary>Milliseconds of Hold the Line cooldown progress Shields Up generated, and how much of it shortened a running cooldown.</summary>
     public CooldownReductionResult CooldownReduction { get; private set; }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.ShieldsUp))]

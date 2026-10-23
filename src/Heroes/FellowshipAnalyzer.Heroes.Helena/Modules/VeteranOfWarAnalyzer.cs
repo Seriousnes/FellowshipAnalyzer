@@ -27,6 +27,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
 
     public List<CooldownContribution> BySource => Result.BySource;
 
+    /// <summary>Milliseconds of cooldown progress this pull's Veteran of War casts generated, and how much of it shortened a running cooldown.</summary>
     public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
     public bool UltimateWasActive { get; private set; }
