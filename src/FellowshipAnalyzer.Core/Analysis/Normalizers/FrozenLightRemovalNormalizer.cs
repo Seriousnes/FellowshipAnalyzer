@@ -3,10 +3,10 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
-/// <summary>Drops a Frozen Light stack change to 1 within 50 milliseconds of the buff's removal on the same target, and sets that removal's <see cref="RemoveBuffEvent.Stack"/> to 0.</summary>
+/// <summary>Drops the Frozen Light stack change to 1 before a removal less than 30 seconds after the buff's application on the same target, and sets that removal's <see cref="RemoveBuffEvent.Stack"/> to 0.</summary>
 public sealed class FrozenLightRemovalNormalizer : IEventNormalizer
 {
-    private const int FinalStackWindowMs = 50;
+    private const int BuffDurationMs = 30_000;
 
     /// <inheritdoc/>
     public int Priority => 25;
@@ -14,23 +14,34 @@ public sealed class FrozenLightRemovalNormalizer : IEventNormalizer
     /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
-        var lastByTarget = new Dictionary<int, BuffEvent>();
+        var appliedAtByTarget = new Dictionary<int, int>();
+        var lastStackChangeByTarget = new Dictionary<int, BuffEvent>();
         var dropped = new HashSet<Event>(ReferenceEqualityComparer.Instance);
 
         foreach (var e in events)
         {
             if (e is not BuffEvent buffEvent || buffEvent.Ability.FSLID != Items.RepositoryOfFrozenLightBuff.FSLID) continue;
 
-            if (buffEvent is RemoveBuffEvent removal
-                && lastByTarget.TryGetValue(removal.TargetId, out var previous)
-                && previous is RemoveBuffStackEvent { Stack: 1 }
-                && removal.Timestamp - previous.Timestamp <= FinalStackWindowMs)
+            switch (buffEvent)
             {
-                dropped.Add(previous);
-                removal.Stack = 0;
+                case ApplyBuffEvent:
+                    appliedAtByTarget[buffEvent.TargetId] = buffEvent.Timestamp;
+                    lastStackChangeByTarget.Remove(buffEvent.TargetId);
+                    break;
+                case IBuffStackEvent:
+                    lastStackChangeByTarget[buffEvent.TargetId] = buffEvent;
+                    break;
+                case RemoveBuffEvent removal:
+                    if (appliedAtByTarget.Remove(removal.TargetId, out var appliedAt)
+                        && lastStackChangeByTarget.Remove(removal.TargetId, out var previous)
+                        && previous is IBuffStackEvent { Stack: 1 }
+                        && removal.Timestamp - appliedAt < BuffDurationMs)
+                    {
+                        dropped.Add(previous);
+                        removal.Stack = 0;
+                    }
+                    break;
             }
-
-            lastByTarget[buffEvent.TargetId] = buffEvent;
         }
 
         return dropped.Count == 0 ? events : events.Where(e => !dropped.Contains(e)).ToList();

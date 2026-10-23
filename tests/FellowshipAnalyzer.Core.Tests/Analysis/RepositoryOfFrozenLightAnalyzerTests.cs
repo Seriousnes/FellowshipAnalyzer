@@ -99,7 +99,7 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
             Cast(1000),
             ApplyBuff(2500, AllyId),
             ApplyBuffStack(2500, AllyId, 15),
-            RemoveBuffStack(23_450, AllyId, 1),
+            RemoveBuffStack(21_500, AllyId, 1),
             RemoveBuff(23_500, AllyId),
         ]);
 
@@ -122,15 +122,15 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     }
 
     [Fact]
-    public async Task StackChangeToOne51MsBeforeRemoval_KeepsTheStack()
+    public async Task StackChangeToOneBeforeExpiryAt30Seconds_KeepsTheStack()
     {
         var analyzer = await Analyze(
         [
             Cast(1000),
             ApplyBuff(2500, AllyId),
             ApplyBuffStack(2500, AllyId, 15),
-            RemoveBuffStack(23_449, AllyId, 1),
-            RemoveBuff(23_500, AllyId),
+            RemoveBuffStack(30_500, AllyId, 1),
+            RemoveBuff(32_500, AllyId),
         ]);
 
         Assert.Equal(new CooldownReductionResult(300, 300), analyzer.CooldownReduction);
