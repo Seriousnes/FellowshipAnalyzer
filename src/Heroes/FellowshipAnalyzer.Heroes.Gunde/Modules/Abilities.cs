@@ -10,7 +10,7 @@ public class Abilities : CoreAbilities
     private const int BleedingHeartsHeartSplitterCharges = 2;
 
     /// <summary>
-    /// Whether the player has Bleeding Hearts equipped, which gives Heart Splitter a second charge. An unowned
+    /// Whether the player has Bleeding Hearts equipped. With it, Heart Splitter has 2 charges. An unowned
     /// spellbook reads the base ability.
     /// </summary>
     private bool BleedingHearts => Owner?.SelectedCombatant.HasLegendary(Legendaries.BleedingHearts.Id) == true;
