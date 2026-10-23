@@ -10,7 +10,6 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
 {
     private readonly List<HeartBloomCapture> _casts = [];
 
-    private HeartBloomCapture? _open;
     private long _pendingEffective;
     private long _pendingOverheal;
     private int _pendingFrom;
@@ -46,7 +45,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         var posting = BlueyTracker.PostingAt(castEvent.Timestamp);
         var accumulatedFrom = _pendingFrom == 0 ? Pull.StartTime : _pendingFrom;
 
-        _open = new HeartBloomCapture
+        _casts.Add(new HeartBloomCapture
         {
             Timestamp = castEvent.Timestamp,
             AccumulationMs = Math.Max(0, castEvent.Timestamp - accumulatedFrom),
@@ -54,8 +53,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             FedOverheal = _pendingOverheal,
             BlueyAssigned = posting is not null,
             BlueyOnAlly = posting is { OnSylvie: false },
-        };
-        _casts.Add(_open);
+        });
 
         _pendingEffective = 0;
         _pendingOverheal = 0;
@@ -65,9 +63,25 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.HeartBloom))]
     private void OnHeartBloomHeal(HealEvent healEvent)
     {
-        if (_open is null) return;
+        ReleasingBloom(healEvent.Timestamp)?.Record(healEvent.Timestamp, healEvent.Amount, healEvent.Overheal ?? 0);
+    }
 
-        _open.Record(healEvent.Timestamp, healEvent.Amount, healEvent.Overheal ?? 0);
+    /// <summary>
+    /// The cast whose Heart Bloom released the pulse at <paramref name="timestamp"/>. With two charges two
+    /// Heart Blooms pulse at once, so the pulse goes to the bloom alive at that moment whose release interval
+    /// it falls closest to, the older bloom on a tie. A pulse after every bloom has withered goes to the
+    /// latest cast.
+    /// </summary>
+    private HeartBloomCapture? ReleasingBloom(int timestamp)
+    {
+        var alive = _casts
+            .Where(capture => capture.Timestamp <= timestamp
+                && timestamp - capture.Timestamp <= SylvieKit.HeartBloomDurationMs + (SylvieKit.HeartBloomTickIntervalMs / 2))
+            .ToList();
+
+        return alive.Count > 0
+            ? alive.MinBy(capture => capture.IntervalOffset(timestamp))
+            : _casts.LastOrDefault();
     }
 
     private List<HeartBloomCast> Compute() =>
@@ -101,6 +115,12 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             Effective += effective;
             Overheal += overheal;
             ReleaseInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+        }
+
+        public int IntervalOffset(int timestamp)
+        {
+            var offset = (timestamp - Timestamp) % SylvieKit.HeartBloomTickIntervalMs;
+            return Math.Min(offset, SylvieKit.HeartBloomTickIntervalMs - offset);
         }
     }
 }

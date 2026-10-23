@@ -66,6 +66,30 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
+    public async Task TwoBloomsAliveAtOnceEachKeepTheirOwnReleases()
+    {
+        var parser = await Analyze(
+            Combatant(Core.Common.Spells.SylvieTalents.FlowerPower),
+            Cast(PullStart + 1_000, Spells.HeartBloom),
+            Heal(PullStart + 3_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 5_000, Spells.HeartBloom, TankId, amount: 100),
+            Cast(PullStart + 6_000, Spells.HeartBloom),
+            Heal(PullStart + 7_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 8_000, Spells.HeartBloom, AllyId, amount: 50),
+            Heal(PullStart + 9_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(PullStart + 10_000, Spells.HeartBloom, AllyId, amount: 50),
+            Heal(PullStart + 22_000, Spells.HeartBloom, AllyId, amount: 50));
+
+        var casts = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts;
+
+        casts.Count.ShouldBe(2);
+        casts[0].Releases.ShouldBe(4);
+        casts[0].Effective.ShouldBe(400);
+        casts[1].Releases.ShouldBe(3);
+        casts[1].Effective.ShouldBe(150);
+    }
+
+    [Fact]
     public async Task WhereBlueyWasIsRecordedOnTheCast()
     {
         var parser = await Analyze(
