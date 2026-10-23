@@ -20,6 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [AddAnalyzer<SearingBlazeSpreadAnalyzer>]
 [AddAnalyzer<SearingBlazeUptimeAnalyzer>]
 [AddAnalyzer<DevouringFlameAnalyzer>]
+[AddAnalyzer<ExplosivoAnalyzer>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ArdeosGuide);
