@@ -1,12 +1,12 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// The equipped legendary and every number it changes. Registered dungeon-lifetime; every analyzer and
-/// guide reads its build questions here rather than comparing item ids.
+/// The equipped legendaries and every number each one changes. Registered dungeon-lifetime; every analyzer
+/// and guide reads its build questions here rather than comparing item ids. A player can wear all three
+/// legendaries at once, and each changes only its own numbers.
 /// </summary>
 /// <remarks>
 /// The base figures are the codex records: Entropy's Claim (ability 1876) lasts 6 s and casts in 1.5 s;
@@ -27,17 +27,14 @@ public sealed class AeonaBuild : Module
     private const double ConvergingTimelinesAcceleration = 1.0;
     private const double LonesomeSongAcceleration = 2.0;
 
-    /// <summary>The equipped legendary as the registry names it, or null when none of Aeona's legendaries is equipped.</summary>
-    public Item? Legendary => field ??= Resolve();
-
     /// <summary>Whether Mass Entropy is equipped.</summary>
-    public bool MassEntropy => Legendary == Legendaries.MassEntropy;
+    public bool MassEntropy => Owner.SelectedCombatant.HasLegendary(Legendaries.MassEntropy.Id);
 
     /// <summary>Whether Chrono Trigger is equipped.</summary>
-    public bool ChronoTrigger => Legendary == Legendaries.ChronoTrigger;
+    public bool ChronoTrigger => Owner.SelectedCombatant.HasLegendary(Legendaries.ChronoTrigger.Id);
 
     /// <summary>Whether Lonesome Song is equipped.</summary>
-    public bool LonesomeSong => Legendary == Legendaries.LonesomeSong;
+    public bool LonesomeSong => Owner.SelectedCombatant.HasLegendary(Legendaries.LonesomeSong.Id);
 
     /// <summary>Maximum charges of Entropy's Claim.</summary>
     public int EntropyClaimCharges => MassEntropy ? MassEntropyCharges : BaseEntropyClaimCharges;
@@ -56,16 +53,4 @@ public sealed class AeonaBuild : Module
 
     /// <summary>The Cooldown Acceleration an Amend Fate or Restore Continuity cast grants through Converging Timelines.</summary>
     public double ConvergingTimelinesOnCleanse => ConvergingTimelinesAcceleration;
-
-    private Item? Resolve()
-    {
-        var equipped = Owner.SelectedCombatant.Legendary?.Id;
-        if (equipped is null) return null;
-
-        if (equipped == Legendaries.MassEntropy.Id) return Legendaries.MassEntropy;
-        if (equipped == Legendaries.ChronoTrigger.Id) return Legendaries.ChronoTrigger;
-        if (equipped == Legendaries.LonesomeSong.Id) return Legendaries.LonesomeSong;
-
-        return null;
-    }
 }

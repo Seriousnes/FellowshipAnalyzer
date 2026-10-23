@@ -21,7 +21,6 @@ public sealed class AeonaBuildTests
 
         var build = parser.AeonaBuild.ShouldNotBeNull();
         build.MassEntropy.ShouldBeTrue();
-        build.Legendary.ShouldBe(Legendaries.MassEntropy);
         build.EntropyClaimCharges.ShouldBe(2);
         build.EntropyClaimDurationMs.ShouldBe(8_000);
         parser.GetModule<AeonaAbilities>()!.GetMaxCharges(Spells.EntropyClaim.FSLID).ShouldBe(2);
@@ -33,7 +32,6 @@ public sealed class AeonaBuildTests
         var parser = await Analyze(BossPull(), Info([]));
 
         var build = parser.AeonaBuild.ShouldNotBeNull();
-        build.Legendary.ShouldBeNull();
         build.MassEntropy.ShouldBeFalse();
         build.EntropyClaimCharges.ShouldBe(1);
         build.EntropyClaimDurationMs.ShouldBe(6_000);
@@ -48,5 +46,22 @@ public sealed class AeonaBuildTests
         var build = parser.AeonaBuild.ShouldNotBeNull();
         build.LonesomeSong.ShouldBeTrue();
         build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
+    }
+
+    [Fact]
+    public async Task WithAllThreeLegendaries_EachChangesItsOwnNumbers()
+    {
+        var parser = await Analyze(BossPull(), Info([], AeonaLegendaries.MassEntropy, AeonaLegendaries.ChronoTrigger, AeonaLegendaries.LonesomeSong));
+
+        var build = parser.AeonaBuild.ShouldNotBeNull();
+        build.MassEntropy.ShouldBeTrue();
+        build.ChronoTrigger.ShouldBeTrue();
+        build.LonesomeSong.ShouldBeTrue();
+        build.EntropyClaimCharges.ShouldBe(2);
+        build.EntropyClaimDurationMs.ShouldBe(8_000);
+        build.UnfoldingDoomDurationMs.ShouldBe(15_000);
+        build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
+        build.ConvergingTimelinesOnCleanse.ShouldBe(1.0);
+        parser.GetModule<AeonaAbilities>()!.GetMaxCharges(Spells.EntropyClaim.FSLID).ShouldBe(2);
     }
 }

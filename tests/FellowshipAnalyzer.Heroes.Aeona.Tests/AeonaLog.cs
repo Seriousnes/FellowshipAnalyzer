@@ -48,12 +48,12 @@ internal static class AeonaLog
         new(SecondEnemyId, "Second Enemy", "NPC", "NPC", null, null),
     ];
 
-    /// <summary>The player's combatantinfo: talents by native id, and the legendary item by item id.</summary>
-    public static CombatantInfoEvent Info(int[] talents, int? legendaryItemId = null) => new()
+    /// <summary>The player's combatantinfo: talents by native id, and each worn legendary item by item id.</summary>
+    public static CombatantInfoEvent Info(int[] talents, params int[] legendaryItemIds) => new()
     {
         SourceId = PlayerId,
         Talents = [.. talents.Select(id => new TalentInfo { Id = id })],
-        Gear = legendaryItemId is { } item ? [new Item { Id = item, Quality = 6 }] : [],
+        Gear = [.. legendaryItemIds.Select(item => new Item { Id = item, Quality = 6 })],
     };
 
     /// <summary>An instant cast, or the activation half of a cast-time ability.</summary>
