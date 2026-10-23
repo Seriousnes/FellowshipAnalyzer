@@ -38,6 +38,16 @@ public sealed class HelenaSpellbookTests
     }
 
     [Fact]
+    public void PowerStrikeShieldThrowAndShockwave_RecoverWithHaste()
+    {
+        var spellbook = new HelenaAbilities().Spellbook().ToList();
+
+        Entry(spellbook, Spells.PowerStrike).CooldownReducedByHaste.ShouldBeTrue();
+        Entry(spellbook, Spells.ShieldThrow).CooldownReducedByHaste.ShouldBeTrue();
+        Entry(spellbook, Spells.Shockwave).CooldownReducedByHaste.ShouldBeTrue();
+    }
+
+    [Fact]
     public void WithoutIronSentinel_HoldTheLineHasOneChargeThatIgnoresHaste()
     {
         var holdTheLine = Entry(new HelenaAbilities().Spellbook().ToList(), Spells.HoldTheLine);
@@ -68,6 +78,51 @@ public sealed class HelenaSpellbookTests
             .Where(update => update.Ability.Id == Spells.HoldTheLine.FSLID && update.Timestamp == PullStart + 2_000)
             .Select(update => update.UpdateType)
             .ShouldBe([UpdateSpellUsableType.UseCharge]);
+    }
+
+    [Fact]
+    public async Task IronSentinel_WornWithTheOtherLegendaries_StillGivesHoldTheLineASecondCharge()
+    {
+        var combatant = Combatant();
+        combatant.Gear =
+        [
+            new Item { Id = Legendaries.RazorCrash.Id, Quality = LegendaryQuality },
+            new Item { Id = Legendaries.IronSentinel.Id, Quality = LegendaryQuality },
+            new Item { Id = Legendaries.VanguardsAdvance.Id, Quality = LegendaryQuality },
+        ];
+
+        var parser = await AnalyzeAs(combatant, Cast(PullStart + 1_000, Spells.HoldTheLine));
+
+        var holdTheLine = parser.GetModule<HelenaAbilities>().ShouldNotBeNull()
+            .GetAbility(Spells.HoldTheLine.FSLID).ShouldNotBeNull();
+
+        holdTheLine.Charges.ShouldBe(2);
+        holdTheLine.CooldownReducedByHaste.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task WithoutIronSentinel_OtherLegendariesLeaveHoldTheLineAtOneCharge()
+    {
+        var combatant = Combatant();
+        combatant.Gear =
+        [
+            new Item { Id = Legendaries.RazorCrash.Id, Quality = LegendaryQuality },
+            new Item { Id = Legendaries.VanguardsAdvance.Id, Quality = LegendaryQuality },
+        ];
+
+        var parser = await AnalyzeAs(combatant, Cast(PullStart + 1_000, Spells.HoldTheLine));
+
+        var holdTheLine = parser.GetModule<HelenaAbilities>().ShouldNotBeNull()
+            .GetAbility(Spells.HoldTheLine.FSLID).ShouldNotBeNull();
+
+        holdTheLine.Charges.ShouldBe(1);
+        holdTheLine.CooldownReducedByHaste.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Taunt_HasTwoCharges()
+    {
+        Entry(new HelenaAbilities().Spellbook().ToList(), Spells.Taunt).Charges.ShouldBe(2);
     }
 
     private static SpellbookAbility Entry(List<SpellbookAbility> spellbook, Spell spell) =>
