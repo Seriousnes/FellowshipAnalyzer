@@ -231,7 +231,7 @@ Comparing these predicted "ready" timestamps with actual subsequent casts provid
 
 To analyze rotational tightness and APM, the analyzer should track GCD windows by:
 
-- At each cast, computing the hasted global cooldown `1.5 s ÷ (1 + h)` and setting a GCD lock until it ends.
+- At each on-GCD cast, computing the hasted global cooldown `1.5 s ÷ (1 + h)` and setting a GCD lock until it ends. An off-GCD ability sets no GCD lock. A cancelled cast still has the GCD it started.
 - Treating any cast that starts within the lock window as delayed relative to the earliest possible input.
 - Measuring the gaps between the end of one GCD and the start of the next action to quantify downtime not explained by mechanics.
 
