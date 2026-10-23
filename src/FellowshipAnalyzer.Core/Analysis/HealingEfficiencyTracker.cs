@@ -66,8 +66,9 @@ public partial class HealingEfficiencyTracker : Analyzer
         Common.Spells.SpellRegistry.MaybeGet(castEvent.Ability.Id)?.Cost(Resource) ?? 0;
 
     /// <summary>
-    /// How long <paramref name="castEvent"/> occupied, in milliseconds. The default uses the global
-    /// cooldown the cast triggered, falling back to the spell's cast duration when it triggered none.
+    /// How long <paramref name="castEvent"/> occupied, in milliseconds. By default, a hard cast runs from its
+    /// begin-cast to the later of cast completion and the end of its global cooldown. A channel or instant cast
+    /// has its global cooldown's duration, and a cast with no global cooldown has the spell's cast duration.
     /// </summary>
     protected virtual int ExecutionMsOf(CastEvent castEvent)
     {
@@ -174,7 +175,7 @@ public partial class HealingEfficiencyTracker : Analyzer
 /// <param name="Effective">Healing after overheal.</param>
 /// <param name="Overheal">Healing that was lost to overheal.</param>
 /// <param name="ResourceSpent">Resource the casts cost.</param>
-/// <param name="ExecutionMs">Milliseconds of global cooldown or cast time the casts occupied.</param>
+/// <param name="ExecutionMs">Milliseconds the casts occupied. A hard cast runs from its begin-cast to the later of cast completion and the end of its global cooldown.</param>
 public sealed record SpellHealingEfficiency(
     int SpellId,
     string Name,
