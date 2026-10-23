@@ -87,7 +87,6 @@
             Performance = AbilitiesTier(cast.AbilitiesReset),
             Stats = [.. stats],
             Timestamp = cast.Timestamp,
-            Sequence = [new SpellCastEntry(cast.AbilityId)],
             AdditionalContent = new AdditionalContent("Ability State", @<div>
                 <ul>
                     @foreach (var ability in cast.Abilities)

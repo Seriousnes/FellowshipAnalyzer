@@ -97,6 +97,27 @@ public sealed class FinalStratagemAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_StalkerStepCharge_RecordsTheRechargeAndTheRemainingCharge()
+    {
+        var events = new List<Event>
+        {
+            Cast(1000, Spells.StalkerStep),
+            Cast(2000, Spells.FinalStratagem),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var stalkerStep = analyzer.Casts.ShouldHaveSingleItem()
+            .Abilities.Single(state => state.AbilityId == Spells.StalkerStep.Id);
+        var rechargeMs = (int)Math.Round(Spells.StalkerStep.Cooldown.GetValueOrDefault() * 1000);
+
+        stalkerStep.MaxCharges.ShouldBe(Spells.StalkerStep.Charges);
+        stalkerStep.ChargesAvailable.ShouldBe(stalkerStep.MaxCharges - 1);
+        stalkerStep.ChargesRecovered.ShouldBe(1);
+        stalkerStep.RemainingMs.ShouldBe(rechargeMs - 1000);
+    }
+
+    [Fact]
     public async Task Analyze_WritesTheResetIntoTheSharedCooldownTracker()
     {
         var events = new List<Event>

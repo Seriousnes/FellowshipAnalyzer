@@ -111,7 +111,6 @@
             Performance = StealthWindowTier(window),
             Stats = stats,
             Timestamp = window.OpenedAt,
-            Sequence = window.ConvertingAbilityId is { } id ? new SpellCastEntry[] { new(id) } : null,
             Details = @<div>@BuildStealthNote(window)</div>,
         };
     }
