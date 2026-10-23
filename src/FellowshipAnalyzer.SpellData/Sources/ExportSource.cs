@@ -292,7 +292,8 @@ public sealed class ExportSource
     private const string HasteStat = "Haste";
 
     private static CooldownHasteScaling? HasteScaling(AbilityDocument ability) =>
-        ability.CooldownTimeRateScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true ? CooldownHasteScaling.TimeRate
+        ability.CooldownTimeRateScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true
+            ? ability.Charges > 1 ? CooldownHasteScaling.TimeRate : CooldownHasteScaling.Duration
         : ability.CooldownDurationScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true ? CooldownHasteScaling.Duration
         : null;
 

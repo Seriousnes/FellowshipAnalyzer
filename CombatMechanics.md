@@ -145,7 +145,7 @@ A cooldown has an amount of **cooldown progress** left, which decreases at a **r
 
 **Duration at the start.** When a charge starts recharging, its duration in cooldown progress is
 
-- `D = C_base × (1 − ACR)`, then divided by `1 + h` when the export lists Haste in `cooldownDurationScalesOff` (`CooldownHasteScaling.Duration`).
+- `D = C_base × (1 − ACR)`, then divided by `1 + h` when the export lists Haste in `cooldownDurationScalesOff`, or lists Haste in `cooldownTimeRateScalesOff` on an ability with one charge (`CooldownHasteScaling.Duration`).
 
 Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts.
 
@@ -153,7 +153,7 @@ Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1
 
 - `rate = 1 + h_rate + Σ acceleration`
 
-where `h_rate` is the current Haste when the export lists Haste in `cooldownTimeRateScalesOff` (`CooldownHasteScaling.TimeRate`), and 0 otherwise. Every Cooldown Acceleration source is one additive term in the same pool:
+where `h_rate` is the current Haste when the export lists Haste in `cooldownTimeRateScalesOff` on an ability with more than one charge (`CooldownHasteScaling.TimeRate`), and 0 otherwise. A talent or legendary `ChargeGrant` that raises an ability to 2 or more charges moves its Haste to `h_rate`. Every Cooldown Acceleration source is one additive term in the same pool:
 
 | Source | Export modifier | Term |
 | --- | --- | --- |
