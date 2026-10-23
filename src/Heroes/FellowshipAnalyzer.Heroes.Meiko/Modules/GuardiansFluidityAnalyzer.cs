@@ -21,6 +21,7 @@ public sealed partial class GuardiansFluidityAnalyzer : Analyzer
         nameof(Spells.EarthfistBarrage),
         nameof(Spells.RisingStorm),
         nameof(Spells.LashingStormkick),
+        nameof(Spells.LashingStormkickAlt),
         nameof(Spells.DoublePalmStrike),
         nameof(Spells.SpiritedVortex),
     })]

@@ -77,7 +77,6 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ShatterEarthDamage, Spells.ShatterEarthDot],
             Category = SpellCategory.Cooldowns,
             Gcd = MeikoGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -101,7 +100,6 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -123,7 +121,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.Cyclone,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -136,19 +133,18 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.Stagger,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.Taunt,
             Category = SpellCategory.Utility,
             Gcd = null,
-            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.LashingStormkickAlt,
             Category = SpellCategory.Hidden,
+            Gcd = null,
         },
         new()
         {
