@@ -56,54 +56,44 @@ In practice, the computation for crit is "post-DR percentage from rating" plus 5
 Fellowship applies soft diminishing returns to all secondary stats: below 10% there is no DR, between 10% and 25% the efficiency of new rating steps down band by band, and beyond 25% efficiency stabilizes at a reduced level. [^22][^1][^7]
 The intent is to make low stats feel strong for early characters and to discourage extreme stacking of a single secondary stat in favor of balanced distributions. [^8][^22]
 
-Season 3 DR is mild compared with Season 2: the worst band still returns 92% of base value, where Season 2 fell to about 58%. [^22]
+Season 3 DR is mild compared with Season 2: rating past 25% still converts at 81.4% of base value, where Season 2 fell to about 58%. [^22][^24]
 
-### Banded DR structure
+### Bracketed DR structure
 
-**The DR bands are measured on the raw percentage, `raw = rating × 0.16`, not on the post-DR percentage.** [^23]
-Each 5-point band of `raw` is multiplied by a flat per-band factor. The factors do **not** compound: band 3 uses 0.96, not 0.98 × 0.96. [^22][^23]
+The bracket edges 10, 15, 20 and 25 are points of the **converted** percentage, and each bracket's penalty compounds on every penalty before it. [^22][^24]
+Rating converts to a raw percentage, `raw = rating × 0.16`, and each slice of `raw` converts at the efficiency of the bracket the converted percentage is in at that point.
 
-| Band of `raw` | Band multiplier | Effective % per rating in the band | Post-DR % accrued in the band |
-| --- | --- | --- | --- |
-| 0% to 10% | 1.00 | 0.16 | 10.0 |
-| 10% to 15% | 0.98 | 0.1568 | 4.9 |
-| 15% to 20% | 0.96 | 0.1536 | 4.8 |
-| 20% to 25% | 0.94 | 0.1504 | 4.7 |
-| above 25% | 0.92 | 0.1472 | unbounded |
+| Converted bracket | Bracket penalty | Efficiency (converted per raw point) | % per rating in the bracket | `raw` width of the bracket |
+| --- | --- | --- | --- | --- |
+| 0% to 10% | 1.00 | 1.00 | 0.16 | 10.0000 |
+| 10% to 15% | 0.98 | 0.98 | 0.1568 | 5.1020 |
+| 15% to 20% | 0.96 | 0.9408 | 0.150528 | 5.3146 |
+| 20% to 25% | 0.94 | 0.884352 | 0.14149632 | 5.6539 |
+| above 25% | 0.92 | 0.81360384 | 0.13017661 | unbounded |
 
-Because the bands are cut on `raw`, the rating values at which they change are: [^23]
+Each bracket below 25% adds exactly 5 converted points (10 for the first). The rating values at the bracket edges are: [^23][^24]
 
-- `raw` = 10% at **62.5** rating
-- `raw` = 15% at **93.75** rating
-- `raw` = 20% at **125** rating
-- `raw` = 25% at **156.25** rating
-
-A consequence worth remembering: at those boundaries the stat **displays** 10%, 14.9%, 19.7%, and 24.4%, not 10/15/20/25%. Only the first boundary is the same number in both raw and post-DR terms. This is a structural change from Season 2, where each band contributed a clean 5 post-DR points and the boundaries were defined on the post-DR percentage.
+- 10% at **62.5** rating
+- 15% at **94.3878** rating
+- 20% at **127.6042** rating
+- 25% at **162.9408** rating
 
 ### Explicit piecewise formula
 
-For any rating R (Crit, Haste, Expertise, or Spirit), the post-DR percentage from rating P(R), excluding flat bonuses and the crit base 5%, is: [^23]
+For any rating R (Crit, Haste, Expertise, or Spirit), the post-DR percentage from rating P(R), excluding flat bonuses and the crit base 5%, is: [^23][^24]
 
 - If R ≤ 62.5:  
   P(R) = R × 0.16
-- If 62.5 < R ≤ 93.75:  
+- If 62.5 < R ≤ 94.3878:  
   P(R) = 10 + (R − 62.5) × 0.1568
-- If 93.75 < R ≤ 125:  
-  P(R) = 14.9 + (R − 93.75) × 0.1536
-- If 125 < R ≤ 156.25:  
-  P(R) = 19.7 + (R − 125) × 0.1504
-- If R > 156.25:  
-  P(R) = 24.4 + (R − 156.25) × 0.1472
+- If 94.3878 < R ≤ 127.6042:  
+  P(R) = 15 + (R − 94.3878) × 0.150528
+- If 127.6042 < R ≤ 162.9408:  
+  P(R) = 20 + (R − 127.6042) × 0.14149632
+- If R > 162.9408:  
+  P(R) = 25 + (R − 162.9408) × 0.13017661
 
-`StatTracker.RatingToPercentage` expresses the same function in clamp form over `raw = rating × 0.16`, which avoids the boundary table entirely and returns a decimal fraction (0.3084 for 30.84%): [^23]
-
-```
-pct = min(raw, 10)
-    + clamp(raw − 10, 0, 5) × 0.98
-    + clamp(raw − 15, 0, 5) × 0.96
-    + clamp(raw − 20, 0, 5) × 0.94
-    + max(raw − 25, 0)      × 0.92
-```
+`StatTracker.RatingToPercentage` computes the brackets in order over `raw = rating × 0.16`. In each bracket the efficiency is the previous efficiency times the bracket penalty, and the bracket is `(edge − converted) ÷ efficiency` raw points wide. It returns a decimal fraction (0.298242 for 29.8242%). [^23]
 
 The in-game client displays the result to 2 decimal places. The analyzer does not round: `RatingToPercentage` returns the full-precision fraction, so any rounding is a presentation concern for the UI layer. [^23]
 
@@ -112,20 +102,20 @@ The in-game client displays the result to 2 decimal places. The analyzer does no
 Take **200 Haste rating**, a plausible haste-focused Season 3 total. For scale, a Season 2 log in this repo's test data shows a total Haste rating of 1304, which at the 9.4x rating-scale change maps to roughly 139 in Season 3 terms, so 200 represents a build that is deliberately stacking the stat.
 
 1. Raw percentage: 200 × 0.16 = **32%**.
-2. First 10 raw points, no DR: 10 × 1.00 = **10.00**
-3. Raw 10 to 15: 5 × 0.98 = **4.90**
-4. Raw 15 to 20: 5 × 0.96 = **4.80**
-5. Raw 20 to 25: 5 × 0.94 = **4.70**
-6. Raw above 25, which is 32 − 25 = 7 points: 7 × 0.92 = **6.44**
-7. Sum: 10.00 + 4.90 + 4.80 + 4.70 + 6.44 = **30.84%** post-DR Haste.
+2. First bracket: 10 raw points at efficiency 1.00 reach **10%**.
+3. Second bracket: 5.1020 raw points at 0.98 reach **15%** (15.1020 raw in total).
+4. Third bracket: 5.3146 raw points at 0.9408 reach **20%** (20.4167 raw in total).
+5. Fourth bracket: 5.6539 raw points at 0.884352 reach **25%** (26.0705 raw in total).
+6. Above 25%: the 5.9295 raw points left convert at 0.81360384, adding **4.8242**.
+7. Sum: 25 + 4.8242 = **29.8242%** post-DR Haste.
 
-`StatTracker.RatingToPercentage(200)` returns `0.3084`. [^23]
-The loss relative to the undiminished 32% is 1.16 percentage points, about 3.6% of the raw value.
+`StatTracker.RatingToPercentage(200)` returns `0.298242`. [^23]
+The loss relative to the undiminished 32% is 2.18 percentage points, about 6.8% of the raw value.
 
 ### Practical gearing implications
 
-Because the worst band still returns 92% of base value, Season 3 DR is a gentle tax rather than a wall. Overall efficiency, meaning post-DR percentage divided by raw percentage, is 96.4% at 32% raw (200 rating), 95.5% at 40% raw (250 rating), and still 94.9% at 48% raw (300 rating). [^23]
-Pushing a single secondary well past 25% is a real but small loss, so stat priority in Season 3 is driven mainly by which secondary the hero scales with rather than by DR avoidance. [^22]
+Rating past 25% converts at 81.4% of base value. Overall efficiency, meaning post-DR percentage divided by raw percentage, is 93.2% at 32% raw (200 rating), 90.8% at 40% raw (250 rating), and 89.3% at 48% raw (300 rating). [^23]
+Pushing a single secondary well past 25% is a real loss, so stat priority in Season 3 weighs which secondary the hero scales with against how deep into the brackets that secondary already is. [^22]
 Flat percentage bonuses from gems, sets, or talents bypass DR entirely, so they are particularly useful for pushing a priority stat past 25% without suffering any efficiency loss. [^22][^1]
 
 ## Haste Mechanics and Cooldown Scaling
@@ -140,35 +130,51 @@ Community discussion and class guides further emphasize that Haste reduces the g
 The Haste percentage used for combat calculations is obtained by applying the same rating to percentage with DR formula described above to Haste rating, then adding any flat Haste percentage bonuses (for example from gems, set bonuses, or temporary buffs such as "heroism"-style effects). [^22][^23][^4]
 As with other secondaries, DR applies only to rating-based Haste; flat Haste percentage bonuses are added on top after DR and are not diminished. [^22][^1]
 
-### Empirical cooldown scaling formula
+### Haste time scaling
 
-Players on the Fellowship subreddit report that, for abilities that scale with Haste, cooldowns are shortened proportionally, with an effective formula equivalent to World of Warcraft or League of Legends-style "ability haste". [^3][^11]
-One widely cited explanation is that if a player has H percent Haste, the cooldown is multiplied by 100 ÷ (100 + H), so 100% Haste halves the effective cooldown, and 50% Haste yields about a 33% reduction in cooldown length. [^3]
+With total Haste `h` as a fraction (0.30 for 30%), a hasted duration is `T_base ÷ (1 + h)`. [^24]
 
-For example, with 50% Haste, a 30‑second base cooldown would be reduced to roughly 20 seconds, since 30 × 100 ÷ 150 ≈ 20. [^3]
-The same player explanation notes that the proportion of time removed relative to the base is H ÷ (H + 100), which for H = 50 gives 50 ÷ 150 ≈ 0.33, i.e., a one‑third reduction. [^3]
+- **Cast time**: `cast_base ÷ (1 + h)`, with `h` at the cast's start. `Haste.ScaleDuration` computes it.
+- **Global cooldown**: `1.5 s ÷ (1 + h)`, with `h` at the cast's start, and at least `GcdInfo.Minimum` (750 ms by default). `GlobalCooldown` computes it from the ability's `GcdInfo.Base` (1500 ms by default), and a `GcdInfo.Static` GCD takes no Haste.
+- **Channel ticks**: the tick period is `tick_base ÷ (1 + h)`, with `h` at the channel's start. The channel's duration is fixed and takes no Haste.
+- **Hasted periodic effects**: each tick comes after `tick_base` of hasted progress, where progress runs at `1 + h` per second. A Haste change re-times the tick in progress from that moment; the effect's duration is fixed. [^24]
 
-### Global Cooldown (GCD)
+For example, 50% Haste takes a 2 s cast to 1.333 s and the 1.5 s global cooldown to 1 s.
 
-Community testing indicates that Fellowship's base global cooldown behaves similarly to World of Warcraft, at roughly 1.5 seconds for most abilities, and that Haste reduces this GCD. [^4][^12]
-Players report that with sufficiently high Haste (for example from a 30% Haste spirit ability), GCDs clearly become shorter, and 1.5‑second casts can drop below one second during strong Haste windows, confirming that GCD and cast-time spells are affected. [^4]
+### Cooldown model
 
-There is some conflicting discussion about whether certain heroes or situations effectively use a 1.0‑second baseline, but the most consistent reports use 1.5 seconds and show strong Haste scaling. [^13][^4]
-For a log analyzer, the base GCD should be treated as a parameter (per hero / spec) with Haste scaling applied as for other cooldowns, and validated against empirical inter‑cast intervals in logs.
+A cooldown has an amount of **cooldown progress** left, which decreases at a **recovery rate** per second. [^24]
 
-### Cast times and periodic ticks
+**Duration at the start.** When a charge starts recharging, its duration in cooldown progress is
 
-Guides and player explanations state that Haste speeds up cast times and increases the tick rate of damage-over-time and heal-over-time effects, again similar to WoW. [^1][^10][^7]
-In practice, the same Haste percentage used to reduce cooldowns is applied to reduce cast durations and tick intervals, such that cast_time_effective = base_cast_time × 100 ÷ (100 + H) and tick_interval_effective = base_tick_interval × 100 ÷ (100 + H) provide a good approximation. [^10][^3]
+- `D = C_base × (1 − ACR)`, then divided by `1 + h` when the export lists Haste in `cooldownDurationScalesOff` (`CooldownHasteScaling.Duration`).
 
-### Ability-specific cooldown modifiers
+Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts.
 
-Some traits and abilities grant explicit "cooldown recovery" or cooldown-reduction effects, sometimes by a fixed amount (for example, "reduces the cooldown by 1.5 seconds on crit") or by a percentage (for example, a trait that reduces a weapon cooldown by about 30%). [^14][^9][^5]
-There are also extreme effects such as channeling Chronoshift, which grants 800% increased cooldown recovery, implying an enormous effective speedup of cooldown timers during its duration. [^5]
+**Recovery rate.** The cooldown progress left decreases at
 
-Community and guide material suggest that such cooldown recovery modifiers stack multiplicatively with Haste, with Haste affecting the general time flow and recovery modifiers applying to specific abilities or sources, similar to the way ability haste and specific CDR effects interact in other games. [^11][^9]
+- `rate = 1 + h_rate + Σ acceleration`
 
-For an analyzer, the general approach is to compute a generic Haste-adjusted cooldown and then apply ability-specific percentage or flat reductions according to the ability's tooltip logic.
+where `h_rate` is the current Haste when the export lists Haste in `cooldownTimeRateScalesOff` (`CooldownHasteScaling.TimeRate`), and 0 otherwise. Every Cooldown Acceleration source is one additive term in the same pool:
+
+| Source | Export modifier | Term |
+| --- | --- | --- |
+| Strand of Eternity (equipped legendary) | `CooldownRecovery` × 1.1 | +0.10 |
+| Chronoshift channel (Asha's Arcane Embrace) | `CooldownRecovery` × 8 | +7.0 |
+| Glorious Purpose (Fated Strike) | `CooldownRecovery` × 3 | +2.0 |
+| The Monarch (MAJOR abilities) | 3% / 5% / 8% / 12% by tier | +tier + min(0.1 × h, 0.05) |
+
+A `CooldownRecovery` multiplier of `m` is a term of `m − 1`. Haste on a time-rate cooldown is a term of the same sum, so Chronoshift takes a cooldown with 20% time-rate Haste to `1 + 0.2 + 7 = 8.2×`.
+
+The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any acceleration term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. `SpellUsable.EffectiveRate` computes the rate.
+
+**Weapon abilities.** A Weapon ability's cooldown takes no Cooldown Acceleration from Strand of Eternity, The Monarch or another ability's effect. It takes only the terms its own effects grant (`CooldownModifier.GrantedBy`): Chronoshift recovers at 8× while Chronoshift is channelled, and Fated Strike takes Glorious Purpose's +2.0. Ability Cooldown Reduction and the export's own Haste scaling apply to a Weapon ability.
+
+**Flat reductions.** A flat reduction ("reduces the cooldown by 1.5 seconds") removes that much cooldown progress. Ability Cooldown Reduction does not scale it. While the cooldown recovers at `rate`, a reduction of `X` shortens the time left by `X ÷ rate`: a 1 s reduction is worth 0.5 s at 2×. A reduction larger than the progress left completes that charge, and the remainder reduces the next one; a reduction past the last charge is wasted. `SpellUsable.ReduceCooldown` reports the requested and the applied progress.
+
+**Charges.** Charges recharge one at a time from the first cast, unless the ability declares `IndependentCharges`. Each charge's recharge starts from the state current at its start.
+
+**Worked example.** A 30 s, single-charge, Duration-scaled cooldown at 20% Haste with 10% ACR and Strand of Eternity: `D = 30 × 0.9 ÷ 1.2 = 22.5 s` of progress, recovering at 1.1×, so the cooldown is ready after 20.45 s. A Chronoshift channel 10 s in, with 11.5 s of progress left, takes the rate to 8.1× for 3 s, which is 24.3 s of progress, so the cooldown is ready 1.42 s into the channel.
 
 ### Legendary items
 
@@ -181,55 +187,13 @@ A player wears one legendary item at a time, whatever its slot. The export marks
 For each secondary stat S with rating R, the analyzer should:
 
 1. Compute the raw percentage: `raw = R × 0.16`. [^22][^23]
-2. Partition `raw` into the bands 0-10, 10-15, 15-20, 20-25, and 25+. The bands are cut on the raw percentage, not on the post-DR percentage, and not on rating. [^23]
-3. Multiply each band's portion of `raw` by its flat multiplier (1.00; 0.98; 0.96; 0.94; 0.92). The multipliers do not compound. [^22][^23]
-4. Sum the band contributions to obtain P_R, the post-DR percentage from rating. [^23]
+2. Compute the converted brackets 0-10, 10-15, 15-20 and 20-25 in order. Each bracket's efficiency is the previous efficiency times its penalty (1.00; 0.98; 0.96; 0.94), and each bracket is `(edge − converted) ÷ efficiency` raw points wide. [^22][^24]
+3. Convert the raw points left past 25% at the running efficiency × 0.92. [^22][^24]
+4. Sum the bracket contributions to obtain P_R, the post-DR percentage from rating. [^23]
 5. Add any flat percentage bonuses associated with S (gems, sets, talents), which are not subject to DR. [^22][^1]
 6. If S is Critical Strike, add an extra 5% base crit. [^22][^7]
 
 Steps 1 to 4 are exactly `StatTracker.RatingToPercentage`, which returns a decimal fraction and applies no rounding; step 5 is not modelled there and step 6 is `CritPercentage(rating, withBase: true)`. [^23]
-
-### Haste-adjusted time scaling
-
-Given a computed total Haste percentage H_total for a character at a given timestamp (including rating plus flat bonuses and temporary effects), time-based mechanics that scale with Haste can generally be modeled by multiplying their base duration by 100 ÷ (100 + H_total). [^3][^10]
-
-For any base duration T_base (GCD, cast time, tick interval, or haste-scaling cooldown), the effective duration is:
-
-- T_effective = T_base × 100 ÷ (100 + H_total)
-
-This matches community examples: 100% Haste halves the effective cooldown (T_effective = T_base × 100 ÷ 200 = 0.5 T_base), while 50% Haste reduces it to two‑thirds (T_effective ≈ 0.667 T_base). [^3]
-
-### Combining Haste with cooldown recovery modifiers
-
-Some abilities have separate cooldown recovery multipliers or flat reductions, such as "30% reduced cooldown" traits or effects that increase cooldown recovery by 800%. [^9][^5]
-A common modeling convention, consistent with other games' handling of CDR and ability haste, is to treat recovery multipliers as additional factors on the denominator.
-
-If an ability has a base cooldown C_base, the character has total Haste H_total, and the ability has a cooldown recovery bonus R_ability (expressed as a percentage, e.g., 30%), then an effective model is:
-
-- First, compute the generic Haste‑adjusted cooldown:  
-  C_haste = C_base × 100 ÷ (100 + H_total)
-- Then, apply ability‑specific recovery:  
-  C_effective = C_haste × 100 ÷ (100 + R_ability)
-
-For extreme effects like "800% increased cooldown recovery", the effective multiplier becomes 100 ÷ (100 + 800) = 100 ÷ 900 ≈ 0.111, so an already Haste‑reduced cooldown becomes about one‑ninth of its Haste‑only value during the effect. [^5]
-
-Flat reductions like "reduce this cooldown by 1.5 seconds on crit" should be implemented as event-driven reductions on the *remaining* cooldown at the time the proc occurs, based on logs that record crits. [^9][^14]
-
-### Global cooldown modeling
-
-Given the lack of exact official documentation, the analyzer should treat the base global cooldown (GCD_base) as configurable (per hero / spec), defaulting to 1.5 seconds based on community consensus and similarity to WoW. [^4][^12]
-At any time t, the effective GCD can then be computed using the same Haste formula:
-
-- GCD_effective(t) = GCD_base × 100 ÷ (100 + H_total(t))
-
-Logs can be used to validate and refine this model by measuring minimum spacing between instant-cast ability usages under various Haste states and seeing whether the observed minimum approach matches this prediction. [^4][^13]
-
-### Tick timing for periodic effects
-
-Damage-over-time (DoT) and heal-over-time (HoT) abilities should tick at an interval equal to their base tick interval multiplied by 100 ÷ (100 + H_total), as Haste increases tick frequency. [^1][^10]
-The total effect duration may remain fixed in time (more ticks per duration) or effectively shorten (same number of ticks in less time), depending on the specific ability implementation; logs and tooltips can be used to classify each ability. [^14][^15]
-
-For a log analyzer, a practical approach is to treat each periodic effect as a schedule of tick events determined by the first application timestamp and Haste snapshot (or dynamic updates if Haste changes mid‑duration), then align actual tick events in the log against this schedule to detect downtime and clipping.
 
 ## Combat Log Implications and State Tracking
 
@@ -258,10 +222,10 @@ By updating this state at each log event, the analyzer can maintain a coherent s
 For each ability, the analyzer should have metadata including base cooldown, whether it scales with Haste, any ability-specific cooldown-reduction interactions, and whether it is on the global cooldown. [^14][^15]
 When a cast event is observed in the log, the analyzer can:
 
-1. Compute H_total(t) at the cast timestamp from Haste rating, flat bonuses, and active buffs.
-2. Compute C_effective using the formulas above (Haste plus any ability-specific recovery modifiers currently active).
-3. Set the ability’s next-available time to t + C_effective.
-4. Apply ongoing reductions from procs (e.g., on-crit reductions) as those events appear in the log, shortening the remaining cooldown. [^9][^14]
+1. Compute the total Haste `h` at the cast timestamp from Haste rating, flat bonuses, and active buffs.
+2. Compute the charge's duration `D` and the recovery rate as the cooldown model above states.
+3. Set the ability’s next-available time to t + D ÷ rate, and move it whenever the rate changes.
+4. Apply flat reductions from procs (e.g., on-crit reductions) as those events appear in the log, taking that much cooldown progress off the charge recharging. [^9][^14][^24]
 
 Comparing these predicted "ready" timestamps with actual subsequent casts provides direct metrics for wasted cooldown time, drift relative to optimal usage, and alignment with encounter mechanics.
 
@@ -269,21 +233,23 @@ Comparing these predicted "ready" timestamps with actual subsequent casts provid
 
 To analyze rotational tightness and APM, the analyzer should track GCD windows by:
 
-- At each cast, computing the current GCD_effective(t) and setting a GCD lock until t + GCD_effective.
+- At each cast, computing the hasted global cooldown `1.5 s ÷ (1 + h)` and setting a GCD lock until it ends.
 - Treating any cast that starts within the lock window as delayed relative to the earliest possible input.
 - Measuring the gaps between the end of one GCD and the start of the next action to quantify downtime not explained by mechanics.
 
 This model should be refined with empirical data (e.g., network latency, animation lock) by examining high-level logs from top players and aligning predicted earliest-cast times with observed timings. [^4][^6]
 
-### Haste snapshots vs dynamic updates
+### Haste snapshots and dynamic updates
 
-Some games snapshot Haste at cast start for determining cooldown and tick timing, while others update dynamically. Fellowship community discussions indicate that effects like spirit ultimates and Haste buffs clearly change GCD and cast speed mid-pull, but publicly available documentation does not fully specify snapshot rules. [^4][^3]
+Haste is read at a fixed moment for these values: [^24]
 
-A practical approach is to:
+- Cast time, global cooldown and channel tick period: at the cast's or channel's start.
+- Duration-scaled cooldown and Ability Cooldown Reduction: at each charge's recharge start.
 
-- Assume cooldowns and GCD are determined at cast start using the current H_total.
-- For periodic effects, treat tick intervals as using the Haste present at application time (snapshot) unless logs show clear evidence of mid-duration changes.
-- Provide configuration flags for "snapshot" versus "dynamic" behaviors to allow tuning as more data becomes available.
+Haste is read continuously for these values, and a change takes effect from that moment: [^24]
+
+- A time-rate cooldown's recovery rate and every Cooldown Acceleration term.
+- A hasted periodic effect's progress towards its next tick.
 
 ## Design Suggestions for a Fellowship Log Analysis App
 
@@ -330,10 +296,9 @@ The datamined build is queryable through the `fellowship-codex` MCP server (`fin
 ## Limitations and Open Questions
 
 Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the offline game-data export vendored at `data/v24736527`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
-Whether the per-band multipliers compound is settled by the export: each bracket carries its own absolute `penaltyPercentage` (1 / 0.98 / 0.96 / 0.94) with a separate `finalPenaltyPercentage` of 0.92, not a reduction applied to the previous band. Flat is therefore sourced rather than inferred, and `StatTracker.RatingToPercentage` matches. [^22][^23]
-The export writes the band boundaries as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` with no unit or stage annotation, so it does not say whether the boundary cuts on the raw percentage or the displayed post-DR percentage. The code cuts the bands on the raw percentage, and this document follows the code. [^22][^23]
+The export writes the bracket edges as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` and the penalties as `penaltyPercentage` and `finalPenaltyPercentage`. The edges are points of the converted percentage and the penalties compound, as SimFell's engine applies them. [^22][^24]
 The base-health constant has no primary source in the vendored export: it carries no named base-health value, and creature `health` spans 149.95 to 10000000. The 2856 and 2999 figures are inherited from the retired data dump and should be treated as unverified.
-Some details remain uncertain, including exact snapshot rules for Haste on periodic effects, hero-specific base GCD values, and whether certain cooldown recovery effects stack additively or multiplicatively with Haste in edge cases. [^4][^5]
+Hero-specific base GCD values remain uncertain. [^4][^5]
 
 For a production-grade analyzer, these uncertainties should be handled via configuration, sanity-checked against logs from high-end players, and revisited as new theorycrafting emerges or patches change the underlying math. [^6][^21]
 
@@ -415,4 +380,6 @@ The tiers were also cut on the **post-DR** percentage, so each tier contributed 
 22. Offline game-data export, vendored at `data/v24736527` (`entities.jsonl`, `settings.json`). The 0.16 base conversion factor and the diminishing-returns bands come from `settings.json` `statCalculation.attributes`, where CritChance, Haste, Expertise and Spirit each carry `baseStatMultiplier: 0.16`, brackets at 10 / 15 / 20 / 25 with penalties 1 / 0.98 / 0.96 / 0.94, and `finalPenaltyPercentage: 0.92`. The per-difficulty health and damage multipliers come from `difficultyScaling`, keyed 1 to 151.
 
 23. `src/FellowshipAnalyzer.Core/Analysis/StatTracker.cs` - `RatingToPercentage` is this codebase's implementation of the Season 3 rating to percentage conversion and is the authority for what the analyzer computes. `BaseCritChance` holds the 5% base crit and `CritPercentage(rating, withBase: true)` adds it.
+
+24. SimFell, the Fellowship combat simulator replayed against FellowshipLogs combat logs (`G:/source/SimFell`). `Engine/StatBlock.cs` `StatDiminishingReturns` holds the rating conversion; `Domain/Ability.cs` holds cast time, the cooldown duration at the start and the channel tick period; `Domain/Hero.cs` `CooldownRate` and `CooldownState` hold the recovery rate, weapon abilities, flat reductions and charges; `Engine/HastedTimer.cs` holds hasted periodic progress; `Engine/SimulationContext.cs` holds the global cooldown.
 

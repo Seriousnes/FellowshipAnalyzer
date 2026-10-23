@@ -82,19 +82,19 @@ public sealed class GearCooldownAccelerationTests
     }
 
     /// <summary>
-    /// One additive pool: the legendary's 0.10 adds to Chronoshift's 8.0 rather than multiplying, so a
-    /// non-hasted ability recovers at 9.1×: 10000ms / (1 + 0.10 + 8.0) = 1098ms.
+    /// One additive pool: the legendary's 0.10 adds to Chronoshift's 7.0 rather than multiplying, so a
+    /// non-hasted ability recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234ms.
     /// </summary>
     [Fact]
     public async Task Legendary_ComposesAdditivelyWithChronoshift()
     {
         var (spellUsable, statTracker) = await RunWithStatTracker(LegendaryQuality);
 
-        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
-        Assert.Equal(9.10, spellUsable.EffectiveRate(SpellA), precision: 6);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
+        Assert.Equal(8.10, spellUsable.EffectiveRate(SpellA), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
-        Assert.Equal((int)(BaseCdMsA / 9.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal((int)(BaseCdMsA / 8.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
     /// <summary>RechargeDuration reports the effective (accelerated) period a fresh charge takes: 10000 / 1.10.</summary>

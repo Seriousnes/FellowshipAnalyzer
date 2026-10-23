@@ -123,13 +123,17 @@ static double RatingToPercentage(double rating)
 {
     if (rating <= 0) return 0;
     var raw = rating * 0.16;
-    var pct =
-        Math.Min(raw, 10.0)
-        + Math.Clamp(raw - 10.0, 0.0, 5.0) * 0.98
-        + Math.Clamp(raw - 15.0, 0.0, 5.0) * 0.96
-        + Math.Clamp(raw - 20.0, 0.0, 5.0) * 0.94
-        + Math.Max(raw - 25.0, 0.0) * 0.92;
-    return pct / 100.0;
+    var converted = 0.0;
+    var efficiency = 1.0;
+    foreach (var (edge, penalty) in new[] { (10.0, 1.0), (15.0, 0.98), (20.0, 0.96), (25.0, 0.94) })
+    {
+        efficiency *= penalty;
+        var rawWidth = (edge - converted) / efficiency;
+        if (raw <= rawWidth) return (converted + raw * efficiency) / 100.0;
+        raw -= rawWidth;
+        converted = edge;
+    }
+    return (converted + raw * efficiency * 0.92) / 100.0;
 }
 
 static string Str(JsonElement e, string name) =>

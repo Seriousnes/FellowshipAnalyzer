@@ -297,24 +297,24 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>
-    /// ACR shortens flat reductions too: at 12% ACR the base recharge is 8800ms and a 1000ms
-    /// Rolling-Flames-style reduction generates 880ms, shortening the running cooldown by exactly that.
+    /// A flat reduction is cooldown progress, and Ability Cooldown Reduction does not scale it: at 12% ACR
+    /// the base recharge is 8800ms and a 1000ms Rolling-Flames-style reduction shortens it by 1000ms.
     /// </summary>
     [Fact]
-    public async Task FlatReduction_IsScaledByAcr()
+    public async Task FlatReduction_IsNotScaledByAcr()
     {
         var (_, spellUsable, _) = await Run(emerald: Rank10Power);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
         var cdr = spellUsable.ReduceCooldown(SpellA, 1000, timestamp: 1000);
 
-        Assert.Equal(880, cdr.Total);
-        Assert.Equal(880, cdr.Effective);
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
         Assert.Equal(0, cdr.Wasted);
-        Assert.Equal(8800 - 880, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(8800 - 1000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
-    /// <summary>With no ACR the flat reduction passes through unscaled: a 1000ms request generates 1000ms.</summary>
+    /// <summary>With no ACR the flat reduction passes through unscaled: a 1000ms request shortens 1000ms.</summary>
     [Fact]
     public async Task FlatReduction_WithZeroAcr_GeneratesFullAmount()
     {
@@ -329,8 +329,27 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>
-    /// Waste means reduction with no running cooldown left to shorten. The request is scaled by ACR
-    /// (100000 × 0.88 = 88000ms generated); only what fits the ACR-shortened base cooldown is applied.
+    /// A flat reduction takes cooldown progress off a cooldown recovering at the pool's rate, so it is worth
+    /// fewer real milliseconds while recovery is fast. At 2× (a 1.0 acceleration term) the 10000ms base
+    /// recharges in 5000ms, and a 1000ms reduction shortens the time left by 500ms.
+    /// </summary>
+    [Fact]
+    public async Task FlatReduction_DuringAcceleration_ShortensByAmountOverRate()
+    {
+        var (statTracker, spellUsable, _) = await Run(emerald: 0);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(1.0), timestamp: 1000);
+        spellUsable.BeginCooldown(SpellA, timestamp: 1000);
+
+        var cdr = spellUsable.ReduceCooldown(SpellA, 1000, timestamp: 1000);
+
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
+        Assert.Equal(5000 - 500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+    }
+
+    /// <summary>
+    /// Waste means reduction with no running cooldown left to shorten. Of a 100000ms request only the
+    /// 8800ms the ACR-shortened base cooldown has left is applied.
     /// </summary>
     [Fact]
     public async Task FlatReductionBeyondRemainingCooldown_IsGeneratedButNotApplied()
@@ -340,19 +359,19 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellA, 100_000, timestamp: 1000);
 
-        Assert.Equal(88_000, cdr.Total);
+        Assert.Equal(100_000, cdr.Total);
         Assert.Equal(8800, cdr.Effective);
-        Assert.Equal(88_000 - 8800, cdr.Wasted);
+        Assert.Equal(100_000 - 8800, cdr.Wasted);
         Assert.False(spellUsable.IsOnCooldown(SpellA));
     }
 
     /// <summary>
-    /// ACR shortens the base recharge (SpellB: 20000 × 0.88 = 17600ms) and the flat reduction alike.
-    /// With both charges spent and 500ms left on the recharging one, a 1000ms request generates 880ms:
-    /// 500ms ends that charge and the remaining 380ms goes to the next charge, wasting nothing.
+    /// ACR shortens the base recharge (SpellB: 20000 × 0.88 = 17600ms) and leaves the flat reduction whole.
+    /// With both charges spent and 500ms left on the recharging one, a 1000ms request ends that charge and
+    /// the remaining 500ms goes to the next charge, wasting nothing.
     /// </summary>
     [Fact]
-    public async Task FlatReduction_ScaledByAcr_PersistsAcrossChargeBoundary()
+    public async Task FlatReduction_PersistsAcrossChargeBoundary()
     {
         var (_, spellUsable, _) = await Run(emerald: Rank10Power);
         spellUsable.BeginCooldown(SpellB, timestamp: 0);
@@ -362,27 +381,28 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 1000, timestamp: 17_100);
 
-        Assert.Equal(880, cdr.Total);
-        Assert.Equal(880, cdr.Effective);
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
         Assert.Equal(0, cdr.Wasted);
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
-        Assert.Equal(17_600 - 380, spellUsable.CooldownRemaining(SpellB, atTimestamp: 17_100));
+        Assert.Equal(17_600 - 500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 17_100));
     }
 
     /// <summary>
-    /// The two are distinct mechanics: ACR multiplies the base, recovery divides it. Chronoshift's 8.0
-    /// added recovery takes a non-hasted spell to 9×, so 10000 × (1 - 0.12) / 9 = 977ms.
+    /// The two are distinct mechanics: ACR multiplies the base, recovery divides it. Chronoshift's 7.0
+    /// added recovery takes a non-hasted spell to 8×, so 10000 × (1 - 0.12) / 8 = 1100ms.
     /// </summary>
     [Fact]
     public async Task AbilityCooldownReduction_ComposesWithCooldownRecovery()
     {
         var (statTracker, spellUsable, _) = await Run(emerald: Rank10Power);
 
-        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
-        Assert.Equal(8800 / 9, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(8800 / 8, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
+
 
     private static async Task<(StatTracker statTracker, SpellUsable spellUsable, TestParser parser)> Run(
         int emerald = 0,
