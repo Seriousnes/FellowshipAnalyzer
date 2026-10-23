@@ -6,6 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<BlueyTracker>]
+[Dependency<Haste>]
 public sealed partial class HeartBloomRampAnalyzer : Analyzer
 {
     private readonly List<HeartBloomCapture> _casts = [];
@@ -53,6 +54,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             FedOverheal = _pendingOverheal,
             BlueyAssigned = posting is not null,
             BlueyOnAlly = posting is { OnSylvie: false },
+            PulsePeriodMs = Haste.ScaleDuration(SylvieKit.HeartBloomTickIntervalMs),
         });
 
         _pendingEffective = 0;
@@ -68,15 +70,15 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
 
     /// <summary>
     /// The cast whose Heart Bloom released the pulse at <paramref name="timestamp"/>. With two charges two
-    /// Heart Blooms pulse at once, so the pulse goes to the bloom alive at that moment whose release interval
-    /// it falls closest to, the older bloom on a tie. A pulse after every bloom has withered goes to the
-    /// latest cast.
+    /// Heart Blooms are active at once. The releasing bloom is the active bloom with the least time between
+    /// <paramref name="timestamp"/> and one of its hasted release intervals, and the older bloom on a tie.
+    /// After every bloom has withered, the releasing bloom is the latest cast's.
     /// </summary>
     private HeartBloomCapture? ReleasingBloom(int timestamp)
     {
         var alive = _casts
             .Where(capture => capture.Timestamp <= timestamp
-                && timestamp - capture.Timestamp <= SylvieKit.HeartBloomDurationMs + (SylvieKit.HeartBloomTickIntervalMs / 2))
+                && timestamp - capture.Timestamp <= SylvieKit.HeartBloomDurationMs + (capture.PulsePeriodMs / 2))
             .ToList();
 
         return alive.Count > 0
@@ -106,6 +108,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         public long FedOverheal { get; init; }
         public bool BlueyAssigned { get; init; }
         public bool BlueyOnAlly { get; init; }
+        public int PulsePeriodMs { get; init; }
         public long Effective { get; private set; }
         public long Overheal { get; private set; }
         public HashSet<int> ReleaseInstants { get; } = [];
@@ -119,8 +122,8 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
 
         public int IntervalOffset(int timestamp)
         {
-            var offset = (timestamp - Timestamp) % SylvieKit.HeartBloomTickIntervalMs;
-            return Math.Min(offset, SylvieKit.HeartBloomTickIntervalMs - offset);
+            var offset = (timestamp - Timestamp) % PulsePeriodMs;
+            return Math.Min(offset, PulsePeriodMs - offset);
         }
     }
 }
