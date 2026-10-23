@@ -1,26 +1,12 @@
 using FellowshipAnalyzer.Core.Common.Spells.Sylvie;
+using FellowshipAnalyzer.Core.Game;
+
+using SpellRegistry = FellowshipAnalyzer.Core.Common.Spells.SpellRegistry;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 public static class SylvieKit
 {
-    public static Dictionary<int, int> ManaCosts { get; } = new Dictionary<int, int>
-    {
-        [Spells.Nettlebolt.FSLID] = 5,
-        [Spells.PricklyVine.FSLID] = 18,
-        [Spells.HiddenTrail.FSLID] = 18,
-        [Spells.FluttercallProtect.FSLID] = 18,
-        [Spells.FluttercallEmbrace.FSLID] = 18,
-        [Spells.FluttercallHeal.FSLID] = 39,
-        [Spells.FluttercallRestoreLife.FSLID] = 61,
-        [Spells.IronleafWard.FSLID] = 63,
-        [Spells.EnfeeblingRootsap.FSLID] = 77,
-        [Spells.LifePetal.FSLID] = 79,
-        [Spells.CureAilment.FSLID] = 82,
-        [Spells.SafeHaven.FSLID] = 117,
-        [Spells.HeartBloom.FSLID] = 118,
-    };
-
     public const double EmbraceManaCostScaler = 0.8;
 
     public const int PricklyVineDurationMs = 27_000;
@@ -49,11 +35,12 @@ public static class SylvieKit
 
     public const int NettleboltCritCooldownReductionMs = 3_000;
 
-    public const int LifePetalCharges = 2;
+    public static int LifePetalCharges => Spells.LifePetal.Charges;
 
     public const int PinkFlutterflies = 4;
 
     public const int RestoreLifeFlutterflies = 2;
 
-    public static int ManaCost(int spellId) => ManaCosts.GetValueOrDefault(spellId);
+    /// <summary>The listed mana cost of <paramref name="spellId"/> before the Fluttercall: Embrace discount; 0 for a spell that spends no mana.</summary>
+    public static int ManaCost(int spellId) => SpellRegistry.MaybeGet(spellId)?.Cost(ResourceTypes.Mana) ?? 0;
 }

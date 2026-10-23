@@ -66,11 +66,17 @@ public sealed class SylvieSpellbookTests
             Spells.FluttercallHeal.FSLID,
             Spells.FluttercallRestoreLife.FSLID,
             Spells.FluttercallProtect.FSLID,
-            Spells.FluttercallEmbrace.FSLID,
         };
 
         foreach (var id in costed)
             SylvieKit.ManaCost(id).ShouldBeGreaterThan(0);
+    }
+
+    [Fact]
+    public void FluttercallProtectCostsManaAndFluttercallEmbraceIsFree()
+    {
+        SylvieKit.ManaCost(Spells.FluttercallProtect.FSLID).ShouldBe(18);
+        SylvieKit.ManaCost(Spells.FluttercallEmbrace.FSLID).ShouldBe(0);
     }
 
     [Fact]
