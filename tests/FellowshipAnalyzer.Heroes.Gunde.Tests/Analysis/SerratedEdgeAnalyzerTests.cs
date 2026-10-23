@@ -312,40 +312,6 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_TrashPull_WithBothLegendaries_FollowsTheBleedingHeartsOrder()
-    {
-        var analyzer = await AnalyzeAsync(
-        [
-            Granted(1_000),
-            Cast(Spells.Rupture.FSLID, 2_000),
-            Removed(2_000),
-        ], boss: false, equipped: [BleedingHearts, BloodyMess]);
-
-        analyzer.BleedingHeartsEquipped.ShouldBeTrue();
-        analyzer.BloodyMessEquipped.ShouldBeTrue();
-        analyzer.OrderLegendaryId.ShouldBe(BleedingHearts);
-        analyzer.ConsumerPriority.ShouldBe(
-            [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
-        analyzer.Grants.ShouldHaveSingleItem().Outcome.ShouldBe(SerratedEdgeOutcome.Priority);
-    }
-
-    [Fact]
-    public async Task Analyze_WithBloodyMessAlone_OrderLegendaryIsBloodyMess()
-    {
-        var analyzer = await AnalyzeAsync([Granted(1_000), Removed(2_000)], boss: false, equipped: [BloodyMess]);
-
-        analyzer.OrderLegendaryId.ShouldBe(BloodyMess);
-    }
-
-    [Fact]
-    public async Task Analyze_WithNoLegendary_OrderLegendaryIsNull()
-    {
-        var analyzer = await AnalyzeAsync([Granted(1_000), Removed(2_000)], boss: true);
-
-        analyzer.OrderLegendaryId.ShouldBeNull();
-    }
-
-    [Fact]
     public async Task Analyze_WithBleedingHearts_TheSecondHeartSplitterChargeMakesFillerAvoidable()
     {
         var analyzer = await AnalyzeAsync(

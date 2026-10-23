@@ -47,15 +47,6 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public bool BloodyMessEquipped => Owner.SelectedCombatant.HasLegendary(Legendaries.BloodyMess.Id);
 
-    /// <summary>
-    /// The equipped legendary whose spend order <see cref="ConsumerPriority"/> follows, or <c>null</c> when neither
-    /// Bleeding Hearts nor Bloody Mess is equipped. Bleeding Hearts decides the order when both are equipped.
-    /// </summary>
-    public int? OrderLegendaryId =>
-        BleedingHeartsEquipped ? Legendaries.BleedingHearts.Id
-        : BloodyMessEquipped ? Legendaries.BloodyMess.Id
-        : null;
-
     public List<int> ConsumerPriority => field ??= BuildConsumerPriority();
 
     public int PriorityAbilityId => ConsumerPriority[0];
@@ -131,12 +122,12 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     private List<int> BuildConsumerPriority()
     {
-        if (OrderLegendaryId == Legendaries.BleedingHearts.Id)
+        if (BleedingHeartsEquipped)
         {
             return [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
         }
 
-        if (OrderLegendaryId == Legendaries.BloodyMess.Id)
+        if (BloodyMessEquipped)
         {
             return Shape == GundePullShape.Aoe
                 ? [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]
