@@ -10,8 +10,8 @@
             }
         </p>
         <p>
-            Spend its window only on <SpellLink Spell="Spells.RuneOfRenewal" />, <SpellLink Spell="Spells.LuminousBarrier" />
-            and <SpellLink Spell="Spells.Soulbrand" />.
+            Spend its window only on <SpellLink Spell="Spells.RuneOfRenewal" />, <SpellLink Spell="Spells.LuminousBarrier" />,
+            <SpellLink Spell="Spells.Soulbrand" /> and <SpellLink Spell="Spells.DawnbreakerOrb" />.
             Cast them at least @GoodSpenders times before it ends.
         </p>
     </LeftPanel>
@@ -49,12 +49,12 @@
             new OverviewStat(
                 $"{average:0.0}",
                 "Spenders",
-                "Average Rune of Renewal, Luminous Barrier and Soulbrand casts in each Runic Proliferation.",
+                "Average Rune of Renewal, Luminous Barrier, Soulbrand and Dawnbreaker Orb casts in each Runic Proliferation.",
                 SpenderTier(average)),
             new OverviewStat(
                 spenders == 0 ? "-" : $"{casts.Sum(cast => cast.TargetsHit) / (double)spenders:0.0}",
                 "Targets",
-                "Average targets each Rune of Renewal, Luminous Barrier or Soulbrand reached during Runic Proliferation."),
+                "Average targets each Rune of Renewal, Luminous Barrier, Soulbrand or Dawnbreaker Orb reached during Runic Proliferation."),
             new OverviewStat(
                 casts.Any(cast => cast.RunesLost is not null) ? $"{casts.Sum(cast => cast.RunesLost ?? 0)}" : "-",
                 "Runes Lost",

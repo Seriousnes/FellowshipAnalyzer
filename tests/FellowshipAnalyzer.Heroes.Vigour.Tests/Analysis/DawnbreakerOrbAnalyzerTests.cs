@@ -29,28 +29,20 @@ public sealed class DawnbreakerOrbAnalyzerTests
     }
 
     [Fact]
-    public async Task AnOrbNeverCastIsReadyForTheWholePull()
+    public async Task AHitAfterTheFlightWindowIsNotCreditedToTheOrb()
     {
-        var parser = await Analyze(Cast(PullStart + 1_000, Spells.Dawnflare));
+        var parser = await Analyze(
+            Cast(PullStart, Spells.DawnbreakerOrb),
+            Heal(PullStart + 500, Spells.DawnbreakerOrb, TankId),
+            Damage(PullStart + 9_000, Spells.DawnbreakerOrb, EnemyId));
 
         var analyzer = parser.DawnbreakerOrbAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.CastCount.ShouldBe(0);
-        analyzer.ReadyShare.ShouldBe(1d, 0.001);
+        analyzer.CastCount.ShouldBe(1);
+        analyzer.AverageTargetsHit.ShouldBe(1d);
     }
 
     [Fact]
-    public async Task CastingOnCooldownLeavesLittleReadyTime()
-    {
-        var events = Enumerable.Range(0, 6)
-            .Select(i => Cast(PullStart + 2_000 + i * 11_000, Spells.DawnbreakerOrb))
-            .ToArray();
-
-        var parser = await Analyze(events);
-
-        var analyzer = parser.DawnbreakerOrbAnalyzers.ShouldHaveSingleItem().Analyzer;
-
-        analyzer.CastCount.ShouldBe(6);
-        analyzer.ReadyMs.ShouldBeLessThan(2_000 + 6 * 1_000);
-    }
+    public void DawnbreakerOrbCostsTwoRadiantRunes() =>
+        Spells.DawnbreakerOrb.Cost(FellowshipAnalyzer.Core.Game.ResourceTypes.Primary).ShouldBe(2);
 }

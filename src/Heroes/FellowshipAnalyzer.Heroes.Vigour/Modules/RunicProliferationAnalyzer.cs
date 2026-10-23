@@ -64,6 +64,7 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
 
     private readonly List<RunicProliferationCast> _casts = [];
     private RuneSpenderCast? _lastSpender;
+    private RuneSpenderCast? _lastOrb;
     private RunicProliferationCast? _open;
 
     public IReadOnlyList<RunicProliferationCast> Casts => _casts;
@@ -79,7 +80,10 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
     public int RunesLost => _casts.Sum(cast => cast.RunesLost ?? 0);
 
     public static bool IsRuneSpender(int spellId) =>
-        spellId == Spells.Soulbrand.FSLID || spellId == Spells.RuneOfRenewal.FSLID || spellId == Spells.LuminousBarrier.FSLID;
+        spellId == Spells.Soulbrand.FSLID
+        || spellId == Spells.RuneOfRenewal.FSLID
+        || spellId == Spells.LuminousBarrier.FSLID
+        || spellId == Spells.DawnbreakerOrb.FSLID;
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnAnyCast(CastEvent e)
@@ -112,6 +116,26 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
     {
         _lastSpender = new RuneSpenderCast(e.Timestamp, e.Ability.Id);
         _open?.AddSpender(_lastSpender);
+    }
+
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
+    private void OnOrb(CastEvent e)
+    {
+        _lastOrb = new RuneSpenderCast(e.Timestamp, e.Ability.Id);
+        _open?.AddSpender(_lastOrb);
+    }
+
+    [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
+    private void OnOrbHeal(HealEvent e) => LinkOrb(e.Timestamp, new UnitKey(e.TargetId, e.TargetInstance ?? 0));
+
+    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
+    private void OnOrbDamage(DamageEvent e) => LinkOrb(e.Timestamp, new UnitKey(e.TargetId, e.TargetInstance ?? 0));
+
+    private void LinkOrb(int timestamp, UnitKey target)
+    {
+        if (_lastOrb is not { } orb || timestamp - orb.Timestamp > DawnbreakerOrbAnalyzer.FlightWindowMs) return;
+
+        orb.AddTarget(target);
     }
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SoulbrandDot))]
