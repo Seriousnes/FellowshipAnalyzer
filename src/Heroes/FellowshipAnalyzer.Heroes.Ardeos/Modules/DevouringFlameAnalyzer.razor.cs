@@ -34,5 +34,5 @@ public sealed class HasDevouringFlame : IModuleActivePredicate
     public static bool IsActive(ParseContext context) => Equipped(context.SelectedCombatant);
 
     /// <summary>True when <paramref name="combatant"/> has the Devouring Flame legendary equipped.</summary>
-    public static bool Equipped(FullCombatant combatant) => combatant.Legendary?.Id == Legendaries.DevouringFlame.Id;
+    public static bool Equipped(FullCombatant combatant) => combatant.HasLegendary(Legendaries.DevouringFlame.Id);
 }

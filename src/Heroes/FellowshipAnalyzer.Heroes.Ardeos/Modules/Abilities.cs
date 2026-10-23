@@ -14,7 +14,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.FireBall,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
             AdditionalSpells = [Spells.FireBallDot],
         },
         new()
