@@ -13,7 +13,7 @@ public class Abilities : CoreAbilities
     /// Whether the player has Iron Sentinel equipped, which gives Hold the Line a second charge and Cooldown
     /// Acceleration equal to the player's Haste. An unowned spellbook reads the base ability.
     /// </summary>
-    private bool IronSentinel => Owner?.SelectedCombatant.Legendary?.Id == Legendaries.IronSentinel.Id;
+    private bool IronSentinel => Owner?.SelectedCombatant.HasLegendary(Legendaries.IronSentinel.Id) == true;
 
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
