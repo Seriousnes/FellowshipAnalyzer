@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <see cref="AeonaBuild.ConvergingTimelinesOnOblivion"/>, a cleanse grants
 /// <see cref="AeonaBuild.ConvergingTimelinesOnCleanse"/>. Effect 2820 is applied by Lonesome Song's ability 2018 and
 /// multiplies Cooldown Recovery by 3, a term of <c>3 - 1</c> in the additive pool; it counts as an Oblivion application.
-/// Each effect holds its own modifier, so the two terms add while both are active. A refresh inside a running window
+/// Each effect has its own modifier, so the two terms add while both are active. A refresh inside a running window
 /// replaces that effect's modifier and extends the window.
 /// </remarks>
 [Dependency<StatTracker>]
