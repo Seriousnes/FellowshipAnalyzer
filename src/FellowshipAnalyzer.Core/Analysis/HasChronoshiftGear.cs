@@ -2,12 +2,11 @@ using FellowshipAnalyzer.Core.Common.Items;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
-/// <summary>
-/// Activation predicate for <see cref="ChronoshiftAnalyzer"/>: enables the module when the
-/// selected combatant has any weapon that grants the Chronoshift ability equipped.
-/// </summary>
+/// <summary>Activation predicate for <see cref="ChronoshiftAnalyzer"/> on a combatant wearing their hero's weapon in <see cref="Items.ChronoshiftWeapons"/>.</summary>
 public sealed class HasChronoshiftGear : IModuleActivePredicate
 {
-    /// <summary><c>true</c> when the selected combatant has any weapon that grants Chronoshift equipped.</summary>
-    public static bool IsActive(ParseContext context) => new Item[] { Items.AshasChronoshiftBow, Items.AshasChronoshiftSpire_Ardeos, Items.AshasChronoshiftSpire_Rime, }.Any(item => context.SelectedCombatant.HasItem(item.Id));
+    /// <summary><c>true</c> when the selected combatant has the <see cref="Items.ChronoshiftWeapons"/> weapon whose <see cref="Item.Hero"/> is the parser's hero equipped.</summary>
+    public static bool IsActive(ParseContext context) =>
+        context.Hero?.Name is { } hero
+        && Items.ChronoshiftWeapons.Any(weapon => weapon.Hero == hero && context.SelectedCombatant.HasItem(weapon.Id));
 }
