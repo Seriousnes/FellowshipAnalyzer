@@ -45,7 +45,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
     {
         get
         {
-            var rechargeMs = Owner.SpellUsable!.RechargeDuration(Spells.EngulfingFlames.Id);
+            var rechargeMs = Owner.SpellUsable!.RechargeDurationDuring(Spells.EngulfingFlames.Id, Pull);
             if (rechargeMs <= 0)
                 rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
                     ? (int)(cooldown * 1000)
