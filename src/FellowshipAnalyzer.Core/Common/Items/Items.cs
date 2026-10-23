@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Analysis;
 
 namespace FellowshipAnalyzer.Core.Common.Items;
 
-/// <summary>Weapons granting Chronoshift or Repository of Frozen Light. Each hero reads item 5986 as their own weapon, and only Aeona, Sylvie and Vigour's 5986 grants Repository of Frozen Light. The generated partial (built from the <c>items</c> scope of <c>data/spelldb.json</c>) adds the spells those items grant.</summary>
+/// <summary>Weapons granting Chronoshift or Repository of Frozen Light. The generated partial (built from the <c>items</c> scope of <c>data/spelldb.json</c>) adds the spells those items grant.</summary>
 public partial class Items : IItemRegistry
 {    
     public static Item AshasChronoshiftSpire_Ardeos { get; } = new(5326, "Asha's Chronoshift Spire", "Icon_Ardeos_Weapon_ArcaneTime_Weapon_R1_T0.jpg");
