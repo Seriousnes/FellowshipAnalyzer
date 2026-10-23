@@ -1,5 +1,4 @@
-@using FellowshipAnalyzer.Core.Common.Items
-@using Items = FellowshipAnalyzer.Core.Common.Items.Items
+@using Legendaries = FellowshipAnalyzer.Core.Common.Spells.Gunde.Legendaries
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inherits GuideComponent<GundeCombatLogParser>
 
@@ -8,7 +7,7 @@
         <p>
             Avoid consuming <SpellLink Spell="Spells.SerratedEdge" /> on filler abilities.           
 
-            @if (this.Owner.SelectedCombatant.Legendary is { } legendary)
+            @if (OrderLegendary is { } legendary)
             {
                 <text>With <ItemLink Item="legendary" /> equipped, spend it in this order:</text>
             }
@@ -53,11 +52,15 @@
 @code {
     protected override bool IsActive() => Parser.SerratedEdgeAnalyzers.Count > 0;
 
-    private static readonly int ConversionPercent =
-        (int)Math.Round(SerratedEdgeAnalyzer.AdditionalRendConversion * 100);
+    private int ConversionPercent =>
+        (int)Math.Round((Analyzers.FirstOrDefault()?.RendConversion ?? SerratedEdgeAnalyzer.AdditionalRendConversion) * 100);
 
     private List<SerratedEdgeAnalyzer> Analyzers =>
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
+
+    private FellowshipAnalyzer.Core.Events.Item? OrderLegendary =>
+        Owner.SelectedCombatant.Legendaries.FirstOrDefault(item =>
+            item.Id == Legendaries.BleedingHearts.Id || item.Id == Legendaries.BloodyMess.Id);
 
     private int TotalGrants => Analyzers.Sum(analyzer => analyzer.RatedGrants);
 
@@ -196,7 +199,7 @@
         };
     }
 
-    private static string ConvertedTooltip(SerratedEdgeGrant grant) =>
+    private string ConvertedTooltip(SerratedEdgeGrant grant) =>
         $"{ConversionPercent}% of the {grant.ConsumerDamage:N0} damage {ConsumerName(grant.ConsumerAbilityId)} dealt."
         + (grant.ExsanguinateDamage > 0
             ? $" A further {grant.ExsanguinateDamage:N0} of Exsanguinate damage is not counted."

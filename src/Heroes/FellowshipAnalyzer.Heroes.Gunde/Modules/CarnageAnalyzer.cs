@@ -2,9 +2,12 @@
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 
+using GundeTalents = FellowshipAnalyzer.Core.Common.Spells.GundeTalents;
+
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
+[RequiresTalent(GundeTalents.Carnage)]
 [Dependency<SpellUsable>]
 public partial class CarnageAnalyzer : Analyzer
 {
