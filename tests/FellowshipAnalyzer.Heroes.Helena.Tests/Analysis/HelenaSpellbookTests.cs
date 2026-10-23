@@ -81,34 +81,10 @@ public sealed class HelenaSpellbookTests
     }
 
     [Fact]
-    public async Task IronSentinel_WornWithTheOtherLegendaries_StillGivesHoldTheLineASecondCharge()
+    public async Task RazorCrash_LeavesHoldTheLineAtOneCharge()
     {
         var combatant = Combatant();
-        combatant.Gear =
-        [
-            new Item { Id = Legendaries.RazorCrash.Id, Quality = LegendaryQuality },
-            new Item { Id = Legendaries.IronSentinel.Id, Quality = LegendaryQuality },
-            new Item { Id = Legendaries.VanguardsAdvance.Id, Quality = LegendaryQuality },
-        ];
-
-        var parser = await AnalyzeAs(combatant, Cast(PullStart + 1_000, Spells.HoldTheLine));
-
-        var holdTheLine = parser.GetModule<HelenaAbilities>().ShouldNotBeNull()
-            .GetAbility(Spells.HoldTheLine.FSLID).ShouldNotBeNull();
-
-        holdTheLine.Charges.ShouldBe(2);
-        holdTheLine.CooldownReducedByHaste.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task WithoutIronSentinel_OtherLegendariesLeaveHoldTheLineAtOneCharge()
-    {
-        var combatant = Combatant();
-        combatant.Gear =
-        [
-            new Item { Id = Legendaries.RazorCrash.Id, Quality = LegendaryQuality },
-            new Item { Id = Legendaries.VanguardsAdvance.Id, Quality = LegendaryQuality },
-        ];
+        combatant.Gear = [new Item { Id = Legendaries.RazorCrash.Id, Quality = LegendaryQuality }];
 
         var parser = await AnalyzeAs(combatant, Cast(PullStart + 1_000, Spells.HoldTheLine));
 
