@@ -56,15 +56,15 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
     public int ChargesLost => RechargeDurationMs <= 0 ? 0 : TimeAtMaxChargesMs / RechargeDurationMs;
 
     /// <summary>
-    /// How long one Twilight Skybolt charge takes to recharge under the player's haste, from
-    /// <see cref="SpellUsable.RechargeDuration"/>, falling back to the spellbook cooldown when the
-    /// cooldown tracker has nothing for it.
+    /// How long one Twilight Skybolt charge takes to recharge under the player's haste during this pull,
+    /// from <see cref="SpellUsable.RechargeDurationDuring(int, PullStartEvent)"/>, falling back to the
+    /// spellbook cooldown when the cooldown tracker has nothing for it.
     /// </summary>
     public int RechargeDurationMs
     {
         get
         {
-            var tracked = Owner.SpellUsable?.RechargeDuration(CoreItems.TwilightSkybolt.FSLID) ?? 0;
+            var tracked = Owner.SpellUsable?.RechargeDurationDuring(CoreItems.TwilightSkybolt.FSLID, Pull) ?? 0;
             if (tracked > 0)
                 return tracked;
 
