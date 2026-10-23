@@ -7,6 +7,15 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 public class Abilities : CoreAbilities
 {
+    /// <summary>Apocalypse charges with the Explosivo legendary (power 615) equipped.</summary>
+    public const int ExplosivoApocalypseCharges = 2;
+
+    /// <summary>
+    /// True when the Explosivo legendary is equipped. Apocalypse then has <see cref="ExplosivoApocalypseCharges"/>
+    /// charges. An unowned spellbook reads the base ability.
+    /// </summary>
+    private bool Explosivo => Owner?.SelectedCombatant.HasLegendary(Legendaries.Explosivo.Id) == true;
+
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
@@ -58,7 +67,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.Apocalypse,
+            PrimarySpell = Explosivo ? Spells.Apocalypse with { Charges = ExplosivoApocalypseCharges } : Spells.Apocalypse,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
             AdditionalSpells = [Spells.ApocalypseDot],
