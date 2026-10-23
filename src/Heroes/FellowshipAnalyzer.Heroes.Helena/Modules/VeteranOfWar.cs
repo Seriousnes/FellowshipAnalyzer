@@ -132,7 +132,7 @@ public sealed partial class VeteranOfWar : Analyzer
 /// </summary>
 /// <param name="Cast">The cast itself.</param>
 /// <param name="UnderPunishingStrikes">Whether a Punishing Strikes stack doubled the cast's reductions.</param>
-/// <param name="Reductions">What the cast generated against each target it names, and how much of that shortened a running cooldown.</param>
+/// <param name="Reductions">Milliseconds of cooldown progress the cast generated against each target it names, and how much of that shortened a running cooldown.</param>
 /// <param name="TargetsAvailable">
 /// For a Hold the Line cast, whether each of its targets was available before the cast's reductions were
 /// applied: a charge in hand for Shield Slam, nothing recharging for the others. <c>null</c> for any other source.
