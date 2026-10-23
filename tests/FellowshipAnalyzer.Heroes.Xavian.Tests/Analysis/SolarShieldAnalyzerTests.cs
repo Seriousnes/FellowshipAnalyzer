@@ -6,6 +6,7 @@ using Shouldly;
 using Xunit;
 
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Xavian.Spells;
+using Talents = FellowshipAnalyzer.Core.Common.Spells.Xavian.Talents;
 
 using static FellowshipAnalyzer.Heroes.Xavian.Tests.Analysis.XavianAnalysisFixture;
 
@@ -58,6 +59,26 @@ public sealed class SolarShieldAnalyzerTests
         analyzer.HitsInWindows.ShouldBe(1);
         analyzer.AbsorbedInWindow.ShouldBe(600);
         analyzer.DamageTakenInWindow.ShouldBe(400);
+    }
+
+    [Fact]
+    public async Task MagicWardUptime_IsReadOnlyWhenTheTalentIsTaken()
+    {
+        var events = new Core.Events.Event[]
+        {
+            ApplyBuff(PullStart, Spells.MagicWard),
+            RemoveBuff(PullStart + 4_000, Spells.MagicWard),
+            ApplyBuff(PullStart + 10_000, Spells.MagicWard),
+            RemoveBuff(PullStart + 14_000, Spells.MagicWard),
+        };
+
+        var talented = (await AnalyzeWithTalents([Talents.MagicWard], events))
+            .SolarShieldAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<SolarShieldAnalyzer>();
+        var untalented = await Analyzer(events);
+
+        talented.MagicWardTaken.ShouldBeTrue();
+        talented.MagicWardActiveMs.ShouldBe(8_000);
+        untalented.MagicWardTaken.ShouldBeFalse();
     }
 
     [Fact]

@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Xavian;
 using FellowshipAnalyzer.Core.Events;
 
+using XavianTalents = FellowshipAnalyzer.Core.Common.Spells.XavianTalents;
+
 namespace FellowshipAnalyzer.Heroes.Xavian.Modules;
 
 public interface ISolarShieldAnalyzer : IAnalyzerSurface;
@@ -21,6 +23,20 @@ public sealed partial class SolarShieldAnalyzer : MajorDefensiveAnalyzer, ISolar
         {
             var minutes = (Pull.EndTime - Pull.StartTime) / 60_000d;
             return minutes > 0 ? Casts / minutes : 0;
+        }
+    }
+
+    public bool MagicWardTaken => Owner.SelectedCombatant.HasTalent(XavianTalents.MagicWard);
+
+    public int MagicWardActiveMs =>
+        AuraWindowLedger.ActiveMs([.. Owner.SelectedCombatant.GetAuraWindows(Spells.MagicWard, Pull.StartTime, Pull.EndTime)]);
+
+    public double MagicWardUptime
+    {
+        get
+        {
+            var duration = Pull.EndTime - Pull.StartTime;
+            return duration > 0 ? Math.Clamp((double)MagicWardActiveMs / duration, 0, 1) : 0;
         }
     }
 
