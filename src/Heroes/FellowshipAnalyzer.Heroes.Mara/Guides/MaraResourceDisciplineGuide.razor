@@ -45,10 +45,6 @@
         var energyCapped = analyzers.Sum(analyzer => analyzer.EnergyCappedCasts);
         var energyCapRate = Percent(energyCapped, energySampled);
 
-        var energyGenerated = Parser.EnergyComboPointTracker?.EnergyGenerated ?? 0;
-        var energyWasted = Parser.EnergyComboPointTracker?.EnergyWasted ?? 0;
-        var energyWastedRate = Percent(energyWasted, energyGenerated);
-
         var generatorCasts = analyzers.Sum(analyzer => analyzer.GeneratorCasts);
         var generatorOvercap = analyzers.Sum(analyzer => analyzer.GeneratorOvercapCasts);
         var overcapRate = Percent(generatorOvercap, generatorCasts);
@@ -78,11 +74,6 @@
                 "Casts at Capped Energy",
                 $"{energyCapRate}% of casts were at full Energy.",
                 EnergyCapTier(energyCapRate, energySampled)),
-            new OverviewStat(
-                $"{energyWasted}",
-                "Energy Lost at Cap",
-                $"{energyWasted} of {energyGenerated} Energy generated ({energyWastedRate}%) was generated at full Energy.",
-                EnergyCapTier(energyWastedRate, energyGenerated)),
             new OverviewStat(
                 $"{generatorOvercap}",
                 "Generators at 6 CP",
