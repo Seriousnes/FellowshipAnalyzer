@@ -51,8 +51,8 @@
 @code {
     protected override bool IsActive() => Parser.SerratedEdgeAnalyzers.Count > 0;
 
-    private static readonly int ConversionPercent =
-        (int)Math.Round(SerratedEdgeAnalyzer.AdditionalRendConversion * 100);
+    private int ConversionPercent =>
+        (int)Math.Round((Analyzers.FirstOrDefault()?.RendConversion ?? SerratedEdgeAnalyzer.AdditionalRendConversion) * 100);
 
     private List<SerratedEdgeAnalyzer> Analyzers =>
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
@@ -199,7 +199,7 @@
         };
     }
 
-    private static string ConvertedTooltip(SerratedEdgeGrant grant) =>
+    private string ConvertedTooltip(SerratedEdgeGrant grant) =>
         $"{ConversionPercent}% of the {grant.ConsumerDamage:N0} damage {ConsumerName(grant.ConsumerAbilityId)} dealt."
         + (grant.ExsanguinateDamage > 0
             ? $" A further {grant.ExsanguinateDamage:N0} of Exsanguinate damage is not counted."

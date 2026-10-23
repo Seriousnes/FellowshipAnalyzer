@@ -4,6 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Gunde.Normalizers;
 
 using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
+using GundeTalents = FellowshipAnalyzer.Core.Common.Spells.GundeTalents;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
@@ -14,6 +15,9 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
     public const int ConsumerGraceMs = 250;
 
     public const double AdditionalRendConversion = 0.20;
+
+    /// <summary>Superior Serration's additional share of the consuming cast's damage applied to Rend.</summary>
+    public const double SuperiorSerrationConversion = 0.10;
 
     public static readonly FSLID[] Consumers =
     [
@@ -32,6 +36,12 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
     private List<ConsumerReadiness> _lastCastReadiness = [];
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
+
+    public bool SuperiorSerrationTaken => Owner.SelectedCombatant.HasTalent(GundeTalents.SuperiorSerration);
+
+    /// <summary>The share of the consuming cast's damage each Serrated Edge grant applies to Rend.</summary>
+    public double RendConversion =>
+        AdditionalRendConversion + (SuperiorSerrationTaken ? SuperiorSerrationConversion : 0d);
 
     public bool BleedingHeartsEquipped => Owner.SelectedCombatant.HasLegendary(Legendaries.BleedingHearts.Id);
 
@@ -107,7 +117,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
             readiness,
             Classify(ability, rank, readiness),
             damage,
-            (long)Math.Round(damage * AdditionalRendConversion),
+            (long)Math.Round(damage * RendConversion),
             consumer is null ? 0L : SumLinked(consumer, GundeEventLinkNormalizer.Exsanguinate)));
     }
 
