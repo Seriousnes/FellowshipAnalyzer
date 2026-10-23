@@ -26,8 +26,6 @@ public sealed record MaidenWindowCast(
 
 public sealed record MaidenWindowGap(int StartTimestamp, int DurationMs);
 
-public sealed record MaidenOfDeathRecast(int Timestamp, int GapMs, int HeldMs);
-
 public sealed record MaidenOfDeathWindow
 {
     public required int OpenedAt { get; init; }
@@ -94,10 +92,8 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 
     private readonly List<CastEvent> _casts = [];
     private readonly List<BuffSpan> _spans = [];
-    private readonly List<MaidenOfDeathRecast> _recasts = [];
 
     private BuffSpan? _openSpan;
-    private int _previousMaidenCast = -1;
 
     public List<MaidenOfDeathWindow> Windows => field ??= Build();
 
@@ -126,12 +122,6 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 
     public int MaidenOfDeathCasts { get; private set; }
 
-    public List<MaidenOfDeathRecast> MaidenOfDeathRecasts => _recasts;
-
-    public int TotalHeldMs => _recasts.Sum(recast => recast.HeldMs);
-
-    public double AverageHeldMs => _recasts.Count == 0 ? 0d : (double)TotalHeldMs / _recasts.Count;
-
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
     {
@@ -144,14 +134,6 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
             return;
 
         MaidenOfDeathCasts++;
-
-        if (_previousMaidenCast >= 0)
-        {
-            var gap = castEvent.Timestamp - _previousMaidenCast;
-            _recasts.Add(new MaidenOfDeathRecast(castEvent.Timestamp, gap, Held(gap)));
-        }
-
-        _previousMaidenCast = castEvent.Timestamp;
     }
 
     public bool HasMaidensDoom => Owner.SelectedCombatant.HasTalent(MaraTalents.MaidensDoom);
@@ -190,8 +172,6 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
         _spans.Add(_openSpan);
         _openSpan = null;
     }
-
-    private static int Held(int gapMs) => RechargeMs <= 0 ? 0 : Math.Max(0, gapMs - RechargeMs);
 
     private MaidenCastRole RoleOf(int abilityId)
     {

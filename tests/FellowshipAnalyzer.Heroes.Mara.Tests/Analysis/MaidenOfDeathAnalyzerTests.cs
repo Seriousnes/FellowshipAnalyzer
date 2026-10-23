@@ -367,7 +367,7 @@ public sealed class MaidenOfDeathAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_SpacedMaidenCasts_MeasureHeldTimeBeyondTheRecharge()
+    public async Task Analyze_MaidenCasts_AreCounted()
     {
         var events = new List<Event>
         {
@@ -379,32 +379,6 @@ public sealed class MaidenOfDeathAnalyzerTests
         var analyzer = await AnalyzeAsync(events, BossDungeon(200000));
 
         analyzer.MaidenOfDeathCasts.ShouldBe(3);
-        analyzer.MaidenOfDeathRecasts.Count.ShouldBe(2);
-
-        analyzer.MaidenOfDeathRecasts[0].Timestamp.ShouldBe(65000);
-        analyzer.MaidenOfDeathRecasts[0].GapMs.ShouldBe(64000);
-        analyzer.MaidenOfDeathRecasts[0].HeldMs.ShouldBe(4000);
-
-        analyzer.MaidenOfDeathRecasts[1].GapMs.ShouldBe(65000);
-        analyzer.MaidenOfDeathRecasts[1].HeldMs.ShouldBe(5000);
-
-        analyzer.TotalHeldMs.ShouldBe(9000);
-        analyzer.AverageHeldMs.ShouldBe(4500d, 0.0001);
-    }
-
-    [Fact]
-    public async Task Analyze_MaidenRecastOnRecharge_ReportsNoHeldTime()
-    {
-        var events = new List<Event>
-        {
-            Cast(1000, Spells.MaidenOfDeath),
-            Cast(58000, Spells.MaidenOfDeath),
-        };
-
-        var analyzer = await AnalyzeAsync(events, BossDungeon(200000));
-
-        analyzer.MaidenOfDeathRecasts.ShouldHaveSingleItem().HeldMs.ShouldBe(0);
-        analyzer.TotalHeldMs.ShouldBe(0);
     }
 
     [Fact]
