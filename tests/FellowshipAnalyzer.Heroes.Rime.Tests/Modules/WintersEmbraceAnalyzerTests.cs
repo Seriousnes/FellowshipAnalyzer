@@ -150,7 +150,7 @@ public sealed class WintersEmbraceAnalyzerTests
             BurstingIce(WindowStart, orbs: 4),
             EmbraceApplied(WindowStart),
             Cast(WindowStart + 100, Spells.GlacialBlast),
-            EmbraceRemoved(WindowEnd));
+            EmbraceRemoved(WindowStart + 2_500));
 
         var window = analyzer.Windows.ShouldHaveSingleItem()
             .ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
@@ -159,6 +159,97 @@ public sealed class WintersEmbraceAnalyzerTests
         window.SpenderCount.ShouldBe(1);
         window.Successful.ShouldBeTrue();
         analyzer.SuccessfulWindows.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task GlacialBlastSpenderTime_IsTheGlacialBlastCastTime()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(WindowEnd));
+
+        analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs
+            .ShouldBe((int)(Spells.GlacialBlast.CastDuration!.Value * 1000));
+    }
+
+    [Fact]
+    public async Task ThreeSecondWindow_ExpectsOneSpenderAndAFinisher()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            Cast(WindowStart + 1_700, Spells.ColdSnap),
+            EmbraceRemoved(WindowEnd));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem()
+            .ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        window.ExpectedStSpenderCount.ShouldBe(1);
+        window.ExpectsFinisher.ShouldBeTrue();
+        window.HasValidFinisher.ShouldBeTrue();
+        window.Successful.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ThreeSecondWindowWithoutAFinisher_ScoresFailing()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(WindowEnd));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem()
+            .ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        window.ExpectsFinisher.ShouldBeTrue();
+        window.Successful.ShouldBeFalse();
+        window.Partial.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task GreaterGlacialBlast_LengthensTheSpenderSoAThreeSecondWindowExpectsNoFinisher()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(RimeTalents.GreaterGlacialBlast),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(WindowEnd));
+
+        analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs.ShouldBe(
+            (int)(Spells.GlacialBlast.CastDuration!.Value * 1000) +
+            SingleTargetEmbraceAnalyzer.GreaterGlacialBlastCastTimeIncreaseMs);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem()
+            .ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        window.ExpectedStSpenderCount.ShouldBe(1);
+        window.ExpectsFinisher.ShouldBeFalse();
+        window.Successful.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task FourAndAHalfSecondWindow_ExpectsTwoSpenders()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(),
+            BurstingIce(WindowStart, orbs: 5),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            Cast(WindowStart + 1_600, Spells.GlacialBlast),
+            Cast(WindowStart + 3_100, Spells.ColdSnap),
+            EmbraceRemoved(WindowStart + 4_500));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem()
+            .ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        window.ExpectedStSpenderCount.ShouldBe(2);
+        window.ExpectsFinisher.ShouldBeTrue();
+        window.MissingStSpenderCount.ShouldBe(0);
+        window.Successful.ShouldBeTrue();
     }
 
     [Fact]
@@ -225,9 +316,12 @@ public sealed class WintersEmbraceAnalyzerTests
             BurstingIce(WindowStart, orbs: 4),
             EmbraceApplied(WindowStart),
             Cast(WindowStart + 100, Spells.TalonStrike),
+            Cast(WindowStart + 1_700, Spells.ColdSnap),
             EmbraceRemoved(WindowEnd));
 
         analyzer.Build.ShouldBe(RimeBuild.IcyTalons);
+        analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs
+            .ShouldBe(SingleTargetEmbraceAnalyzer.BaselineGlobalCooldownMs);
         analyzer.StSpenderName.ShouldBe(Spells.TalonStrike.Name);
         analyzer.AoeSpenderName.ShouldBe(Spells.RisingTalons.Name);
 

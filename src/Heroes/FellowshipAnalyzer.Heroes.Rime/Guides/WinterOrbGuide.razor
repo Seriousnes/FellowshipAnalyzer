@@ -39,11 +39,6 @@
 
     private WinterOrbTracker Tracker => Parser.WinterOrbTracker!;
 
-    private int DungeonSpanMs => Parser.DungeonEndTime - Parser.DungeonStartTime;
-
-    private double CappedSharePercent =>
-        DungeonSpanMs > 0 ? (double)Tracker.CappedMs / DungeonSpanMs * 100 : 0;
-
     private List<(int AbilityId, List<Incident> Incidents)> OvercapsByGenerator =>
     [
         .. Tracker.OvercapIncidents
@@ -58,7 +53,6 @@
         var overcapRate = Tracker.Generated > 0
             ? (double)Tracker.Wasted / Tracker.Generated * 100
             : 0;
-        var cappedShare = CappedSharePercent;
 
         return
         [
@@ -77,14 +71,6 @@
                 Tracker.Wasted == 0 ? QualitativePerformance.Perfect
                     : overcapRate < 10 ? QualitativePerformance.Good
                     : overcapRate < 20 ? QualitativePerformance.Ok
-                    : QualitativePerformance.Fail),
-            new OverviewStat(
-                TimeFormat.Timestamp(Tracker.CappedMs),
-                "Time at Cap",
-                $"Time at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon).",
-                Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
-                    : cappedShare < 5 ? QualitativePerformance.Good
-                    : cappedShare < 10 ? QualitativePerformance.Ok
                     : QualitativePerformance.Fail),
         ];
     }

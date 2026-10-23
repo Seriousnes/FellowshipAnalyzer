@@ -1,5 +1,8 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+
+using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
@@ -8,7 +11,27 @@ public sealed class SingleTargetEmbraceAnalyzer : WintersEmbraceAnalyzer
 {
     public const int BaselineGlobalCooldownMs = 1500;
 
-    public const int BaselineSpenderCastTimeMs = 2000;
+    /// <summary>Cast time Greater Glacial Blast adds to Glacial Blast.</summary>
+    public const int GreaterGlacialBlastCastTimeIncreaseMs = 500;
+
+    /// <summary>
+    /// Unhasted time one single-target spender occupies: the build's spender cast time, never below the
+    /// global cooldown, plus <see cref="GreaterGlacialBlastCastTimeIncreaseMs"/> for Glacial Blast when
+    /// Greater Glacial Blast is talented.
+    /// </summary>
+    public int SpenderCastTimeMs
+    {
+        get
+        {
+            if (Build == RimeBuild.IcyTalons)
+                return CastTimeMs(RimeSpells.TalonStrike);
+
+            var castTimeMs = CastTimeMs(RimeSpells.GlacialBlast);
+            return Owner.SelectedCombatant.HasTalent(RimeTalents.GreaterGlacialBlast)
+                ? castTimeMs + GreaterGlacialBlastCastTimeIncreaseMs
+                : castTimeMs;
+        }
+    }
 
     protected override EmbraceWindowEvaluation EvaluateWindow(
         WindowCapture window,
@@ -20,9 +43,10 @@ public sealed class SingleTargetEmbraceAnalyzer : WintersEmbraceAnalyzer
         var freezingTorrents = relevantCasts.Count(IsFreezingTorrent);
         var firstRelevantCast = relevantCasts.FirstOrDefault();
 
+        var spenderCastTimeMs = SpenderCastTimeMs;
         var timeBudget = Math.Max(window.EndTimestamp - window.StartTimestamp, 0);
-        var expectedStSpenders = GetExpectedSpenders(timeBudget);
-        var finisherExpected = ShouldExpectFinisher(timeBudget, expectedStSpenders);
+        var expectedStSpenders = GetExpectedSpenders(timeBudget, spenderCastTimeMs);
+        var finisherExpected = ShouldExpectFinisher(timeBudget, expectedStSpenders, spenderCastTimeMs);
         var missingStSpenders = Math.Max(expectedStSpenders - stSpenders, 0);
         var hasValidFinisher = coldSnaps > 0 || freezingTorrents > 0;
         var usedFreezingTorrentCombo = freezingTorrents > 0 && coldSnaps > 0;
@@ -51,20 +75,23 @@ public sealed class SingleTargetEmbraceAnalyzer : WintersEmbraceAnalyzer
         };
     }
 
-    private static int GetExpectedSpenders(int timeBudgetMs)
+    private static int CastTimeMs(Spell spell) =>
+        Math.Max(BaselineGlobalCooldownMs, (int)Math.Round((spell.CastDuration ?? 0) * 1000));
+
+    private static int GetExpectedSpenders(int timeBudgetMs, int spenderCastTimeMs)
     {
-        if (timeBudgetMs >= (BaselineSpenderCastTimeMs * 2) + BaselineGlobalCooldownMs)
+        if (timeBudgetMs >= (spenderCastTimeMs * 2) + BaselineGlobalCooldownMs)
             return 2;
 
-        return timeBudgetMs >= BaselineSpenderCastTimeMs ? 1 : 0;
+        return timeBudgetMs >= spenderCastTimeMs ? 1 : 0;
     }
 
-    private static bool ShouldExpectFinisher(int timeBudgetMs, int expectedSpenders)
+    private static bool ShouldExpectFinisher(int timeBudgetMs, int expectedSpenders, int spenderCastTimeMs)
     {
         if (expectedSpenders <= 0)
             return false;
 
-        return timeBudgetMs >= (expectedSpenders * BaselineSpenderCastTimeMs) + BaselineGlobalCooldownMs;
+        return timeBudgetMs >= (expectedSpenders * spenderCastTimeMs) + BaselineGlobalCooldownMs;
     }
 
     public sealed class SingleTargetWindowEvaluation : EmbraceWindowEvaluation
