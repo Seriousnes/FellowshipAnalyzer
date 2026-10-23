@@ -71,6 +71,8 @@ public class RemoveBuffEvent : BuffEvent
 {
     /// <summary>The absorb shield amount that remained when this buff was removed, if any.</summary>
     public virtual int? Absorb { get; set; }
+    /// <summary>The stack count left on the buff at its removal, if known.</summary>
+    public virtual int? Stack { get; set; }
 }
 
 /// <summary>Raised when a single stack of a buff is removed.</summary>

@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
@@ -90,6 +91,51 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
         Assert.Equal(new CooldownReductionResult(0, 0), analyzer.CooldownReduction);
     }
 
+    [Fact]
+    public async Task ConsumedFinalStack_DoesNotReduceCooldown()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000),
+            ApplyBuff(2500, AllyId),
+            ApplyBuffStack(2500, AllyId, 15),
+            RemoveBuffStack(23_450, AllyId, 1),
+            RemoveBuff(23_500, AllyId),
+        ]);
+
+        Assert.Equal(new CooldownReductionResult(0, 0), analyzer.CooldownReduction);
+    }
+
+    [Fact]
+    public async Task ExpiryWithThreeStacks_ReducesCooldownByNineTenthsOfASecond()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000),
+            ApplyBuff(2500, AllyId),
+            ApplyBuffStack(2500, AllyId, 15),
+            RemoveBuffStack(10_000, AllyId, 3),
+            RemoveBuff(32_500, AllyId),
+        ]);
+
+        Assert.Equal(new CooldownReductionResult(900, 900), analyzer.CooldownReduction);
+    }
+
+    [Fact]
+    public async Task StackChangeToOne51MsBeforeRemoval_KeepsTheStack()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000),
+            ApplyBuff(2500, AllyId),
+            ApplyBuffStack(2500, AllyId, 15),
+            RemoveBuffStack(23_449, AllyId, 1),
+            RemoveBuff(23_500, AllyId),
+        ]);
+
+        Assert.Equal(new CooldownReductionResult(300, 300), analyzer.CooldownReduction);
+    }
+
     private static async Task<RepositoryOfFrozenLightAnalyzer> Analyze(List<Event> events)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
@@ -163,9 +209,12 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
 
+        protected override Type[] GetNormalizerTypes() => [typeof(FrozenLightRemovalNormalizer)];
+
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(FrozenLightRemovalNormalizer)) return new FrozenLightRemovalNormalizer();
             return base.CreateInstance(type);
         }
     }

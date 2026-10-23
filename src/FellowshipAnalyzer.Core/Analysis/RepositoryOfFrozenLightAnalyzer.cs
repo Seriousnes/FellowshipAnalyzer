@@ -37,7 +37,7 @@ public sealed partial class RepositoryOfFrozenLightAnalyzer(Lazy<SpellUsable> sp
         if (buffEvent.Timestamp - application.AppliedAt < BuffDurationMs) return;
 
         CooldownReduction += _spellUsable.ReduceCooldown(
-            Items.RepositoryOfFrozenLight.FSLID, application.Stacks * ReductionPerStackMs, buffEvent.Timestamp);
+            Items.RepositoryOfFrozenLight.FSLID, (buffEvent.Stack ?? application.Stacks) * ReductionPerStackMs, buffEvent.Timestamp);
     }
 
     private void SetStacks(BuffEvent buffEvent, int stacks)
