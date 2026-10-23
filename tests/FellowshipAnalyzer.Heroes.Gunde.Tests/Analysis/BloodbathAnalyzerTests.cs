@@ -69,15 +69,90 @@ public sealed class BloodbathAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_WithBloodbath_ThePlayerHasAThreeSecondBloodbathBuff()
+    public async Task Analyze_WithBloodbath_ThePlayerBuffIsTheLoggedBloodbathEffect()
     {
         var (parser, _) = await RunAsync(Scenario(), talents: [Talents.Bloodbath.Id]);
 
         var buff = parser.SelectedCombatant.Buffs
-            .Where(b => b.Ability.FSLID.Value == Talents.Bloodbath.FSLID.Value)
+            .Where(b => b.Ability.FSLID.Value == Spells.Bloodbath.FSLID.Value)
             .ShouldHaveSingleItem();
         buff.Start.ShouldBe(10_000);
         buff.End.ShouldBe(10_000 + BloodbathAnalyzer.DurationMs);
+        parser.SelectedCombatant.Buffs.ShouldNotContain(b => b.Ability.FSLID.Value == Talents.Bloodbath.FSLID.Value);
+    }
+
+    [Fact]
+    public async Task Analyze_WithBloodbath_ARefreshExtendsTheWindowToTheLoggedRemoval()
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            Cast(Spells.GrimCarve.FSLID, 10_000),
+            BloodbathBuff<ApplyBuffEvent>(10_000),
+            Cast(Spells.GrimCarve.FSLID, 12_000),
+            BloodbathBuff<RefreshBuffEvent>(12_000),
+            BloodbathBuff<RemoveBuffEvent>(15_000),
+            Cast(Spells.DoubleStrike.FSLID, 100_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+
+        var window = parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull().Windows.ShouldHaveSingleItem();
+        window.BeginTimestamp.ShouldBe(10_000);
+        window.EndTimestamp.ShouldBe(15_000);
+        EndCooldown(parser, Spells.ReignInBlood.FSLID).ShouldBeInRange(79_999, 80_001);
+    }
+
+    [Fact]
+    public async Task Analyze_WithBloodbath_GrimCarveWithoutALoggedBuffLeavesReignInBloodUnchanged()
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            Cast(Spells.GrimCarve.FSLID, 10_000),
+            Cast(Spells.DoubleStrike.FSLID, 100_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+
+        parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull().Windows.ShouldBeEmpty();
+        EndCooldown(parser, Spells.ReignInBlood.FSLID).ShouldBe(90_000);
+    }
+
+    [Fact]
+    public async Task Analyze_WithBloodbath_ARemovalWithoutAnApplyOpensNoWindow()
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            BloodbathBuff<RemoveBuffEvent>(10_000),
+            Cast(Spells.DoubleStrike.FSLID, 100_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+
+        parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull().Windows.ShouldBeEmpty();
+        EndCooldown(parser, Spells.ReignInBlood.FSLID).ShouldBe(90_000);
+    }
+
+    [Fact]
+    public async Task Analyze_WithBloodbath_TwoSeparateBuffsOpenTwoWindows()
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            BloodbathBuff<ApplyBuffEvent>(10_000),
+            BloodbathBuff<RemoveBuffEvent>(13_000),
+            BloodbathBuff<ApplyBuffEvent>(20_000),
+            BloodbathBuff<RemoveBuffEvent>(23_000),
+            Cast(Spells.DoubleStrike.FSLID, 100_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+
+        parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull().Windows
+            .ShouldBe([new BloodbathWindow(10_000, 13_000), new BloodbathWindow(20_000, 23_000)]);
+        EndCooldown(parser, Spells.ReignInBlood.FSLID).ShouldBeInRange(77_998, 78_002);
     }
 
     [Fact]
@@ -113,8 +188,18 @@ public sealed class BloodbathAnalyzerTests
         Cast(Spells.ReignInBlood.FSLID, 0),
         Cast(Spells.Rupture.FSLID, 0),
         Cast(Spells.GrimCarve.FSLID, 10_000),
+        BloodbathBuff<ApplyBuffEvent>(10_000),
+        BloodbathBuff<RemoveBuffEvent>(10_000 + BloodbathAnalyzer.DurationMs),
         Cast(Spells.DoubleStrike.FSLID, 100_000),
     ];
+
+    private static T BloodbathBuff<T>(int timestamp) where T : BuffEvent, new() => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = Spells.Bloodbath.FSLID, Name = Spells.Bloodbath.Name },
+    };
 
     private static int EndCooldown(GundeCombatLogParser parser, int abilityId) =>
         parser.Events
