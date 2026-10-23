@@ -42,6 +42,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddAnalyzer<ThroughputTracker>]
 [AddAnalyzer<AbilityTracker>]
 [AddAnalyzer<GloriousPurposeAnalyzer>]
+[AddAnalyzer<RepositoryOfFrozenLightAnalyzer>]
 [AddAnalyzer<RubyGemAnalyzer>]
 [AddAnalyzer<AmethystGemAnalyzer>]
 [AddAnalyzer<TopazGemAnalyzer>]
