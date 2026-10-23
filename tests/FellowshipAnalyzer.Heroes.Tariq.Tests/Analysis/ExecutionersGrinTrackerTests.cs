@@ -1,4 +1,6 @@
+using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 using Shouldly;
@@ -109,11 +111,11 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     /// <summary>
-    /// The statistics card and the guide's proc subsection both depend on the bands being equipped,
-    /// so a parse without them must not offer either.
+    /// The statistics card and the guide's proc subsection both depend on the Executioner's Grin
+    /// legendary being equipped, so a parse without it must not offer either.
     /// </summary>
     [Fact]
-    public async Task WithoutTheBandsEquipped_NoStatisticsCardIsOffered()
+    public async Task WithoutTheLegendaryEquipped_NoStatisticsCardIsOffered()
     {
         var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
         [
@@ -124,5 +126,28 @@ public sealed class ExecutionersGrinTrackerTests
         var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
         tracker.Equipped.ShouldBeFalse();
         tracker.Statistic.ShouldBeNull();
+    }
+
+    /// <summary>
+    /// Patch 0.5.0 moved the Executioner's Grin legendary to the Stormlord Wraps, item 5900.
+    /// </summary>
+    [Fact]
+    public async Task WithTheStormlordWrapsEquipped_TheStatisticsCardIsOffered()
+    {
+        var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
+        [
+            new CombatantInfoEvent
+            {
+                SourceId = FuryEconomyAnalyzerTests.PlayerId,
+                Gear = [new Item { Id = 5900, Quality = 6 }],
+            },
+            FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
+            FuryEconomyAnalyzerTests.CullingStrikeHit(200, targetHp: 60, targetMaxHp: 100),
+        ]);
+
+        var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
+        Legendaries.ExecutionersGrin.Id.ShouldBe(5900);
+        tracker.Equipped.ShouldBeTrue();
+        tracker.Statistic.ShouldNotBeNull();
     }
 }

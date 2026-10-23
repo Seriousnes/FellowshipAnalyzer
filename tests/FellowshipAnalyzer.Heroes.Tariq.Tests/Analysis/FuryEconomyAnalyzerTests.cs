@@ -18,7 +18,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 
 public sealed class FuryEconomyAnalyzerTests
 {
-    private const int PlayerId = 7;
+    internal const int PlayerId = 7;
     private const int EnemyId = 11;
 
     [Fact]

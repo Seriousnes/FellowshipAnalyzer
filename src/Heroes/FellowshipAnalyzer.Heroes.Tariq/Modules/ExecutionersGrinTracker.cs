@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
@@ -11,7 +10,7 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
     private bool _held;
     private int? _unclaimedRemoval;
 
-    public bool Equipped => Owner.SelectedCombatant.HasItem(Items.ExecutionersUnsanitaryBands.Id);
+    public bool Equipped => Owner.SelectedCombatant.HasItem(Legendaries.ExecutionersGrin.Id);
 
     public int Procs { get; private set; }
 
