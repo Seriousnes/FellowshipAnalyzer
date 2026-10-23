@@ -90,6 +90,13 @@ public sealed partial class HammerStormAnalyzer : Analyzer
     })]
     private void OnProcGained(ApplyBuffEvent @event) => LedgerFor(@event.Ability.Id).Gain();
 
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spells = new[]
+    {
+        nameof(Spells.SchismHammerStorm),
+        nameof(Spells.SchismSkullCrusher),
+    })]
+    private void OnProcStacked(ApplyBuffStackEvent @event) => LedgerFor(@event.Ability.Id).Stack();
+
     [On<RefreshBuffEvent>(To = Actor.Player, Spells = new[]
     {
         nameof(Spells.SchismHammerStorm),
@@ -218,46 +225,45 @@ public sealed partial class HammerStormAnalyzer : Analyzer
         private int _consumed;
         private int _overwritten;
         private int _expired;
-        private bool _held;
-        private bool _awaitingConsumedRemoval;
+        private int _held;
         private int? _unclaimedRemoval;
 
         public void Gain()
         {
             _gained++;
-            _held = true;
-            _awaitingConsumedRemoval = false;
+            _held = 1;
+            _unclaimedRemoval = null;
+        }
+
+        public void Stack()
+        {
+            _gained++;
+            _held++;
             _unclaimedRemoval = null;
         }
 
         public void Overwrite()
         {
             _overwritten++;
-            _held = true;
+            _held = Math.Max(_held, 1);
         }
 
         public void Remove(int timestamp)
         {
-            if (_awaitingConsumedRemoval)
-            {
-                _awaitingConsumedRemoval = false;
-            }
-            else if (_held)
-            {
-                _expired++;
-                _unclaimedRemoval = timestamp;
-            }
+            if (_held == 0)
+                return;
 
-            _held = false;
+            _expired += _held;
+            _unclaimedRemoval = timestamp;
+            _held = 0;
         }
 
         public bool Consume(int timestamp)
         {
-            if (_held)
+            if (_held > 0)
             {
                 _consumed++;
-                _held = false;
-                _awaitingConsumedRemoval = true;
+                _held--;
                 _unclaimedRemoval = null;
                 return true;
             }

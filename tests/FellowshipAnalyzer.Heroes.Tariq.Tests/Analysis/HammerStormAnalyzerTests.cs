@@ -335,6 +335,56 @@ public sealed class HammerStormAnalyzerTests
         analyzer.SkullCrusherProcs.ShouldBe(new SchismProcEconomy(Gained: 2, Consumed: 1, Overwritten: 0, Expired: 1));
     }
 
+    /// <summary>
+    /// Schism holds up to two stacks of each proc, and a second proc arrives as a stack application.
+    /// Each cast spends one stack.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_HammerStorm_SpendsTwoHeldSchismStacksOnTwoCasts()
+    {
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
+        [
+            Apply(1_000, SchismHammerStorm),
+            Stack(1_100, SchismHammerStorm),
+            Cast(2_000, HammerStormId),
+            Unstack(2_000, SchismHammerStorm),
+            Hit(2_050, Enemy1),
+            Cast(5_000, HammerStormId),
+            Remove(5_000, SchismHammerStorm),
+            Hit(5_050, Enemy1),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.Casts.Select(cast => cast.SchismEmpowered).ShouldBe([true, true]);
+        analyzer.HammerStormProcs.ShouldBe(new SchismProcEconomy(Gained: 2, Consumed: 2, Overwritten: 0, Expired: 0));
+    }
+
+    /// <summary>
+    /// Every Schism stack still held when the proc is removed expired unspent.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_HammerStorm_CountsEveryHeldSchismStackAsExpiredAtRemoval()
+    {
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
+        [
+            Apply(1_000, SchismHammerStorm),
+            Stack(1_100, SchismHammerStorm),
+            Cast(2_000, HammerStormId),
+            Unstack(2_000, SchismHammerStorm),
+            Hit(2_050, Enemy1),
+            Remove(9_000, SchismHammerStorm),
+            Apply(10_000, SchismSkullCrusher),
+            Stack(10_100, SchismSkullCrusher),
+            Remove(18_000, SchismSkullCrusher),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.HammerStormProcs.ShouldBe(new SchismProcEconomy(Gained: 2, Consumed: 1, Overwritten: 0, Expired: 1));
+        analyzer.SkullCrusherProcs.ShouldBe(new SchismProcEconomy(Gained: 2, Consumed: 0, Overwritten: 0, Expired: 2));
+    }
+
     [Fact]
     public async Task Analyze_HammerStorm_ExcludesSchismEmpoweredCastsFromTheLowTargetCount()
     {
@@ -404,6 +454,12 @@ public sealed class HammerStormAnalyzerTests
 
     private static ApplyBuffEvent Apply(int timestamp, int abilityId) =>
         FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(timestamp, abilityId);
+
+    private static ApplyBuffStackEvent Stack(int timestamp, int abilityId) =>
+        FuryEconomyAnalyzerTests.Buff<ApplyBuffStackEvent>(timestamp, abilityId);
+
+    private static RemoveBuffStackEvent Unstack(int timestamp, int abilityId) =>
+        FuryEconomyAnalyzerTests.Buff<RemoveBuffStackEvent>(timestamp, abilityId);
 
     private static RefreshBuffEvent Refresh(int timestamp, int abilityId) =>
         FuryEconomyAnalyzerTests.Buff<RefreshBuffEvent>(timestamp, abilityId);
