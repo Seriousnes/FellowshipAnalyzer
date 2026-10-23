@@ -31,6 +31,15 @@ public record ExportAbility(
     List<string> Heroes)
 {
     public int ChargeCount => Charges ?? 1;
+
+    /// <summary>True when Haste shortens the cast and channel time.</summary>
+    public bool CastTimeScalesWithHaste { get; init; }
+
+    /// <summary>
+    /// The talents and legendary powers that raise the ability above one charge onto a charge effect with
+    /// Haste in its time rate.
+    /// </summary>
+    public List<EntityRef> HasteGrantedBy { get; init; } = [];
 }
 
 public record ExportEffect(
@@ -96,6 +105,9 @@ public sealed class ExportSource
 
     public Dictionary<string, AbilityCategory?> AbilityCategories { get; }
 
+    /// <summary>The description of every talent and legendary power, keyed by its type slug and id.</summary>
+    public Dictionary<(string Type, int Id), string> GrantDescriptions { get; private init; } = [];
+
     private ExportSource(
         Dictionary<int, ExportAbility> abilities,
         Dictionary<int, ExportEffect> effects,
@@ -137,6 +149,7 @@ public sealed class ExportSource
         var legendaries = new List<ExportLegendary>();
         var dungeons = new List<ExportDungeon>();
         var augmentationDocuments = new List<AugmentationDocument>();
+        var grantDescriptions = new Dictionary<(string Type, int Id), string>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
@@ -158,7 +171,11 @@ public sealed class ExportSource
                         HasteScaling(ability), ability.Cost,
                         ability.Resource, CostIsFraction(root), Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
                         ability.CastTime, ability.ChannelTime, ability.ChannelTick,
-                        [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())]);
+                        [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())])
+                    {
+                        CastTimeScalesWithHaste = ability.CastTimeScalesWithHaste == true,
+                        HasteGrantedBy = [.. (ability.CooldownHasteGrantedBy ?? []).Select(granter => Reference(granter)!)],
+                    };
                     break;
                 case EffectDocument effect:
                     effects[effect.Id] = new ExportEffect(
@@ -167,6 +184,11 @@ public sealed class ExportSource
                     break;
                 case TalentDocument talent:
                     talentDocuments[talent.Id] = talent;
+                    if (talent.Description is { } talentText)
+                        grantDescriptions[(EntityTypes.Slug(Fellowship.SDK.EntityType.Talent), talent.Id)] = talentText;
+                    break;
+                case LegendaryPowerDocument power when power.Description is { } powerText:
+                    grantDescriptions[(EntityTypes.Slug(Fellowship.SDK.EntityType.LegendaryPower), power.Id)] = powerText;
                     break;
                 case TalentSlotDocument slot:
                     talentSlots.Add(slot);
@@ -234,7 +256,10 @@ public sealed class ExportSource
 
         return new ExportSource(
             abilities, effects, talents, legendaries, heroes, rarities, dungeons,
-            BuildAugmentations(augmentationDocuments, settings), categories);
+            BuildAugmentations(augmentationDocuments, settings), categories)
+        {
+            GrantDescriptions = grantDescriptions,
+        };
     }
 
     private static List<ExportAugmentation> BuildAugmentations(List<AugmentationDocument> documents, SettingsFile settings)

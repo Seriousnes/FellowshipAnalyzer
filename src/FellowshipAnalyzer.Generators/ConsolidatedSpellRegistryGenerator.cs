@@ -726,26 +726,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
         foreach (var prop in schema.Scalars)
         {
-            if (!entry.TryGetValue(prop.JsonKey, out var v))
-                continue;
-            switch (prop.Kind)
-            {
-                case ScalarKind.String:
-                    parts.Add(prop.Name + " = " + Literal(v.String ?? ""));
-                    break;
-                case ScalarKind.Int when v.Number is { } ni:
-                    parts.Add(prop.Name + " = " + ((int)Math.Round(ni)).ToString(CultureInfo.InvariantCulture));
-                    break;
-                case ScalarKind.Double when v.Number is { } nd:
-                    parts.Add(prop.Name + " = " + Fmt(nd));
-                    break;
-                case ScalarKind.Bool when v.Bool is { } nb:
-                    parts.Add(prop.Name + " = " + (nb ? "true" : "false"));
-                    break;
-                case ScalarKind.Enum when v.String is { } es && prop.EnumMembers is { } members && members.Contains(es):
-                    parts.Add(prop.Name + " = " + prop.EnumGlobalName + "." + es);
-                    break;
-            }
+            if (entry.TryGetValue(prop.JsonKey, out var v) && ScalarValue(prop, v) is { } value)
+                parts.Add(prop.Name + " = " + value);
         }
 
         foreach (var key in entry.Keys)
@@ -799,6 +781,60 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         return parts;
     }
 
+    private static string? ScalarValue(ScalarProp prop, JsonValue v)
+    {
+        switch (prop.Kind)
+        {
+            case ScalarKind.String:
+                return Literal(v.String ?? "");
+            case ScalarKind.Int when v.Number is { } ni:
+                return ((int)Math.Round(ni)).ToString(CultureInfo.InvariantCulture);
+            case ScalarKind.Double when v.Number is { } nd:
+                return Fmt(nd);
+            case ScalarKind.Bool when v.Bool is { } nb:
+                return nb ? "true" : "false";
+            case ScalarKind.Enum when v.String is { } es && prop.EnumMembers is { } members && members.Contains(es):
+                return prop.EnumGlobalName + "." + es;
+            case ScalarKind.Record when v.Object is { } record && prop.RecordMembers is { } recordMembers:
+                var assignments = new List<string>();
+                foreach (var member in recordMembers)
+                    if (record.TryGetValue(member.JsonKey, out var memberValue) && ScalarValue(member, memberValue) is { } value)
+                        assignments.Add(member.Name + " = " + value);
+                return "new " + prop.EnumGlobalName + " { " + string.Join(", ", assignments) + " }";
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// The settable scalar and enum properties of a record in the spells namespace, so a spell entry can
+    /// state the record as a nested object. A record with a property of another shape is not one.
+    /// </summary>
+    private static bool TryClassifyRecord(ITypeSymbol type, out string recordGlobalName, out List<ScalarProp> members)
+    {
+        recordGlobalName = "";
+        members = [];
+        if (type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) is not INamedTypeSymbol { TypeKind: TypeKind.Class } named
+            || named.ContainingNamespace.ToDisplayString() != SpellsNamespace)
+            return false;
+
+        foreach (var member in named.GetMembers())
+        {
+            if (member is not IPropertySymbol p || p.SetMethod is null || p.IsStatic)
+                continue;
+            var key = CamelCase(p.Name);
+            if (ClassifyScalar(p.Type) is { } kind)
+                members.Add(new ScalarProp(p.Name, key, kind));
+            else if (TryClassifyEnum(p.Type, out var enumGlobal, out var enumMembers))
+                members.Add(new ScalarProp(p.Name, key, ScalarKind.Enum, enumGlobal, enumMembers));
+            else
+                return false;
+        }
+
+        recordGlobalName = GlobalName(named);
+        return members.Count > 0;
+    }
+
     private static SpellSchema BuildSchema(Compilation compilation, ITypeSymbol? spellType)
     {
         var scalars = new List<ScalarProp>();
@@ -824,7 +860,12 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 {
                     scalars.Add(new ScalarProp(p.Name, key, ScalarKind.Enum, enumGlobal, enumMembers));
                     knownKeys.Add(key);
+                }                else if (TryClassifyRecord(p.Type, out var recordGlobal, out var recordMembers))
+                {
+                    scalars.Add(new ScalarProp(p.Name, key, ScalarKind.Record, recordGlobal, RecordMembers: recordMembers));
+                    knownKeys.Add(key);
                 }
+
             }
         }
 
@@ -1436,17 +1477,19 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         public int FSLID { get; } = FSLID;
     }
 
-    private enum ScalarKind { Int, Double, String, Bool, Enum }
+    private enum ScalarKind { Int, Double, String, Bool, Enum, Record }
 
     private readonly struct ScalarProp(
         string Name, string JsonKey, ScalarKind Kind,
-        string? EnumGlobalName = null, HashSet<string>? EnumMembers = null)
+        string? EnumGlobalName = null, HashSet<string>? EnumMembers = null,
+        List<ScalarProp>? RecordMembers = null)
     {
         public string Name { get; } = Name;
         public string JsonKey { get; } = JsonKey;
         public ScalarKind Kind { get; } = Kind;
         public string? EnumGlobalName { get; } = EnumGlobalName;
         public HashSet<string>? EnumMembers { get; } = EnumMembers;
+        public List<ScalarProp>? RecordMembers { get; } = RecordMembers;
     }
 
     private sealed class SpellSchema(

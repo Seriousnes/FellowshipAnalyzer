@@ -51,6 +51,18 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// <summary>Where Haste enters the cooldown; <c>null</c> when Haste does not shorten it.</summary>
     public CooldownHasteScaling? CooldownHaste { get; init; }
 
+    /// <summary>
+    /// The charges and Haste placement a talent or legendary gives this ability; <c>null</c> when none
+    /// does. The spellbook applies it for a player who holds the grant.
+    /// </summary>
+    public ChargeGrant? ChargeGrant { get; init; }
+
+    /// <summary>
+    /// <c>true</c> when Haste shortens the cast and channel time, as <c>time / (1 + haste)</c>; <c>null</c>
+    /// when the game-data export states it does not.
+    /// </summary>
+    public bool? CastTimeScalesWithHaste { get; init; }
+
     /// <summary>Seconds removed from this ability's remaining cooldown when a target it has debuffed dies, per qualifying window.</summary>
     public double? CooldownReductionOnTargetDeath { get; init; }
 

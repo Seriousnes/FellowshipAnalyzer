@@ -20,6 +20,8 @@ public enum GapKind
     UnknownScope,
     /// <summary>A description states an amount of a resource in a form no generation rule recognises.</summary>
     UnclaimedGeneration,
+    /// <summary>A charge grant names no holder for the scope, or its description states no charge count.</summary>
+    UnresolvedChargeGrant,
 }
 
 /// <summary>A detected gap in the merged spell data.</summary>

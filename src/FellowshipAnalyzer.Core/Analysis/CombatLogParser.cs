@@ -107,6 +107,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// </summary>
     public FullCombatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
 
+    /// <summary>The selected player, or <c>null</c> before <see cref="Analyze"/> populates it.</summary>
+    internal FullCombatant? SelectedCombatantIfKnown => CurrentParseContext?.SelectedCombatant;
+
     /// <summary>
     /// Builds the selected player's <see cref="FullCombatant"/> from the resolved combatantinfo. Overridable so
     /// tests can supply a combatant with hand-built <see cref="CombatantStats"/> (e.g. scoped cooldown

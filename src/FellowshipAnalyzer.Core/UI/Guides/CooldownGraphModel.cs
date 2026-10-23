@@ -147,12 +147,14 @@ public static class CooldownGraphModel
         foreach (var span in spans)
             analyzedMs += span.End - span.Start;
 
+        var meanHaste = HasteTimeline.Mean(events, playerId, spans.Select(span => (span.Start, span.End)));
+
         var lanes = new List<CooldownGraphLane>(abilities.Count);
         foreach (var ability in abilities)
         {
             var stream = updates[ability.PrimarySpell.FSLID];
             stream.Sort(static (left, right) => left.Timestamp.CompareTo(right.Timestamp));
-            lanes.Add(BuildLane(ability, stream, spans, analyzedMs, windowStart, windowEnd));
+            lanes.Add(BuildLane(ability, stream, spans, analyzedMs, windowStart, windowEnd, meanHaste));
         }
 
         return lanes;
@@ -164,7 +166,8 @@ public static class CooldownGraphModel
         List<Span> spans,
         int analyzedMs,
         int windowStart,
-        int windowEnd)
+        int windowEnd,
+        double meanHaste)
     {
         var (laneSegments, _) = CooldownLaneModel.Build(updates, windowStart, windowEnd);
 
@@ -197,9 +200,7 @@ public static class CooldownGraphModel
             if (segment.State == CooldownGraphState.Recharging)
                 rechargingMs += OverlapMs(spans, segment.Start, segment.End);
 
-        var castTimeMs = ability.Charges < 2
-            ? (ability.ChannelDuration ?? ability.CastDuration ?? 0) * 1000
-            : 0;
+        var castTimeMs = ability.Charges < 2 ? ability.CastTime(meanHaste) * 1000 : 0;
         var maxCasts = (int)Math.Floor(analyzedMs / (periodMs + castTimeMs) + ability.Charges - 1) + 1;
         var efficiency = rechargingMs / (double)analyzedMs;
 
