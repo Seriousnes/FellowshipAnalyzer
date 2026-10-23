@@ -294,6 +294,51 @@ public sealed class MaidenOfDeathAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_HardCastLongerThanItsGlobalCooldown_IsBusyUntilItsCompletion()
+    {
+        const int castStart = 1000;
+        const int completion = 4000;
+        var hardCast = Cast(completion, Spells.Backstab, comboPoints: 0);
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
+            BeginCast(castStart, Spells.Backstab),
+            hardCast,
+            Buff<RemoveBuffEvent>(8000, Spells.MaidenOfDeathBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        hardCast.GlobalCooldown.ShouldNotBeNull().Timestamp.ShouldBe(castStart);
+        var trailing = analyzer.Windows.ShouldHaveSingleItem().Gaps[^1];
+        trailing.StartTimestamp.ShouldBe(completion);
+        trailing.DurationMs.ShouldBe(8000 - completion);
+    }
+
+    [Fact]
+    public async Task Analyze_HardCastShorterThanItsGlobalCooldown_IsBusyUntilTheGlobalCooldownFromItsBeginCastExpires()
+    {
+        const int castStart = 1000;
+        const int completion = 1400;
+        var hardCast = Cast(completion, Spells.Backstab, comboPoints: 0);
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
+            BeginCast(castStart, Spells.Backstab),
+            hardCast,
+            Buff<RemoveBuffEvent>(8000, Spells.MaidenOfDeathBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var gcd = hardCast.GlobalCooldown.ShouldNotBeNull();
+        gcd.Timestamp.ShouldBe(castStart);
+        var gap = analyzer.Windows.ShouldHaveSingleItem().Gaps.ShouldHaveSingleItem();
+        gap.StartTimestamp.ShouldBe(castStart + gcd.Duration);
+        gap.DurationMs.ShouldBe(8000 - (castStart + gcd.Duration));
+    }
+
+    [Fact]
     public async Task Analyze_TrailingIdleTime_IsCounted()
     {
         var events = new List<Event>
@@ -425,6 +470,13 @@ public sealed class MaidenOfDeathAnalyzerTests
             SourceResources = resources.Count == 0 ? null : new ActorResources { Resources = resources },
         };
     }
+
+    private static BeginCastEvent BeginCast(int timestamp, Spell spell) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        Ability = new Ability { Id = spell.Id },
+    };
 
     /// <summary>
     /// Sets the combo point tracker to <paramref name="comboPoints"/> from <paramref name="timestamp"/>
