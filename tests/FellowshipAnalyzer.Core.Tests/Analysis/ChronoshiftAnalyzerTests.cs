@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -184,14 +185,14 @@ public sealed class ChronoshiftAnalyzerTests
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { FSLID = Spells.Chronoshift.FSLID, Name = "Chronoshift" },
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
     };
 
     private static EndChannelEvent EndChannel(int timestamp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { FSLID = Spells.Chronoshift.FSLID, Name = "Chronoshift" },
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
     };
 
     private static ApplyBuffEvent Filler(int timestamp) => new()

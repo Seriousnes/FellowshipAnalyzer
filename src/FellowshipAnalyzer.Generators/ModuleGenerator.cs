@@ -72,7 +72,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             .Where(static info => info is not null)
             .Select(static (info, _) => info!);
 
-        context.RegisterSourceOutput(modules, Emit);
+        var registryMemberFslids = ConsolidatedSpellRegistryGenerator.SpellDbTexts(context)
+            .Select(static (texts, _) => ConsolidatedSpellRegistryGenerator.RegistryMemberFslids(texts));
+
+        context.RegisterSourceOutput(modules.Combine(registryMemberFslids),
+            static (ctx, data) => Emit(ctx, data.Left, data.Right));
     }
 
     private static bool IsCandidateClass(SyntaxNode node)
@@ -449,7 +453,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return null;
     }
 
-    private static int? ResolveSpellNamedArg(
+    private static SpellRef? ResolveSpellNamedArg(
         AttributeSyntax? attrSyntax,
         SemanticModel semanticModel,
         string name,
@@ -461,7 +465,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return ResolveSpellExpression(argSyntax.Expression, semanticModel, name, diagnostics, ct);
     }
 
-    private static ImmutableArray<int> ResolveSpellArrayNamedArg(
+    private static ImmutableArray<SpellRef> ResolveSpellArrayNamedArg(
         AttributeSyntax? attrSyntax,
         SemanticModel semanticModel,
         string name,
@@ -488,11 +492,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             return [];
         }
 
-        var builder = ImmutableArray.CreateBuilder<int>();
+        var builder = ImmutableArray.CreateBuilder<SpellRef>();
         foreach (var expr in elements)
         {
             var resolved = ResolveSpellExpression(expr, semanticModel, name, diagnostics, ct);
-            if (resolved is int v) builder.Add(v);
+            if (resolved is not null) builder.Add(resolved);
         }
         return builder.ToImmutable();
     }
@@ -501,7 +505,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     /// Resolves <c>nameof(Registry.Member)</c> to the registered spell's runtime FSLID
     /// (<see cref="FellowshipAnalyzer.Core.Common.Spells.Spell.FSLID"/>). Emits FA0002/3/4 on failure.
     /// </summary>
-    private static int? ResolveSpellExpression(
+    private static SpellRef? ResolveSpellExpression(
         ExpressionSyntax expr,
         SemanticModel semanticModel,
         string argName,
@@ -522,6 +526,17 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
 
         var symbol = semanticModel.GetSymbolInfo(memberAccess, ct).Symbol;
+        if (symbol is null && semanticModel.GetSymbolInfo(memberAccess.Expression, ct).Symbol is INamedTypeSymbol registry)
+        {
+            var registryName = IsCentralRegistry(registry)
+                ? ConsolidatedSpellRegistryGenerator.SharedScope
+                : registry.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
+                    .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
+            return new SpellRef(null,
+                ConsolidatedSpellRegistryGenerator.RegistryMemberKey(registryName, memberAccess.Name.Identifier.ValueText),
+                memberAccess.GetLocation(), memberAccess.ToString());
+        }
+
         if (symbol is not IPropertySymbol property ||
             !property.IsStatic ||
             !IsSpellOrEffect(property.Type) ||
@@ -543,7 +558,27 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             return null;
         }
 
-        return guid;
+        return new SpellRef(guid, null, memberAccess.GetLocation(), memberAccess.ToString());
+    }
+
+    private static int? ResolveSpellRef(SourceProductionContext ctx, SpellRef? spellRef, Dictionary<string, int> registryMemberFslids)
+    {
+        if (spellRef is null) return null;
+        if (spellRef.Fslid is int fslid) return fslid;
+        if (registryMemberFslids.TryGetValue(spellRef.RegistryMemberKey!, out var generated)) return generated;
+
+        ctx.ReportDiagnostic(Diagnostic.Create(SpellArgNotRegistryMemberDescriptor, spellRef.Location, spellRef.Display));
+        return null;
+    }
+
+    private static ImmutableArray<int> ResolveSpellRefs(SourceProductionContext ctx, ImmutableArray<SpellRef> spellRefs, Dictionary<string, int> registryMemberFslids)
+    {
+        var builder = ImmutableArray.CreateBuilder<int>(spellRefs.Length);
+        foreach (var spellRef in spellRefs)
+        {
+            if (ResolveSpellRef(ctx, spellRef, registryMemberFslids) is int fslid) builder.Add(fslid);
+        }
+        return builder.ToImmutable();
     }
 
     private static bool IsSpellOrEffect(ITypeSymbol type)
@@ -577,7 +612,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                 iface.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
                 return true;
         }
-        foreach (var attr in owner.GetAttributes())
+        return IsCentralRegistry(owner);
+    }
+
+    private static bool IsCentralRegistry(INamedTypeSymbol type)
+    {
+        foreach (var attr in type.GetAttributes())
         {
             var cls = attr.AttributeClass;
             if (cls is null) continue;
@@ -730,7 +770,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         "global::" + symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
 
-    private static void Emit(SourceProductionContext ctx, ModuleInfo info)
+    private static void Emit(SourceProductionContext ctx, ModuleInfo info, Dictionary<string, int> registryMemberFslids)
     {
         foreach (var pending in info.Diagnostics)
         {
@@ -820,7 +860,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             var index = 0;
             foreach (var h in info.Handlers)
             {
-                EmitHandler(sb, h, index++, bodyIndent + "    ");
+                EmitHandler(sb, h, index++, bodyIndent + "    ",
+                    ResolveSpellRef(ctx, h.Spell, registryMemberFslids),
+                    ResolveSpellRefs(ctx, h.Spells, registryMemberFslids),
+                    ResolveSpellRef(ctx, h.ExtraSpell, registryMemberFslids),
+                    ResolveSpellRefs(ctx, h.ExtraSpells, registryMemberFslids));
             }
 
             sb.Append(bodyIndent).AppendLine("}");
@@ -840,7 +884,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         ctx.AddSource(fileName, sb.ToString());
     }
 
-    private static void EmitHandler(StringBuilder sb, HandlerInfo h, int index, string indent)
+    private static void EmitHandler(StringBuilder sb, HandlerInfo h, int index, string indent,
+        int? spell, ImmutableArray<int> spells, int? extraSpell, ImmutableArray<int> extraSpells)
     {
         var local = "__e" + index;
         var conditions = new List<string>();
@@ -853,17 +898,17 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         if (h.EventImplementsAbility)
         {
-            if (h.Spell is int s)
+            if (spell is int s)
                 conditions.Add(local + ".Ability.Id == " + s);
-            else if (h.Spells.Length > 0)
-                conditions.Add(BuildIdInList(local + ".Ability.Id", h.Spells));
+            else if (spells.Length > 0)
+                conditions.Add(BuildIdInList(local + ".Ability.Id", spells));
         }
         if (h.EventImplementsExtraAbility)
         {
-            if (h.ExtraSpell is int es)
+            if (extraSpell is int es)
                 conditions.Add(local + ".ExtraAbility.Id == " + es);
-            else if (h.ExtraSpells.Length > 0)
-                conditions.Add(BuildIdInList(local + ".ExtraAbility.Id", h.ExtraSpells));
+            else if (extraSpells.Length > 0)
+                conditions.Add(BuildIdInList(local + ".ExtraAbility.Id", extraSpells));
         }
 
         var predicate = conditions.Count == 0
@@ -929,10 +974,10 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         string eventTypeFullyQualified,
         int ByActor,
         int ToActor,
-        int? Spell,
-        ImmutableArray<int> Spells,
-        int? ExtraSpell,
-        ImmutableArray<int> ExtraSpells,
+        SpellRef? Spell,
+        ImmutableArray<SpellRef> Spells,
+        SpellRef? ExtraSpell,
+        ImmutableArray<SpellRef> ExtraSpells,
         HandlerReturnKind ReturnKind,
         bool EventImplementsAbility,
         bool EventImplementsExtraAbility,
@@ -946,10 +991,10 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public string EventTypeFullyQualified { get; } = eventTypeFullyQualified;
         public int ByActor { get; } = ByActor;
         public int ToActor { get; } = ToActor;
-        public int? Spell { get; } = Spell;
-        public ImmutableArray<int> Spells { get; } = Spells;
-        public int? ExtraSpell { get; } = ExtraSpell;
-        public ImmutableArray<int> ExtraSpells { get; } = ExtraSpells;
+        public SpellRef? Spell { get; } = Spell;
+        public ImmutableArray<SpellRef> Spells { get; } = Spells;
+        public SpellRef? ExtraSpell { get; } = ExtraSpell;
+        public ImmutableArray<SpellRef> ExtraSpells { get; } = ExtraSpells;
         public HandlerReturnKind ReturnKind { get; } = ReturnKind;
         public bool EventImplementsAbility { get; } = EventImplementsAbility;
         public bool EventImplementsExtraAbility { get; } = EventImplementsExtraAbility;
@@ -978,6 +1023,14 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public string InnerTypeFullyQualified { get; } = InnerTypeFullyQualified;
         public string ParameterName { get; } = ParameterName;
         public string PropertyName { get; } = PropertyName;
+    }
+
+    private sealed class SpellRef(int? Fslid, string? RegistryMemberKey, Location Location, string Display)
+    {
+        public int? Fslid { get; } = Fslid;
+        public string? RegistryMemberKey { get; } = RegistryMemberKey;
+        public Location Location { get; } = Location;
+        public string Display { get; } = Display;
     }
 
     private sealed class PendingDiagnostic(

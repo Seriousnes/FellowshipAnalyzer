@@ -25,7 +25,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string ItemsNamespace = "FellowshipAnalyzer.Core.Common.Items";
     private const string AttributeName = "GenerateRegistryAttribute";
     private const string SpellDbFileName = "spelldb.json";
-    private const string SharedScope = "shared";
+    internal const string SharedScope = "shared";
     private const string ItemsScope = "items";
     private const string SchoolsSection = "schools";
     private const string RaritiesSection = "rarities";
@@ -40,6 +40,20 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string GameNamespace = "FellowshipAnalyzer.Core.Game";
     private const int EffectOffset = 1_000_000;
     private const string GenerationKey = "resourceGeneration";
+
+    private static readonly Dictionary<string, (string TypeName, int Offset)> Kinds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["ability"] = ("Spell", 0),
+        ["effect"] = ("Effect", 1_000_000),
+        ["talent"] = ("Talent", 2_000_000),
+        ["weapon"] = ("Weapon", 3_000_000),
+    };
+
+    private static readonly HashSet<string> Sections = new(StringComparer.Ordinal)
+    {
+        TexturesSharedAcrossRungsSection, SchoolsSection, RaritiesSection, TalentsSection,
+        LegendariesSection, DungeonsSection, AugmentationsSection,
+    };
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
         id: "FA0024",
@@ -115,17 +129,81 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             .Select(static (t, _) => t!)
             .Collect();
 
-        var spellDb = context.AdditionalTextsProvider
+        var spellDb = SpellDbTexts(context);
+
+        var combined = spellDb.Combine(centralTriggers).Combine(context.CompilationProvider);
+
+        context.RegisterSourceOutput(combined, static (spc, data) =>
+            Execute(spc, data.Left.Left, data.Left.Right, data.Right));
+    }
+
+    internal static IncrementalValueProvider<ImmutableArray<string>> SpellDbTexts(IncrementalGeneratorInitializationContext context) =>
+        context.AdditionalTextsProvider
             .Where(static f => f.Path.Replace('\\', '/').EndsWith(SpellDbFileName, StringComparison.OrdinalIgnoreCase))
             .Select(static (f, ct) => f.GetText(ct)?.ToString())
             .Where(static s => !string.IsNullOrEmpty(s))
             .Select(static (s, _) => s!)
             .Collect();
 
-        var combined = spellDb.Combine(centralTriggers).Combine(context.CompilationProvider);
+    internal static Dictionary<string, int> RegistryMemberFslids(ImmutableArray<string> spellDbTexts)
+    {
+        var fslids = new Dictionary<string, int>(StringComparer.Ordinal);
+        if (spellDbTexts.IsDefaultOrEmpty)
+            return fslids;
 
-        context.RegisterSourceOutput(combined, static (spc, data) =>
-            Execute(spc, data.Left.Left, data.Left.Right, data.Right));
+        JsonValue root;
+        try { root = JsonParser.Parse(spellDbTexts[0]); }
+        catch { return fslids; }
+        if (root.Object is not { } scopes)
+            return fslids;
+
+        foreach (var scopeName in SortedKeys(scopes))
+        {
+            if (Sections.Contains(scopeName) || scopes[scopeName].Object is not { } scopeObj)
+                continue;
+            if (!TryGetScopeTarget(scopeName, SpellsNamespace, "Spells", out var target))
+                continue;
+
+            var registryName = target.IsCentral ? SharedScope : target.Namespace + "." + target.ClassName;
+            foreach (var memberName in SortedKeys(scopeObj))
+            {
+                if (scopeObj[memberName].Object is not { } entry
+                    || !entry.TryGetValue("id", out var idValue) || idValue.Number is not { } idNum)
+                    continue;
+
+                var kind = entry.TryGetValue("kind", out var kindValue) && kindValue.String is { } ks ? ks : "ability";
+                if (!Kinds.TryGetValue(kind, out var kindInfo))
+                    continue;
+
+                fslids[RegistryMemberKey(registryName, memberName)] = kindInfo.Offset + (int)Math.Round(idNum);
+            }
+        }
+
+        return fslids;
+    }
+
+    internal static string RegistryMemberKey(string registryName, string memberName) => registryName + "." + memberName;
+
+    private static bool TryGetScopeTarget(string scopeName, string centralNamespace, string centralClassName, out ScopeTarget target)
+    {
+        if (string.Equals(scopeName, SharedScope, StringComparison.OrdinalIgnoreCase))
+        {
+            target = new ScopeTarget(centralNamespace, centralClassName, "global::" + centralNamespace + "." + centralClassName, IsCentral: true);
+            return true;
+        }
+        if (string.Equals(scopeName, ItemsScope, StringComparison.OrdinalIgnoreCase))
+        {
+            target = new ScopeTarget(ItemsNamespace, "Items", "global::" + ItemsNamespace + ".Items", IsCentral: false);
+            return true;
+        }
+        if (IsValidIdentifierSeed(scopeName))
+        {
+            var ns = SpellsNamespace + "." + Pascal(scopeName);
+            target = new ScopeTarget(ns, "Spells", "global::" + ns + ".Spells", IsCentral: false);
+            return true;
+        }
+        target = default;
+        return false;
     }
 
     private static bool IsPartialStaticClassWithAttributes(SyntaxNode node)
@@ -202,13 +280,10 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         var centralGlobalName = "global::" + centralNamespace + "." + centralClassName;
 
         var spellType = compilation.GetTypeByMetadataName(SpellsNamespace + ".Spell");
-        var kindTypes = new Dictionary<string, KindInfo>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["ability"] = new KindInfo("Spell", 0, compilation.GetTypeByMetadataName(SpellsNamespace + ".Spell")),
-            ["effect"] = new KindInfo("Effect", 1_000_000, compilation.GetTypeByMetadataName(SpellsNamespace + ".Effect")),
-            ["talent"] = new KindInfo("Talent", 2_000_000, compilation.GetTypeByMetadataName(SpellsNamespace + ".Talent")),
-            ["weapon"] = new KindInfo("Weapon", 3_000_000, compilation.GetTypeByMetadataName(SpellsNamespace + ".Weapon")),
-        };
+        var kindTypes = new Dictionary<string, KindInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kind in Kinds)
+            kindTypes[kind.Key] = new KindInfo(kind.Value.TypeName, kind.Value.Offset,
+                compilation.GetTypeByMetadataName(SpellsNamespace + "." + kind.Value.TypeName));
 
         var schema = BuildSchema(compilation, spellType);
         var heroNames = BuildHeroNameSet(compilation);
@@ -284,28 +359,14 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 continue;
             }
 
-            ScopeTarget target;
-            if (string.Equals(scopeName, SharedScope, StringComparison.OrdinalIgnoreCase))
-            {
-                target = new ScopeTarget(centralNamespace, centralClassName, centralGlobalName, IsCentral: true);
-            }
-            else if (string.Equals(scopeName, ItemsScope, StringComparison.OrdinalIgnoreCase))
-            {
-                target = new ScopeTarget(ItemsNamespace, "Items", "global::" + ItemsNamespace + ".Items", IsCentral: false);
-            }
-            else if (IsValidIdentifierSeed(scopeName))
-            {
-                var hero = Pascal(scopeName);
-                if (heroNames is not null && !heroNames.Contains(hero))
-                    spc.ReportDiagnostic(Diagnostic.Create(ScopeNotHeroNameDescriptor, Location.None, scopeName));
-                var ns = SpellsNamespace + "." + hero;
-                target = new ScopeTarget(ns, "Spells", "global::" + ns + ".Spells", IsCentral: false);
-            }
-            else
+            if (!TryGetScopeTarget(scopeName, centralNamespace, centralClassName, out var target))
             {
                 spc.ReportDiagnostic(Diagnostic.Create(UnknownScopeDescriptor, Location.None, scopeName));
                 continue;
             }
+
+            if (!target.IsCentral && target.Namespace != ItemsNamespace && heroNames is not null && !heroNames.Contains(Pascal(scopeName)))
+                spc.ReportDiagnostic(Diagnostic.Create(ScopeNotHeroNameDescriptor, Location.None, scopeName));
 
             var members = new List<EmitMember>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -1523,159 +1584,5 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         public HashSet<string> Measures { get; } = Measures;
         public string TriggerGlobalName { get; } = TriggerGlobalName;
         public HashSet<string> Triggers { get; } = Triggers;
-    }
-
-    private readonly struct JsonValue
-    {
-        public Dictionary<string, JsonValue>? Object { get; }
-        public List<JsonValue>? Array { get; }
-        public string? String { get; }
-        public double? Number { get; }
-        public bool? Bool { get; }
-
-        private JsonValue(Dictionary<string, JsonValue>? o, List<JsonValue>? a, string? s, double? n, bool? b = null)
-        {
-            Object = o;
-            Array = a;
-            String = s;
-            Number = n;
-            Bool = b;
-        }
-
-        public static JsonValue Obj(Dictionary<string, JsonValue> o) => new(o, null, null, null);
-        public static JsonValue Arr(List<JsonValue> a) => new(null, a, null, null);
-        public static JsonValue Str(string s) => new(null, null, s, null);
-        public static JsonValue Num(double n) => new(null, null, null, n);
-        public static JsonValue Boolean(bool b) => new(null, null, null, null, b);
-        public static JsonValue Empty() => new(null, null, null, null);
-    }
-
-    private static class JsonParser
-    {
-        public static JsonValue Parse(string text)
-        {
-            int pos = 0;
-            SkipWhitespace(text, ref pos);
-            var value = ParseValue(text, ref pos);
-            return value;
-        }
-
-        private static JsonValue ParseValue(string s, ref int pos)
-        {
-            SkipWhitespace(s, ref pos);
-            char c = s[pos];
-            switch (c)
-            {
-                case '{': return ParseObject(s, ref pos);
-                case '[': return ParseArray(s, ref pos);
-                case '"': return JsonValue.Str(ParseString(s, ref pos));
-                case 't': pos += 4; return JsonValue.Boolean(true);
-                case 'f': pos += 5; return JsonValue.Boolean(false);
-                case 'n': pos += 4; return JsonValue.Empty();
-                default: return JsonValue.Num(ParseNumber(s, ref pos));
-            }
-        }
-
-        private static JsonValue ParseObject(string s, ref int pos)
-        {
-            var result = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
-            pos++;
-            SkipWhitespace(s, ref pos);
-            if (s[pos] == '}') { pos++; return JsonValue.Obj(result); }
-            while (true)
-            {
-                SkipWhitespace(s, ref pos);
-                var key = ParseString(s, ref pos);
-                SkipWhitespace(s, ref pos);
-                pos++;
-                var value = ParseValue(s, ref pos);
-                result[key] = value;
-                SkipWhitespace(s, ref pos);
-                char c = s[pos++];
-                if (c == ',') continue;
-                if (c == '}') break;
-            }
-            return JsonValue.Obj(result);
-        }
-
-        private static JsonValue ParseArray(string s, ref int pos)
-        {
-            var result = new List<JsonValue>();
-            pos++;
-            SkipWhitespace(s, ref pos);
-            if (s[pos] == ']') { pos++; return JsonValue.Arr(result); }
-            while (true)
-            {
-                result.Add(ParseValue(s, ref pos));
-                SkipWhitespace(s, ref pos);
-                char c = s[pos++];
-                if (c == ',') continue;
-                if (c == ']') break;
-            }
-            return JsonValue.Arr(result);
-        }
-
-        private static string ParseString(string s, ref int pos)
-        {
-            pos++;
-            var sb = new StringBuilder();
-            while (true)
-            {
-                char c = s[pos++];
-                if (c == '"') break;
-                if (c == '\\')
-                {
-                    char e = s[pos++];
-                    switch (e)
-                    {
-                        case '"': sb.Append('"'); break;
-                        case '\\': sb.Append('\\'); break;
-                        case '/': sb.Append('/'); break;
-                        case 'b': sb.Append('\b'); break;
-                        case 'f': sb.Append('\f'); break;
-                        case 'n': sb.Append('\n'); break;
-                        case 'r': sb.Append('\r'); break;
-                        case 't': sb.Append('\t'); break;
-                        case 'u':
-                            var hex = s.Substring(pos, 4);
-                            pos += 4;
-                            sb.Append((char)int.Parse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture));
-                            break;
-                        default: sb.Append(e); break;
-                    }
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-            return sb.ToString();
-        }
-
-        private static double ParseNumber(string s, ref int pos)
-        {
-            int start = pos;
-            while (pos < s.Length)
-            {
-                char c = s[pos];
-                if (c is '-' or '+' or '.' or 'e' or 'E' || (c >= '0' && c <= '9'))
-                    pos++;
-                else
-                    break;
-            }
-            return double.Parse(s.Substring(start, pos - start), NumberStyles.Float, CultureInfo.InvariantCulture);
-        }
-
-        private static void SkipWhitespace(string s, ref int pos)
-        {
-            while (pos < s.Length)
-            {
-                char c = s[pos];
-                if (c is ' ' or '\t' or '\n' or '\r')
-                    pos++;
-                else
-                    break;
-            }
-        }
     }
 }

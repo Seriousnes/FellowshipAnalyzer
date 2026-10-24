@@ -43,7 +43,7 @@ public sealed class WeaponCooldownAccelerationTests
     [Fact]
     public void ExportedWeaponSpells_AreWeaponAbilities()
     {
-        Assert.Equal(AbilityCategory.Weapon, Spells.Chronoshift.AbilityCategory);
+        Assert.Equal(AbilityCategory.Weapon, Items.Chronoshift.AbilityCategory);
         Assert.Equal(AbilityCategory.Weapon, Items.FatedStrike.AbilityCategory);
         Assert.Equal(AbilityCategory.Weapon, Items.TwilightSkybolt.AbilityCategory);
     }
@@ -57,7 +57,7 @@ public sealed class WeaponCooldownAccelerationTests
     {
         Assert.False(new CooldownModifier(0.10).Accelerates(Ability(Items.TwilightSkybolt)));
         Assert.True(new CooldownModifier(2.0) { GrantedBy = Items.FatedStrike }.Accelerates(Ability(Items.FatedStrike)));
-        Assert.True(new CooldownModifier(7.0) { GrantedBy = Spells.Chronoshift }.Accelerates(Ability(Spells.Chronoshift)));
+        Assert.True(new CooldownModifier(7.0) { GrantedBy = Items.Chronoshift }.Accelerates(Ability(Items.Chronoshift)));
     }
 
     /// <summary>

@@ -12,7 +12,6 @@ using Shouldly;
 
 using Xunit;
 
-using CoreSpells = FellowshipAnalyzer.Core.Common.Spells.Spells;
 using Items = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis;
@@ -437,7 +436,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { FSLID = CoreSpells.Chronoshift.FSLID, Name = "Chronoshift" },
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
     };
 
     private static CombatantInfoEvent CombatantWithDevouringBracers() => new()

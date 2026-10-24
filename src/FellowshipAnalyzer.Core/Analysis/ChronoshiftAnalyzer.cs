@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI.Components;
@@ -29,7 +30,7 @@ public sealed partial class ChronoshiftAnalyzer(
 {
     private const double AddedRecovery = 7.0;
 
-    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Spells.Chronoshift };
+    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Items.Chronoshift };
 
     private const int ChannelDurationMs = 3000;
 
@@ -58,7 +59,7 @@ public sealed partial class ChronoshiftAnalyzer(
     /// <summary>Total bonus cooldown recovery Chronoshift granted across all abilities, in milliseconds.</summary>
     public int TotalRecoveredMs => _recoveryBySpell.Values.Sum();
 
-    [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
+    [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Items.Chronoshift))]
     private void OnBeginChannel(BeginChannelEvent e)
     {
         CloseWindow(e.Timestamp, e);
@@ -95,7 +96,7 @@ public sealed partial class ChronoshiftAnalyzer(
             _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
     }
 
-    [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
+    [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Items.Chronoshift))]
     private void OnEndChannel(EndChannelEvent e) => CloseWindow(e.Timestamp, e);
 
     private void CloseWindow(int timestamp, Event? trigger)
