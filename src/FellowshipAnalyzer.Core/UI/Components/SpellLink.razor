@@ -1,8 +1,10 @@
+@using Fellowship.SDK
 @using Fellowship.SDK.Client
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-<a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" class="spell-link">
+<a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" data-tooltip-body="@_request" class="spell-link">
     @if (Icon && _icon is { Length: > 0 })
     {
         <img src="@IconUrl" class="spell-link__icon" alt="" />
@@ -13,6 +15,9 @@
 @code {
     [Parameter, EditorRequired]
     public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
+
+    [CascadingParameter]
+    public HeroName? Hero { get; set; }
 
     /// <summary>Whether to render the spell icon alongside the name. Defaults to <c>true</c>.</summary>
     [Parameter]
@@ -26,8 +31,9 @@
     private SpellKind _kind;
     private string? _name;
     private string? _icon;
+    private string? _request;
 
-    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(_spellId), _spellId));
+    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(_spellId), _spellId, Hero?.ToString()));
 
     private string? TooltipPath => _spellId > 0
         ? CodexAddresses.Tooltip(_kind.ToEntityType(_spellId), _spellId)
@@ -54,5 +60,16 @@
             a => { var s = a.PrimarySpell; _spellId = s.Id; _kind = s.FSLID.Kind; _name = a.Name ?? s.Name; _icon = s.Icon; },
             a => { _spellId = a.FSLID.NativeId; _kind = a.FSLID.Kind; _name = a.Name; _icon = a.Icon; }
         );
+
+        _request = _spellId > 0 && Hero?.ToString() is { } hero
+            ? _kind.ToEntityType(_spellId) switch
+            {
+                EntityType.Ability => TooltipBody.Write(new AbilityTooltipRequest { Hero = hero }),
+                EntityType.Effect => TooltipBody.Write(new EffectTooltipRequest { Hero = hero }),
+                EntityType.Enchant => TooltipBody.Write(new EnchantTooltipRequest { Hero = hero }),
+                EntityType.WeaponPower => TooltipBody.Write(new WeaponPowerTooltipRequest { Hero = hero }),
+                _ => null,
+            }
+            : null;
     }
 }

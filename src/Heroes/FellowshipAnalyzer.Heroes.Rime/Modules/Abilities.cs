@@ -99,6 +99,13 @@ public class Abilities : CoreAbilities
         },
         new()
         {
+            PrimarySpell = Items.Chronoshift,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(Items.AshasChronoshiftSpire_Rime.Id) == true,
+        },
+        new()
+        {
             PrimarySpell = Spells.FrostSwallows,
             AdditionalSpells = [Spells.FrostSwallowsDamage],
             Category = SpellCategory.Cooldowns,

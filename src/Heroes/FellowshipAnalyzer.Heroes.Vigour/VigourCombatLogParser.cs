@@ -13,7 +13,6 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Analysis;
 [AddAnalyzer<VigourSpellUsable>]
 [AddAnalyzer<AvatarOfLightAnalyzer>]
 [AddAnalyzer<RemoveMagicAnalyzer>]
-[AddAnalyzer<SacredBarrierAnalyzer>]
 public sealed partial class VigourCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(VigourGuide);

@@ -111,20 +111,45 @@ public sealed class DowntimeAnalyzerTests
     }
 
     [Fact]
-    public async Task AHardCast_IsActiveFromItsBeginCastRatherThanFromItsCompletion()
+    public async Task AHardCastLongerThanItsGlobalCooldown_IsActiveFromItsBeginCastToItsCompletion()
     {
         const int castStart = 2_000;
         const int castTime = 2_500;
 
-        var analyzer = await AnalyzeAsync(
-            dungeonEndTime: castStart + castTime + Gcd,
+        var events = new Event[]
+        {
             Cast(1_000, Spells.ColdSnap),
             BeginCast(castStart, Spells.FrostBolt),
-            Cast(castStart + castTime, Spells.FrostBolt));
+            Cast(castStart + castTime, Spells.FrostBolt),
+        };
+        var analyzer = (await Analyze(Dungeon(DungeonEnd), events)).DowntimeAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.GapCount.ShouldBe(0);
-        analyzer.ActiveMs.ShouldBe(castStart + castTime + Gcd - 1_000);
-        analyzer.ActiveRatio.ShouldBe(1);
+        events.OfType<CastEvent>().Last().GlobalCooldown.ShouldNotBeNull().Timestamp.ShouldBe(castStart);
+        var gap = analyzer.Gaps.ShouldHaveSingleItem();
+        gap.StartTimestamp.ShouldBe(castStart + castTime);
+        gap.DurationMs.ShouldBe(DungeonEnd - (castStart + castTime));
+        analyzer.ActiveMs.ShouldBe(castStart + castTime - 1_000);
+    }
+
+    [Fact]
+    public async Task AHardCastShorterThanItsGlobalCooldown_IsActiveFromItsBeginCastUntilTheGlobalCooldownExpires()
+    {
+        const int castStart = 2_000;
+        const int castTime = 1_000;
+
+        var events = new Event[]
+        {
+            Cast(1_000, Spells.ColdSnap),
+            BeginCast(castStart, Spells.FrostBolt),
+            Cast(castStart + castTime, Spells.FrostBolt),
+        };
+        var analyzer = (await Analyze(Dungeon(DungeonEnd), events)).DowntimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        events.OfType<CastEvent>().Last().GlobalCooldown.ShouldNotBeNull().Timestamp.ShouldBe(castStart);
+        var gap = analyzer.Gaps.ShouldHaveSingleItem();
+        gap.StartTimestamp.ShouldBe(castStart + Gcd);
+        gap.DurationMs.ShouldBe(DungeonEnd - (castStart + Gcd));
+        analyzer.ActiveMs.ShouldBe(castStart + Gcd - 1_000);
     }
 
     [Fact]

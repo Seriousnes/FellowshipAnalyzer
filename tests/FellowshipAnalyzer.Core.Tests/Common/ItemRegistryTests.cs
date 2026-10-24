@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Items;
 using Xunit;
 
@@ -10,6 +11,8 @@ file class TestItems : IItemRegistry
 {
     public static Item TestPotion { get; } = new(99001, "Test Potion", "T_Test_Potion.jpg");
     public static Item TestTrinket { get; } = new(99002, "Test Trinket", "T_Test_Trinket.jpg");
+    public static Item TestWeaponAeona { get; } = new(99003, "Test Weapon Aeona", "T_Test_Weapon_Aeona.jpg", HeroName.Aeona);
+    public static Item TestWeaponSylvie { get; } = new(99003, "Test Weapon Sylvie", "T_Test_Weapon_Sylvie.jpg", HeroName.Sylvie);
 }
 
 public class ItemRegistryTests
@@ -68,6 +71,44 @@ public class ItemRegistryTests
 
         Assert.False(found);
         Assert.Null(item);
+    }
+
+    [Fact]
+    public void MaybeGet_SharedIdWithHero_ReturnsThatHerosItem()
+    {
+        Assert.Same(TestItems.TestWeaponAeona, ItemRegistry.MaybeGet(99003, HeroName.Aeona));
+        Assert.Same(TestItems.TestWeaponSylvie, ItemRegistry.MaybeGet(99003, HeroName.Sylvie));
+    }
+
+    [Fact]
+    public void MaybeGet_SharedIdWithHeroWithoutOwnItem_ReturnsNull()
+    {
+        Assert.Null(ItemRegistry.MaybeGet(99003, HeroName.Rime));
+    }
+
+    [Fact]
+    public void MaybeGet_HeroOnItemNoHeroReads_ReturnsItem()
+    {
+        Assert.Same(TestItems.TestPotion, ItemRegistry.MaybeGet(TestItems.TestPotion.Id, HeroName.Rime));
+    }
+
+    [Fact]
+    public void MaybeGet_FragmentsOfFrozenTimeIdWithHero_ReturnsThatHerosWeapon()
+    {
+        Assert.Same(Items.FragmentsOfFrozenTime, ItemRegistry.MaybeGet(Items.FragmentsOfFrozenTime.Id, HeroName.Aeona));
+        Assert.Same(Items.IceshapersBrand, ItemRegistry.MaybeGet(Items.FragmentsOfFrozenTime.Id, HeroName.Sylvie));
+        Assert.Same(Items.AncientIceshapersTome, ItemRegistry.MaybeGet(Items.FragmentsOfFrozenTime.Id, HeroName.Vigour));
+    }
+
+    [Fact]
+    public void MaybeGet_LegendaryIdWithHero_ReturnsThatHerosLegendary()
+    {
+        var aeona = FellowshipAnalyzer.Core.Common.Spells.Aeona.Legendaries.LonesomeSong;
+        var sylvie = FellowshipAnalyzer.Core.Common.Spells.Sylvie.Legendaries.UnrelentingThicket;
+
+        Assert.Equal(aeona.Id, sylvie.Id);
+        Assert.Same(aeona, ItemRegistry.MaybeGet(aeona.Id, HeroName.Aeona));
+        Assert.Same(sylvie, ItemRegistry.MaybeGet(sylvie.Id, HeroName.Sylvie));
     }
 
     [Fact]

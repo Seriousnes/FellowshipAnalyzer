@@ -12,6 +12,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Analysis;
 [AddAnalyzer<CullingStrikeAnalyzer>]
 [AddAnalyzer<ExecutionersGrinTracker>]
 [AddAnalyzer<RisingSpiritTracker>]
+[AddAnalyzer<KillEmAllAnalyzer>]
 [AddModule<Modules.Abilities>]
 public sealed partial class TariqCombatLogParser : CombatLogParser
 {

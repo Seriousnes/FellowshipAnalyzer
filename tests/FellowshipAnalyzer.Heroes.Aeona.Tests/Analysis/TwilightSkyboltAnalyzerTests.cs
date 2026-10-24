@@ -12,6 +12,7 @@ using Shouldly;
 using Xunit;
 
 using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
+using CoreSpells = FellowshipAnalyzer.Core.Common.Spells.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 
@@ -103,7 +104,7 @@ public sealed class TwilightSkyboltAnalyzerTests
             ],
         };
 
-        var analyzers = await AnalyzeAll(dungeon, SkyboltCast(castTime));
+        var (analyzers, _) = await AnalyzeAll(dungeon, SkyboltCast(castTime));
 
         analyzers.Count.ShouldBe(2);
         analyzers[0].TimeAtMaxChargesMs.ShouldBe(castTime);
@@ -113,13 +114,58 @@ public sealed class TwilightSkyboltAnalyzerTests
         analyzers[1].TimeAtMaxChargesMs.ShouldBe(DungeonEndTime - chargeBack);
     }
 
+    [Fact]
+    public async Task EachPull_ReadsTheRechargeItsOwnHasteGave()
+    {
+        var firstPullEnd = 20_000;
+        var secondPullStart = 25_000;
+
+        var dungeon = Dungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(Id: 1, EncounterId: 1, Kill: true, StartTime: 0, EndTime: firstPullEnd, Name: "First", EnemyNpcs: null),
+                new DungeonPull(Id: 2, EncounterId: 2, Kill: true, StartTime: secondPullStart, EndTime: DungeonEndTime, Name: "Second", EnemyNpcs: null),
+            ],
+        };
+
+        var (analyzers, haste) = await AnalyzeAll(dungeon, SpiritOfHeroism(secondPullStart));
+
+        haste.ShouldBeGreaterThan(0);
+        var hastedRechargeMs = (int)(RechargeMs / (1 + haste));
+
+        analyzers.Count.ShouldBe(2);
+        analyzers[0].RechargeDurationMs.ShouldBe(RechargeMs);
+        analyzers[0].ChargesLost.ShouldBe(firstPullEnd / RechargeMs);
+        analyzers[1].RechargeDurationMs.ShouldBeInRange(hastedRechargeMs - 1, hastedRechargeMs + 1);
+        analyzers[1].ChargesLost.ShouldBe(analyzers[1].TimeAtMaxChargesMs / analyzers[1].RechargeDurationMs);
+    }
+
+    [Fact]
+    public async Task ChargesLost_SplitsACappedPullAtAHasteChange()
+    {
+        var pullEnd = 35_000;
+        var hasteAt = 17_500;
+        var (analyzers, haste) = await AnalyzeAll(Dungeon with { EndTime = pullEnd }, SpiritOfHeroism(hasteAt));
+
+        haste.ShouldBeGreaterThan(0);
+        var hastedRechargeMs = (int)(RechargeMs / (1 + haste));
+        var expected = (int)Math.Floor(
+            ((double)hasteAt / RechargeMs) + ((double)(pullEnd - hasteAt) / hastedRechargeMs));
+
+        var analyzer = analyzers.ShouldHaveSingleItem();
+        analyzer.TimeAtMaxChargesMs.ShouldBe(pullEnd);
+        analyzer.ChargesLost.ShouldBe(expected);
+        analyzer.ChargesLost.ShouldNotBe(analyzer.TimeAtMaxChargesMs / analyzer.RechargeDurationMs);
+    }
+
     private static async Task<TwilightSkyboltAnalyzer> Analyze(params Event[] events)
     {
-        var analyzers = await AnalyzeAll(Dungeon, events);
+        var (analyzers, _) = await AnalyzeAll(Dungeon, events);
         return analyzers.ShouldHaveSingleItem();
     }
 
-    private static async Task<List<TwilightSkyboltAnalyzer>> AnalyzeAll(ReportDungeon dungeon, params Event[] events)
+    private static async Task<(List<TwilightSkyboltAnalyzer> Analyzers, double HasteAtEnd)> AnalyzeAll(ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -137,8 +183,16 @@ public sealed class TwilightSkyboltAnalyzerTests
         foreach (var entry in entries)
             entry.Pull.TwilightSkyboltAnalyzer.ShouldBeSameAs(entry.Analyzer);
 
-        return [.. entries.Select(entry => entry.Analyzer)];
+        return ([.. entries.Select(entry => entry.Analyzer)], parser.GetModule<Haste>()!.Current);
     }
+
+    private static ApplyBuffEvent SpiritOfHeroism(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { Id = CoreSpells.SpiritOfHeroismHealer.FSLID },
+    };
 
     private static CastEvent SkyboltCast(int timestamp) => new()
     {

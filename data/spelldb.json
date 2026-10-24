@@ -6,6 +6,7 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "primary": 30
@@ -53,6 +54,12 @@
       "name": "Converging Timelines",
       "icon": "T_Nhance_RPG_Shadow_40"
     },
+    "ConvergingTimelinesLonesomeSong": {
+      "kind": "effect",
+      "id": 2820,
+      "name": "Converging Timelines",
+      "icon": "T_Nhance_RPG_Shadow_40"
+    },
     "EchoesOfDivinity": {
       "kind": "effect",
       "id": 2818,
@@ -65,6 +72,7 @@
       "name": "Echoes of Ruin",
       "icon": "T_Lisa_Burst",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 2,
       "costs": {
@@ -114,6 +122,7 @@
       "icon": "T_Lisa_Wither",
       "abilityCategory": "Core",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -144,6 +153,7 @@
       "name": "Epoch Break",
       "icon": "T_Lisa_Spirit",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -186,6 +196,7 @@
       "name": "Flash Revision",
       "icon": "T_Lisa_TimeMend",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -216,6 +227,7 @@
       "icon": "T_Lisa_TimeBuff",
       "abilityCategory": "Major",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 79
@@ -246,6 +258,7 @@
       "icon": "T_Lisa_AoESilence",
       "abilityCategory": "Control",
       "cooldown": 200,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 500,
       "costs": {
@@ -282,6 +295,7 @@
       "name": "Oblivion",
       "icon": "T_Lisa_ChronaBlast",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "primary": 30
@@ -341,6 +355,7 @@
       "name": "Restore Continuity",
       "icon": "T_Lisa_ChronaWave",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "costs": {
         "primary": 50
       }
@@ -370,6 +385,7 @@
       "icon": "T_Lisa_Dispel",
       "abilityCategory": "Utility",
       "cooldown": 6,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 82
@@ -407,6 +423,7 @@
       "abilityCategory": "Core",
       "cooldown": 15,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.5,
@@ -444,6 +461,7 @@
       "name": "Time Shard",
       "icon": "T_Lisa_FillerCast",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -474,7 +492,8 @@
       "name": "Time Skip",
       "icon": "T_Lisa_Blink",
       "abilityCategory": "Defensive",
-      "cooldown": 15
+      "cooldown": 15,
+      "castTimeScalesWithHaste": true
     },
     "TimeSkipMoveSpeedBuff": {
       "kind": "effect",
@@ -495,6 +514,7 @@
       "icon": "T_Lisa_StrandsofTime",
       "abilityCategory": "Major",
       "cooldown": 45,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 2,
       "costs": {
@@ -546,6 +566,7 @@
       "icon": "Firemage_Apocalypse",
       "abilityCategory": "Major",
       "cooldown": 45,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 1000,
       "castDuration": 3
@@ -586,6 +607,7 @@
       "name": "Detonate",
       "icon": "Firemage_detonate",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "castDuration": 1.5
     },
     "DetonateCustomGlobalCooldown": {
@@ -625,6 +647,7 @@
       "icon": "Firemage_Dot_01",
       "abilityCategory": "Core",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "cooldownReductionOnTargetDeath": 10,
       "range": 3000,
       "charges": 2,
@@ -661,6 +684,7 @@
       "abilityCategory": "Core",
       "cooldown": 30,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 500,
       "charges": 2
@@ -733,6 +757,7 @@
       "icon": "Firemage_Disorient",
       "abilityCategory": "Control",
       "cooldown": 24,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "FireflashDamage": {
@@ -753,7 +778,8 @@
       "name": "Flame Ward",
       "icon": "Firemage_FlameShield",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "FlameWardSelfBuff": {
       "kind": "effect",
@@ -775,6 +801,7 @@
       "icon": "Firemage_Blink",
       "abilityCategory": "Movement",
       "cooldown": 25,
+      "castTimeScalesWithHaste": true,
       "charges": 2,
       "channelDuration": 1,
       "channelTickInterval": 1
@@ -797,6 +824,7 @@
       "name": "Incinerate",
       "icon": "Firemage_Spirit",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "radius": 300,
       "castDuration": 1.5,
       "channelDuration": 2.5,
@@ -835,6 +863,7 @@
       "name": "Infernal Wave",
       "icon": "Firemage_Bolt",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "resourceGeneration": {
@@ -862,6 +891,7 @@
       "icon": "Firemage_Pyromania",
       "abilityCategory": "Major",
       "cooldown": 90,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ReignOfFireBuff": {
@@ -877,6 +907,7 @@
       "icon": "Firemage_interrupt",
       "abilityCategory": "Utility",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ScorchInterrupt": {
@@ -897,6 +928,7 @@
       "name": "Searing Blaze",
       "icon": "Firemage_Dot_02",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "resourceGeneration": {
         "resource": "primary",
@@ -923,6 +955,7 @@
       "icon": "Firemage_Wildfire",
       "abilityCategory": "Major",
       "cooldown": 45,
+      "castTimeScalesWithHaste": true,
       "range": 6000
     },
     "WildfireDotBonusBuff": {
@@ -945,6 +978,7 @@
       "name": "Celestial Shot",
       "icon": "Bowguy_Shot",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "primary": 15
@@ -968,7 +1002,8 @@
       "name": "Celestial Veil",
       "icon": "Bowguy_Abilityicon_Defensive",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "CelestialVeilSelfBuff": {
       "kind": "effect",
@@ -983,6 +1018,7 @@
       "icon": "Bowguy_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "DisruptInterrupt": {
@@ -1003,6 +1039,7 @@
       "name": "Event Horizon",
       "icon": "Bowguy_Spirit",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "castDuration": 0.7,
       "costs": {
         "spirit": 100
@@ -1044,6 +1081,7 @@
       "name": "Focused Shot",
       "icon": "Bowguy_FocusShot",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "resourceGeneration": {
@@ -1077,6 +1115,7 @@
       "icon": "Bowguy_GrappleShot",
       "abilityCategory": "Control",
       "cooldown": 120,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "charges": 2
@@ -1100,6 +1139,7 @@
       "icon": "Bowguy_Spray",
       "abilityCategory": "Power",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.2,
@@ -1133,6 +1173,7 @@
       "abilityCategory": "Power",
       "cooldown": 15,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "charges": 3,
       "castDuration": 2,
@@ -1177,6 +1218,7 @@
       "icon": "Bowguy_Mark",
       "abilityCategory": "Major",
       "cooldown": 40,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "primary": 20
@@ -1213,6 +1255,7 @@
       "name": "Multishot",
       "icon": "Bowguy_Multishot",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 600,
       "costs": {
@@ -1275,6 +1318,7 @@
       "id": 1303,
       "name": "Shoot",
       "icon": "Bowguy_FocusShot",
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ShootDamage": {
@@ -1289,7 +1333,8 @@
       "name": "Skystrider\u0027s Grace",
       "icon": "Bowguy_HasteBuff",
       "abilityCategory": "Major",
-      "cooldown": 120
+      "cooldown": 120,
+      "castTimeScalesWithHaste": true
     },
     "SkystridersGraceBuff": {
       "kind": "effect",
@@ -1303,7 +1348,8 @@
       "name": "Skystrider\u0027s Supremacy",
       "icon": "Bowguy_Supremacy",
       "abilityCategory": "Major",
-      "cooldown": 45
+      "cooldown": 45,
+      "castTimeScalesWithHaste": true
     },
     "SkystridersSupremacyBuff": {
       "kind": "effect",
@@ -1324,6 +1370,7 @@
       "icon": "Bowguy_Rain",
       "abilityCategory": "Power",
       "cooldown": 40,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 700,
       "costs": {
@@ -1361,6 +1408,7 @@
       "id": 1249,
       "name": "Attack",
       "icon": "Gunde_AOESwing_01",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "AttackDamage": {
@@ -1383,6 +1431,7 @@
       "abilityCategory": "Core",
       "cooldown": 9,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 700,
       "radius": 700
     },
@@ -1392,12 +1441,19 @@
       "name": "Blood Arc",
       "icon": "Gunde_Frontal"
     },
+    "Bloodbath": {
+      "kind": "effect",
+      "id": 3216,
+      "name": "Bloodbath",
+      "icon": "T_Nhance_RPG_BloodCombat_22"
+    },
     "BloodboundSpirit": {
       "kind": "ability",
       "id": 2296,
       "name": "Bloodbound Spirit",
       "icon": "T_Gunde_Spirit",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "range": 1000,
       "radius": 1000,
       "castDuration": 1,
@@ -1424,6 +1480,7 @@
       "icon": "T_Gunde_Grip",
       "abilityCategory": "Control",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ButcherHookDamage": {
@@ -1450,6 +1507,7 @@
       "name": "Double Strike",
       "icon": "T_Gunde_DoubleStrike",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "DoubleStrikeDamage": {
@@ -1485,6 +1543,7 @@
       "abilityCategory": "Power",
       "cooldown": 15,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 850
     },
@@ -1502,6 +1561,13 @@
       "abilityCategory": "Core",
       "cooldown": 12,
       "cooldownHaste": "Duration",
+      "chargeGrant": {
+        "source": "LegendaryItem",
+        "id": 5898,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "HeartSplitterDamage": {
@@ -1529,6 +1595,7 @@
       "icon": "t_gunde_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 12,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "JawbreakerInterrupt": {
@@ -1556,6 +1623,7 @@
       "icon": "T_Gunde_SanguineFeast",
       "abilityCategory": "Utility",
       "cooldown": 3,
+      "castTimeScalesWithHaste": true,
       "range": 2000
     },
     "OwedInBloodAoe": {
@@ -1564,6 +1632,7 @@
       "name": "Owed in Blood",
       "icon": "T_Gunde_SanguineFeast",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 1000,
       "radius": 1000
     },
@@ -1593,6 +1662,7 @@
       "abilityCategory": "Basic",
       "cooldown": 5,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 700,
       "radius": 700
     },
@@ -1608,7 +1678,8 @@
       "name": "Reckless Abandon",
       "icon": "T_Gunde_Defensive",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "RecklessAbandonSelfBuff": {
       "kind": "effect",
@@ -1622,7 +1693,8 @@
       "name": "Reign in Blood",
       "icon": "T_Gunde_HPDrain",
       "abilityCategory": "Major",
-      "cooldown": 90
+      "cooldown": 90,
+      "castTimeScalesWithHaste": true
     },
     "ReignInBloodSelfBuff": {
       "kind": "effect",
@@ -1655,6 +1727,7 @@
       "icon": "T_Gunde_Rupture",
       "abilityCategory": "Power",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "RuptureDamage": {
@@ -1676,6 +1749,7 @@
       "icon": "T_Gunde_Slaughter",
       "abilityCategory": "Major",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "range": 700,
       "radius": 700
     },
@@ -1707,6 +1781,7 @@
       "id": 978,
       "name": "Attack",
       "icon": "Tex_swords_01_bg",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "AttackDamage": {
@@ -1722,6 +1797,7 @@
       "icon": "T_Warmaster_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 12,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "BashInterrupt": {
@@ -1743,6 +1819,7 @@
       "icon": "T_Warmaster_Charge",
       "abilityCategory": "Movement",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ChargeCharge": {
@@ -1797,6 +1874,12 @@
       "icon": "T_WM_HoldTheLine",
       "abilityCategory": "Major",
       "cooldown": 30,
+      "chargeGrant": {
+        "source": "LegendaryItem",
+        "id": 5899,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
       "range": 4000
     },
     "HoldTheLineAllyBuff": {
@@ -1817,7 +1900,8 @@
       "name": "Iron Wall",
       "icon": "T_Warmaster_IronWall",
       "abilityCategory": "Major",
-      "cooldown": 90
+      "cooldown": 90,
+      "castTimeScalesWithHaste": true
     },
     "IronWallBuff": {
       "kind": "effect",
@@ -1831,6 +1915,7 @@
       "name": "Measured Strike",
       "icon": "T_Warmaster_BasicStrike",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "MeasuredStrikeDamage": {
@@ -1847,6 +1932,7 @@
       "abilityCategory": "Basic",
       "cooldown": 6,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "PowerStrikeCleaveDamage": {
@@ -1888,6 +1974,7 @@
       "abilityCategory": "Core",
       "cooldown": 7.5,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 500,
       "charges": 2,
       "costs": {
@@ -1962,6 +2049,7 @@
       "abilityCategory": "Core",
       "cooldown": 21,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ShieldThrowDamage": {
@@ -1984,6 +2072,7 @@
       "abilityCategory": "Defensive",
       "cooldown": 30,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "charges": 2,
       "costs": {
         "secondary": 3
@@ -2015,6 +2104,7 @@
       "abilityCategory": "Power",
       "cooldown": 30,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "radius": 1000
     },
     "ShockwaveDamage": {
@@ -2082,6 +2172,7 @@
       "icon": "T_Warmaster_BleedStrike",
       "abilityCategory": "Power",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "range": 800,
       "costs": {
         "secondary": 2
@@ -2130,6 +2221,7 @@
       "icon": "T_warmaster_Taunt",
       "abilityCategory": "Utility",
       "cooldown": 8,
+      "castTimeScalesWithHaste": true,
       "range": 4000,
       "charges": 2
     },
@@ -2153,6 +2245,7 @@
       "name": "Arachnid Assault",
       "icon": "Mara_SpiderAOE",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 800,
       "radius": 800,
       "costs": {
@@ -2176,6 +2269,7 @@
       "id": 1209,
       "name": "Attack",
       "icon": "Tex_swords_05_bg",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "AttackDamage": {
@@ -2190,6 +2284,7 @@
       "name": "Backstab",
       "icon": "Mara_backstab",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 500,
       "costs": {
         "primary": 20
@@ -2291,7 +2386,8 @@
       "name": "Final Stratagem",
       "icon": "Mara_Strategem",
       "abilityCategory": "Major",
-      "cooldown": 180
+      "cooldown": 180,
+      "castTimeScalesWithHaste": true
     },
     "FromTheShadows": {
       "kind": "ability",
@@ -2306,6 +2402,7 @@
       "icon": "Mara_Bleed",
       "abilityCategory": "Power",
       "cooldown": 2,
+      "castTimeScalesWithHaste": true,
       "range": 500,
       "costs": {
         "primary": 20
@@ -2354,6 +2451,7 @@
       "icon": "Mara_Kick",
       "abilityCategory": "Utility",
       "cooldown": 16,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "KickAlt": {
@@ -2395,7 +2493,8 @@
       "name": "Macabre Stratagem",
       "icon": "T_Nhance_RPG_Shadow_16",
       "abilityCategory": "Major",
-      "cooldown": 180
+      "cooldown": 180,
+      "castTimeScalesWithHaste": true
     },
     "MaidenOfDeath": {
       "kind": "ability",
@@ -2403,7 +2502,8 @@
       "name": "Maiden of Death",
       "icon": "Mara_Maiden",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "castTimeScalesWithHaste": true
     },
     "MaidenOfDeathBuff": {
       "kind": "effect",
@@ -2435,6 +2535,7 @@
       "name": "Matriarch Macabre",
       "icon": "Mara_Spirit",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "costs": {
         "spirit": 100
       }
@@ -2457,6 +2558,7 @@
       "name": "Queen\u0027s Fang",
       "icon": "Mara_SingleTargetFinisher",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 500,
       "costs": {
         "primary": 40
@@ -2488,7 +2590,8 @@
       "name": "Shadow Ward",
       "icon": "Mara_Defensive",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "ShadowWardSelfBuff": {
       "kind": "effect",
@@ -2502,6 +2605,7 @@
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 800,
       "radius": 800,
       "costs": {
@@ -2557,6 +2661,7 @@
       "icon": "Mara_Stalkerstep",
       "abilityCategory": "Movement",
       "cooldown": 15,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "charges": 2
     },
@@ -2585,6 +2690,7 @@
       "icon": "Mara_Stun",
       "abilityCategory": "Control",
       "cooldown": 24,
+      "castTimeScalesWithHaste": true,
       "range": 1000
     },
     "WebCrackCost": {
@@ -2607,6 +2713,7 @@
       "abilityCategory": "Core",
       "cooldown": 9,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 500,
       "charges": 3,
       "resourceGeneration": {
@@ -2659,6 +2766,7 @@
       "id": 1118,
       "name": "Attack",
       "icon": "T_Nhance_RPG_Icons_HolyHand",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "AttackDamage": {
@@ -2680,6 +2788,7 @@
       "icon": "T_Meiko_Massgrip",
       "abilityCategory": "Control",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "radius": 1400
     },
     "CycloneActivator": {
@@ -2847,7 +2956,8 @@
       "icon": "T_Meiko_Selfheal",
       "abilityCategory": "Utility",
       "cooldown": 10,
-      "cooldownHaste": "Duration"
+      "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true
     },
     "SerenityHealBonusTracker": {
       "kind": "effect",
@@ -2927,6 +3037,7 @@
       "name": "Spirited Vortex",
       "icon": "Meiko_AbilityIcon_07",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "radius": 800
     },
     "SpiritedVortexBuffIcon": {
@@ -2960,6 +3071,7 @@
       "icon": "T_Meiko_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 12,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "StaggerInterrupt": {
@@ -2995,6 +3107,7 @@
       "abilityCategory": "Defensive",
       "cooldown": 30,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "radius": 70,
       "charges": 2
     },
@@ -3086,6 +3199,7 @@
       "icon": "T_Meiko_Taunt",
       "abilityCategory": "Utility",
       "cooldown": 8,
+      "castTimeScalesWithHaste": true,
       "range": 4000,
       "radius": 4000,
       "charges": 2
@@ -3176,6 +3290,7 @@
       "icon": "T_RimeIcon_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 20,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "BrainFreezeInterrupt": {
@@ -3203,6 +3318,7 @@
       "icon": "T_Rime_CastedDebuffAOEdamage",
       "abilityCategory": "Core",
       "cooldown": 10,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 600,
       "castDuration": 2,
@@ -3232,6 +3348,7 @@
       "abilityCategory": "Basic",
       "cooldown": 12,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "charges": 2,
       "resourceGeneration": {
@@ -3259,6 +3376,7 @@
       "icon": "T_Rime_BirdCD",
       "abilityCategory": "Major",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "FlightOfTheNavirAoeBuff": {
@@ -3292,6 +3410,7 @@
       "icon": "T_Rime_ChanneledBeam",
       "abilityCategory": "Core",
       "cooldown": 15,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.4,
@@ -3325,7 +3444,8 @@
       "name": "Frigid Winds",
       "icon": "T_Rime_Knockback",
       "abilityCategory": "Control",
-      "cooldown": 60
+      "cooldown": 60,
+      "castTimeScalesWithHaste": true
     },
     "FrigidWindsDebuff": {
       "kind": "effect",
@@ -3339,6 +3459,7 @@
       "name": "Frost Bolt",
       "icon": "T_Rime_SingleTargetBolt",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "resourceGeneration": {
@@ -3371,7 +3492,8 @@
       "name": "Frost Ward",
       "icon": "T_Rime_SelfDefenceBuff",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "FrostWardSelfBuff": {
       "kind": "effect",
@@ -3404,6 +3526,7 @@
       "name": "Glacial Blast",
       "icon": "T_Rime_AnimaBolt",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -3454,6 +3577,7 @@
       "name": "Ice Comet",
       "icon": "T_Rime_OnTargetPulsatingAOE",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 700,
       "costs": {
@@ -3506,6 +3630,7 @@
       "name": "Rising Talons",
       "icon": "T_Rime_AOE_Spender",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "tertiary": 1
@@ -3529,6 +3654,7 @@
       "name": "Talon Strike",
       "icon": "T_Rime_Singletarget_spender_",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "tertiary": 1
@@ -3558,7 +3684,8 @@
       "name": "Winter\u0027s Blessing",
       "icon": "T_Rime_HealingBuff",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "castTimeScalesWithHaste": true
     },
     "WintersBlessingBuff": {
       "kind": "effect",
@@ -3578,6 +3705,7 @@
       "name": "Wrath of Winter",
       "icon": "T_Rime_SpiritAbility",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "castDuration": 1.5,
       "costs": {
         "spirit": 100
@@ -3610,6 +3738,7 @@
       "icon": "T_Mosse_Dispel",
       "abilityCategory": "Utility",
       "cooldown": 6,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 82
@@ -3634,6 +3763,7 @@
       "icon": "T_Nhance_RPG_Nature_04",
       "abilityCategory": "Control",
       "cooldown": 45,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 77
@@ -3680,7 +3810,8 @@
       "id": 1080,
       "name": "Fluttercall: Embrace",
       "icon": "T_Mosse_BlueButterfly",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "castTimeScalesWithHaste": true
     },
     "FluttercallEmbraceBuff": {
       "kind": "effect",
@@ -3694,6 +3825,7 @@
       "name": "Fluttercall: Heal",
       "icon": "Sylvie_AbilityIcon_03",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.2,
       "costs": {
@@ -3718,6 +3850,7 @@
       "name": "Fluttercall: Jubilee",
       "icon": "T_Mosse_Ultimate",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "castDuration": 1.5,
       "costs": {
         "spirit": 100
@@ -3765,6 +3898,7 @@
       "name": "Fluttercall: Protect",
       "icon": "T_Mosse_BlueButterfly",
       "abilityCategory": "Utility",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 18
@@ -3782,6 +3916,7 @@
       "name": "Fluttercall: Restore Life",
       "icon": "T_Nhance_RPG_Shadow_58",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 61
@@ -3824,6 +3959,13 @@
       "icon": "T_Mosse_Bigheal",
       "abilityCategory": "Power",
       "cooldown": 45,
+      "chargeGrant": {
+        "source": "Talent",
+        "id": 31,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
+      "castTimeScalesWithHaste": true,
       "radius": 4000,
       "costs": {
         "mana": 118
@@ -3860,6 +4002,7 @@
       "icon": "T_Mosse_Hide",
       "abilityCategory": "Defensive",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "costs": {
         "mana": 18
       }
@@ -3889,6 +4032,13 @@
       "icon": "T_Mosse_DR",
       "abilityCategory": "Major",
       "cooldown": 60,
+      "chargeGrant": {
+        "source": "LegendaryItem",
+        "id": 5899,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
+      "castTimeScalesWithHaste": true,
       "costs": {
         "mana": 63
       }
@@ -3907,6 +4057,7 @@
       "abilityCategory": "Power",
       "cooldown": 60,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "charges": 2,
       "costs": {
         "mana": 79
@@ -3942,6 +4093,7 @@
       "name": "Nettlebolt",
       "icon": "Sylvie_AbilityIcon_02",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -3967,6 +4119,7 @@
       "icon": "T_Mosse_Vine",
       "abilityCategory": "Core",
       "cooldown": 9,
+      "castTimeScalesWithHaste": true,
       "range": 4000,
       "charges": 2,
       "costs": {
@@ -3992,6 +4145,7 @@
       "icon": "T_Mosse_LinkCD",
       "abilityCategory": "Major",
       "cooldown": 120,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "costs": {
@@ -4022,6 +4176,7 @@
       "name": "Shroomsplosion",
       "icon": "T_Mosse_Boomshroom",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 700
     },
@@ -4050,6 +4205,7 @@
       "id": 1227,
       "name": "Attack",
       "icon": "Tex_bl_04_bg",
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "AttackDamage": {
@@ -4066,6 +4222,13 @@
       "abilityCategory": "Core",
       "cooldown": 8,
       "cooldownHaste": "Duration",
+      "chargeGrant": {
+        "source": "Talent",
+        "id": 675,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "resourceGeneration": {
         "resource": "primary",
@@ -4099,6 +4262,7 @@
       "abilityCategory": "Power",
       "cooldown": 6,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "CullingStrikeDamage": {
@@ -4127,6 +4291,7 @@
       "abilityCategory": "Basic",
       "cooldown": 6,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 550,
       "resourceGeneration": {
         "resource": "primary",
@@ -4154,6 +4319,7 @@
       "abilityCategory": "Basic",
       "cooldown": 9,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "FaceBreakerOldCost": {
@@ -4175,6 +4341,7 @@
       "icon": "T_Ink_FocusedWrath",
       "abilityCategory": "Major",
       "cooldown": 90,
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "FocusedWrathSelfBuff": {
@@ -4190,6 +4357,7 @@
       "icon": "T_Ink_Hammerstorm",
       "abilityCategory": "Power",
       "cooldown": 1.5,
+      "castTimeScalesWithHaste": true,
       "radius": 700,
       "channelDuration": 1,
       "channelTickInterval": 0.5,
@@ -4235,6 +4403,7 @@
       "abilityCategory": "Core",
       "cooldown": 8,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 550,
       "radius": 800,
       "resourceGeneration": {
@@ -4249,6 +4418,7 @@
       "name": "Heavy Strike",
       "icon": "T_Ink_TimerAbility",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "HeavyStrikeAoeDamage": {
@@ -4276,6 +4446,7 @@
       "icon": "T_Ink_IntimidatingRoar",
       "abilityCategory": "Control",
       "cooldown": 90,
+      "castTimeScalesWithHaste": true,
       "range": 550,
       "radius": 1200
     },
@@ -4309,6 +4480,7 @@
       "icon": "T_InkPummel",
       "abilityCategory": "Utility",
       "cooldown": 16,
+      "castTimeScalesWithHaste": true,
       "range": 550
     },
     "PummelInterrupt": {
@@ -4382,6 +4554,7 @@
       "icon": "T_Ink_Skullcrusher",
       "abilityCategory": "Power",
       "cooldown": 1,
+      "castTimeScalesWithHaste": true,
       "range": 550,
       "costs": {
         "primary": 25
@@ -4419,6 +4592,7 @@
       "icon": "T_Ink_Taunt",
       "cooldown": 15,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 4000
     },
     "TauntDebuff": {
@@ -4433,7 +4607,8 @@
       "name": "Thunder Call",
       "icon": "T_Ink_Selfbuff",
       "abilityCategory": "Major",
-      "cooldown": 45
+      "cooldown": 45,
+      "castTimeScalesWithHaste": true
     },
     "ThunderCallBuff": {
       "kind": "effect",
@@ -4447,7 +4622,8 @@
       "name": "Unbreakable Will",
       "icon": "T_Ink_TankBuff",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "castTimeScalesWithHaste": true
     },
     "UnbreakableWillSelfBuffFirst": {
       "kind": "effect",
@@ -4468,6 +4644,7 @@
       "icon": "T_Ink_Wildswing",
       "abilityCategory": "Basic",
       "cooldown": 1.5,
+      "castTimeScalesWithHaste": true,
       "range": 550,
       "radius": 500,
       "resourceGeneration": {
@@ -4497,6 +4674,7 @@
       "icon": "T_Vigor_Spirit",
       "abilityCategory": "Spirit",
       "cooldown": 0,
+      "castTimeScalesWithHaste": true,
       "range": 6000,
       "castDuration": 1.5,
       "costs": {
@@ -4541,6 +4719,7 @@
       "abilityCategory": "Core",
       "cooldown": 15,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "costs": {
@@ -4567,6 +4746,7 @@
       "abilityCategory": "Power",
       "cooldown": 10,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "costs": {
         "primary": 2
       }
@@ -4601,6 +4781,7 @@
       "name": "Dawnflare",
       "icon": "T_Vigor_Bolt",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -4625,6 +4806,7 @@
       "name": "Greater Heal",
       "icon": "T_Vigor_Heal",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 2,
       "costs": {
@@ -4650,6 +4832,7 @@
       "icon": "T_Vigor_Levitate",
       "abilityCategory": "Defensive",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "charges": 2,
       "costs": {
         "mana": 18
@@ -4680,6 +4863,7 @@
       "icon": "T_Vigor_Ward",
       "abilityCategory": "Major",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 63
@@ -4705,6 +4889,13 @@
       "abilityCategory": "Power",
       "cooldown": 20,
       "cooldownHaste": "Duration",
+      "chargeGrant": {
+        "source": "Talent",
+        "id": 566,
+        "charges": 2,
+        "cooldownHaste": "TimeRate"
+      },
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.2,
       "costs": {
@@ -4749,6 +4940,7 @@
       "abilityCategory": "Core",
       "cooldown": 10,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "radius": 3000,
       "costs": {
         "mana": 37
@@ -4785,6 +4977,7 @@
       "icon": "T_Vigor_Dispel",
       "abilityCategory": "Utility",
       "cooldown": 6,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 82
@@ -4808,6 +5001,7 @@
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.2,
       "costs": {
@@ -4857,6 +5051,7 @@
       "icon": "T_Vigor_HealRune",
       "abilityCategory": "Major",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "costs": {
         "mana": 96
       },
@@ -4884,6 +5079,7 @@
       "name": "Soulbrand",
       "icon": "T_Vigor_Soulbrand",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.2,
       "costs": {
@@ -4915,6 +5111,7 @@
       "icon": "T_Vigor_Book",
       "abilityCategory": "Control",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ThrowBookResourceCost": {
@@ -4936,6 +5133,7 @@
       "id": 1854,
       "name": "Attack",
       "icon": "Tex_swords_01_bg",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "AttackDamage": {
@@ -4951,6 +5149,7 @@
       "icon": "T_Sune_AuraOfSolace",
       "abilityCategory": "Utility",
       "cooldown": 3,
+      "castTimeScalesWithHaste": true,
       "costs": {
         "mana": 10
       }
@@ -4999,6 +5198,7 @@
       "abilityCategory": "Basic",
       "cooldown": 6,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "BlindingSlashDamage": {
@@ -5013,6 +5213,7 @@
       "name": "Brilliant Flare",
       "icon": "T_Sune_BrilliantFlare",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5,
       "costs": {
@@ -5037,6 +5238,7 @@
       "name": "Brilliant Flash",
       "icon": "T_Sune_BrilliantFlash",
       "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "BrilliantFlashDamage": {
@@ -5063,6 +5265,7 @@
       "name": "Decree of the Sun",
       "icon": "T_Sune_Decree",
       "abilityCategory": "Spirit",
+      "castTimeScalesWithHaste": true,
       "costs": {
         "spirit": 100
       }
@@ -5116,6 +5319,7 @@
       "icon": "T_Sune_Interrupt",
       "abilityCategory": "Utility",
       "cooldown": 12,
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "InterruptInterrupt": {
@@ -5142,7 +5346,8 @@
       "name": "Omega Reprieval",
       "icon": "T_Sune_OmegaReprieval",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "castTimeScalesWithHaste": true
     },
     "OmegaReprievalBuff": {
       "kind": "effect",
@@ -5158,6 +5363,7 @@
       "abilityCategory": "Core",
       "cooldown": 18,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "radius": 800,
       "resourceGeneration": {
         "resource": "spirit",
@@ -5177,7 +5383,8 @@
       "name": "Ruptured Dawn",
       "icon": "T_Sune_RisingSun",
       "abilityCategory": "Control",
-      "cooldown": 45
+      "cooldown": 45,
+      "castTimeScalesWithHaste": true
     },
     "RupturedDawnDamage": {
       "kind": "effect",
@@ -5198,6 +5405,7 @@
       "icon": "T_Sune_ShiningHalo",
       "abilityCategory": "Power",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "radius": 800,
       "costs": {
         "mana": 218
@@ -5228,6 +5436,7 @@
       "icon": "T_Sune_Skycrash",
       "abilityCategory": "Movement",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "radius": 700,
       "charges": 2
     },
@@ -5251,6 +5460,7 @@
       "abilityCategory": "Core",
       "cooldown": 9,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 800,
       "costs": {
@@ -5277,6 +5487,7 @@
       "abilityCategory": "Defensive",
       "cooldown": 15,
       "cooldownHaste": "Duration",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "costs": {
         "mana": 182
@@ -5306,6 +5517,7 @@
       "name": "Sun Strike",
       "icon": "T_Sune_Sunstrike",
       "abilityCategory": "Basic",
+      "castTimeScalesWithHaste": true,
       "range": 500
     },
     "SunStrikeDamage": {
@@ -5327,6 +5539,7 @@
       "icon": "T_Sune_Taunt",
       "abilityCategory": "Utility",
       "cooldown": 8,
+      "castTimeScalesWithHaste": true,
       "range": 4000,
       "charges": 2
     },
@@ -5441,6 +5654,7 @@
       "icon": "T_Weapon_IceShackle",
       "abilityCategory": "Weapon",
       "cooldown": 30,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "AlShackleAoeDamage": {
@@ -5600,6 +5814,7 @@
       "icon": "T_Nhance_RPG_Icons_ArcaneLoad",
       "abilityCategory": "Weapon",
       "cooldown": 180,
+      "castTimeScalesWithHaste": true,
       "range": 1500,
       "castDuration": 1,
       "channelDuration": 3,
@@ -5624,6 +5839,7 @@
       "icon": "T_Relic_Portal",
       "abilityCategory": "Relic",
       "cooldown": 120,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "ConjurePortalRecentlyUsedPortal": {
@@ -5644,7 +5860,8 @@
       "name": "Earthbreaker",
       "icon": "T_Nhance_RPG_Icons_NatureWave",
       "abilityCategory": "Weapon",
-      "cooldown": 180
+      "cooldown": 180,
+      "castTimeScalesWithHaste": true
     },
     "EarthbreakerDamageFinal": {
       "kind": "effect",
@@ -5701,6 +5918,7 @@
       "icon": "T_Weapon_CDstrike",
       "abilityCategory": "Weapon",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "castDuration": 0.15
     },
     "FatedStrikeCleaveDamage": {
@@ -5908,6 +6126,7 @@
       "icon": "T_Weapon_NatureBolt",
       "abilityCategory": "Weapon",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "castDuration": 1.5
     },
@@ -6012,6 +6231,7 @@
       "icon": "T_Weapon_FrostLightRepository",
       "abilityCategory": "Weapon",
       "cooldown": 120,
+      "castTimeScalesWithHaste": true,
       "radius": 6000,
       "castDuration": 1.5
     },
@@ -6060,6 +6280,7 @@
       "icon": "T_Relic_CombatRess",
       "abilityCategory": "Relic",
       "cooldown": 300,
+      "castTimeScalesWithHaste": true,
       "range": 4000,
       "castDuration": 2
     },
@@ -6087,7 +6308,8 @@
       "name": "Sahril\u0027s Aegis",
       "icon": "T_Weapon_VoidBarrier",
       "abilityCategory": "Weapon",
-      "cooldown": 90
+      "cooldown": 90,
+      "castTimeScalesWithHaste": true
     },
     "SahrilAegisAbsorb": {
       "kind": "effect",
@@ -6108,6 +6330,7 @@
       "icon": "T_Weapon_CritAOE",
       "abilityCategory": "Weapon",
       "cooldown": 120,
+      "castTimeScalesWithHaste": true,
       "radius": 1000
     },
     "SahrilWrathBuff": {
@@ -6235,6 +6458,7 @@
       "abilityCategory": "Weapon",
       "cooldown": 20,
       "cooldownHaste": "TimeRate",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "charges": 2
     },
@@ -6305,6 +6529,7 @@
       "icon": "T_Weapon_VoidTouch",
       "abilityCategory": "Weapon",
       "cooldown": 90,
+      "castTimeScalesWithHaste": true,
       "range": 3000
     },
     "VoidbringerTouchDamage": {
@@ -6338,6 +6563,7 @@
       "icon": "T_Weapon_Vampiric",
       "abilityCategory": "Weapon",
       "cooldown": 60,
+      "castTimeScalesWithHaste": true,
       "castDuration": 0.5,
       "channelDuration": 3,
       "channelTickInterval": 0.5

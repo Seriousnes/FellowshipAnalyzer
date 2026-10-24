@@ -1,6 +1,8 @@
 using System.Collections.Frozen;
 using System.Reflection;
 
+using FellowshipAnalyzer.Core.Analysis;
+
 namespace FellowshipAnalyzer.Core.Common.Items;
 
 /// <summary>
@@ -17,7 +19,11 @@ namespace FellowshipAnalyzer.Core.Common.Items;
 /// </remarks>
 public static class ItemRegistry
 {
-    private static FrozenDictionary<int, Item> _table = BuildTable();
+    private static FrozenDictionary<int, Item> _table;
+
+    private static FrozenDictionary<(int Id, HeroName Hero), Item> _heroTable;
+
+    static ItemRegistry() => (_table, _heroTable) = BuildTables();
 
     /// <summary>The full set of registered items, keyed by item ID.</summary>
     public static FrozenDictionary<int, Item> All => _table;
@@ -43,6 +49,12 @@ public static class ItemRegistry
     public static Item? MaybeGet(int id) =>
         _table.TryGetValue(id, out var item) ? item : null;
 
+    /// <summary>Gets <paramref name="hero"/>'s own item with the given ID, or <see langword="null"/> if the ID names no item for that hero.</summary>
+    public static Item? MaybeGet(int id, HeroName? hero) =>
+        hero is { } name && _heroTable.TryGetValue((id, name), out var own) ? own
+        : _table.TryGetValue(id, out var item) && (hero is null || item.Hero is null) ? item
+        : null;
+
     /// <summary>
     /// Gets the item with the given ID.
     /// </summary>
@@ -60,10 +72,11 @@ public static class ItemRegistry
     /// </summary>
     public static void EnsureAssembly(Assembly assembly)
     {
-        _table = BuildTable(extraAssembly: assembly);
+        (_table, _heroTable) = BuildTables(extraAssembly: assembly);
     }
 
-    private static FrozenDictionary<int, Item> BuildTable(Assembly? extraAssembly = null)
+    private static (FrozenDictionary<int, Item> ById, FrozenDictionary<(int Id, HeroName Hero), Item> ByHero) BuildTables(
+        Assembly? extraAssembly = null)
     {
         var registryType = typeof(IItemRegistry);
         var itemType = typeof(Item);
@@ -73,6 +86,7 @@ public static class ItemRegistry
             assemblies = assemblies.Append(extraAssembly);
 
         var entries = new Dictionary<int, Item>();
+        var heroEntries = new Dictionary<(int Id, HeroName Hero), Item>();
 
         foreach (var assembly in assemblies)
         {
@@ -89,12 +103,15 @@ public static class ItemRegistry
                     if (prop.GetValue(null) is Item item)
                     {
                         entries[item.Id] = item;
+
+                        if (item.Hero is { } hero)
+                            heroEntries[(item.Id, hero)] = item;
                     }
                 }
             }
         }
 
-        return entries.ToFrozenDictionary();
+        return (entries.ToFrozenDictionary(), heroEntries.ToFrozenDictionary());
     }
 }
 

@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Common.Spells;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -21,19 +23,51 @@ public class Abilities : Module
         get
         {
             if (_abilities is not null) return _abilities;
-            _abilities = [];
-            foreach (var entry in Spellbook())
+            var abilities = new Dictionary<int, SpellbookAbility>();
+            foreach (var spellbookEntry in Spellbook())
             {
-                if (!entry.Enabled) continue;
-                _abilities[entry.PrimarySpell.FSLID] = entry;
+                if (!spellbookEntry.Enabled) continue;
+                var entry = Granted(spellbookEntry);
+                abilities[entry.PrimarySpell.FSLID] = entry;
                 if (entry.AdditionalSpells is not null)
                 {
                     foreach (var extra in entry.AdditionalSpells)
-                        _abilities[extra.FSLID] = entry;
+                        abilities[extra.FSLID] = entry;
                 }
             }
-            return _abilities;
+            if (Owner?.SelectedCombatantIfKnown is not null) _abilities = abilities;
+            return abilities;
         }
+    }
+
+    /// <summary>
+    /// <paramref name="entry"/> with its primary spell's <see cref="Spell.ChargeGrant"/> applied when the
+    /// selected player holds the grant: the granted charges, unless the spellbook states more, and the
+    /// grant's Haste placement. A <see cref="SpellbookAbility.CooldownReducedByHaste"/> the spellbook sets
+    /// still overrides the placement.
+    /// </summary>
+    private SpellbookAbility Granted(SpellbookAbility entry)
+    {
+        if (entry.PrimarySpell.ChargeGrant is not { } grant || Owner?.SelectedCombatantIfKnown is not { } player)
+            return entry;
+
+        var held = grant.Source switch
+        {
+            GrantSource.Talent => player.HasTalent(grant.Id),
+            GrantSource.LegendaryItem => player.HasLegendary(grant.Id),
+            _ => false,
+        };
+
+        return held
+            ? entry with
+            {
+                PrimarySpell = entry.PrimarySpell with
+                {
+                    Charges = Math.Max(entry.PrimarySpell.Charges, grant.Charges),
+                    CooldownHaste = grant.CooldownHaste,
+                },
+            }
+            : entry;
     }
 
     /// <summary>

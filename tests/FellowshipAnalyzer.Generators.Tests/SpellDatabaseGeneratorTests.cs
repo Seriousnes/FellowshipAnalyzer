@@ -68,8 +68,8 @@ public class SpellDatabaseGeneratorTests
         var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithLegendaries).ConcatenatedGenerated;
 
         gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Spells.Aeona;");
-        gen.ShouldContain("public static partial class Legendaries");
-        gen.ShouldContain("public static global::FellowshipAnalyzer.Core.Common.Items.Item MassEntropy { get; } = new(5226, \"Mass Entropy\", \"Tex_bracelets_cl_01_bg\");");
+        gen.ShouldContain("public partial class Legendaries : global::FellowshipAnalyzer.Core.Common.Items.IItemRegistry");
+        gen.ShouldContain("public static global::FellowshipAnalyzer.Core.Common.Items.Item MassEntropy { get; } = new(5226, \"Bands of the Withering Shores\", \"Tex_bracelets_cl_01_bg\", global::FellowshipAnalyzer.Core.Analysis.HeroName.Aeona) { PowerName = \"Mass Entropy\" };");
         gen.ShouldContain("public static class AeonaLegendaries");
         gen.ShouldContain("public const int MassEntropy = 5226;");
     }

@@ -90,6 +90,7 @@ public static class CastEfficiencyModel
         }
 
         var analyzedMinutes = analyzedMs / 60_000d;
+        var meanHaste = HasteTimeline.Mean(events, playerId, pulls.Select(pull => (pull.StartTime, pull.EndTime)));
         var rows = new List<AbilityCastEfficiency>();
 
         foreach (var ability in abilities.GetAbilities())
@@ -124,9 +125,7 @@ public static class CastEfficiencyModel
                 efficiency = onCooldownMs / (double)analyzedMs;
 
                 var period = completedCount > 0 ? completedMs / (double)completedCount : cooldownMs;
-                var castTimeMs = ability.Charges < 2
-                    ? (ability.ChannelDuration ?? ability.CastDuration ?? 0) * 1000
-                    : 0;
+                var castTimeMs = ability.Charges < 2 ? ability.CastTime(meanHaste) * 1000 : 0;
                 maxCasts = (int)Math.Floor((analyzedMs / (period + castTimeMs)) + ability.Charges - 1) + 1;
             }
 

@@ -30,6 +30,7 @@ public static class SpellDbJsonOptions
             new JsonStringEnumConverter<GenerationMeasure>(),
             new JsonStringEnumConverter<GenerationTrigger>(),
             new JsonStringEnumConverter<CooldownHasteScaling>(),
+            new JsonStringEnumConverter<GrantSource>(),
         },
     };
 }

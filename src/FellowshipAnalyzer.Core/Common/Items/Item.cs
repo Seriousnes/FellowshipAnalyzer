@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Analysis;
+
 namespace FellowshipAnalyzer.Core.Common.Items;
 
 /// <summary>
@@ -6,4 +8,8 @@ namespace FellowshipAnalyzer.Core.Common.Items;
 /// <remarks>
 /// Item subtypes (e.g. trinkets, enchants, consumables) can be added later as sealed subrecords.
 /// </remarks>
-public sealed record Item(int Id, string Name, string Icon = "");
+public sealed record Item(int Id, string Name, string Icon = "", HeroName? Hero = null)
+{
+    /// <summary>Name of the legendary power this item grants, or empty for any other item.</summary>
+    public string PowerName { get; init; } = "";
+}

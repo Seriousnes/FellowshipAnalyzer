@@ -6,11 +6,11 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<BlueyTracker>]
+[Dependency<Haste>]
 public sealed partial class HeartBloomRampAnalyzer : Analyzer
 {
     private readonly List<HeartBloomCapture> _casts = [];
 
-    private HeartBloomCapture? _open;
     private long _pendingEffective;
     private long _pendingOverheal;
     private int _pendingFrom;
@@ -46,7 +46,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         var posting = BlueyTracker.PostingAt(castEvent.Timestamp);
         var accumulatedFrom = _pendingFrom == 0 ? Pull.StartTime : _pendingFrom;
 
-        _open = new HeartBloomCapture
+        var pulsePeriodMs = PulsePeriodAt(Haste.Current);
+
+        _casts.Add(new HeartBloomCapture
         {
             Timestamp = castEvent.Timestamp,
             AccumulationMs = Math.Max(0, castEvent.Timestamp - accumulatedFrom),
@@ -54,8 +56,10 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             FedOverheal = _pendingOverheal,
             BlueyAssigned = posting is not null,
             BlueyOnAlly = posting is { OnSylvie: false },
-        };
-        _casts.Add(_open);
+            PulsePeriodMs = pulsePeriodMs,
+            LastPulseAt = castEvent.Timestamp,
+            NextPulseAt = castEvent.Timestamp + pulsePeriodMs,
+        });
 
         _pendingEffective = 0;
         _pendingOverheal = 0;
@@ -65,10 +69,54 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.HeartBloom))]
     private void OnHeartBloomHeal(HealEvent healEvent)
     {
-        if (_open is null) return;
+        var bloom = ReleasingBloom(healEvent.Timestamp);
+        if (bloom is null) return;
 
-        _open.Record(healEvent.Timestamp, healEvent.Amount, healEvent.Overheal ?? 0);
+        bloom.Record(healEvent.Timestamp, healEvent.Amount, healEvent.Overheal ?? 0);
+        bloom.Pulsed(healEvent.Timestamp, PulsePeriodAt(Haste.Current));
     }
+
+    [On<ChangeHasteEvent>]
+    private void OnChangeHaste(ChangeHasteEvent changeHasteEvent)
+    {
+        var pulsePeriodMs = PulsePeriodAt(changeHasteEvent.NewHaste ?? Haste.Current);
+
+        foreach (var capture in Alive(changeHasteEvent.Timestamp))
+        {
+            capture.Rescale(changeHasteEvent.Timestamp, pulsePeriodMs);
+        }
+    }
+
+    private static double PulsePeriodAt(double haste) => SylvieKit.HeartBloomTickIntervalMs / (1.0 + haste);
+
+    /// <summary>
+    /// The cast whose Heart Bloom released the pulse at <paramref name="timestamp"/>. With two charges two
+    /// Heart Blooms are active at once. The releasing bloom is the active bloom with the least time between
+    /// <paramref name="timestamp"/> and its last or next expected pulse. On a tie it is the bloom with no release
+    /// recorded for that pulse, then the older bloom. A Haste change re-times each active bloom's next expected pulse
+    /// from its remaining pulse progress.
+    /// After every bloom has withered, the releasing bloom is the latest cast's.
+    /// </summary>
+    private HeartBloomCapture? ReleasingBloom(int timestamp)
+    {
+        var alive = Alive(timestamp).ToList();
+
+        foreach (var capture in alive)
+        {
+            capture.AdvanceTo(timestamp);
+        }
+
+        return alive.Count > 0
+            ? alive
+                .OrderBy(capture => capture.PulseOffset(timestamp))
+                .ThenBy(capture => capture.HasReleasedAt(timestamp))
+                .First()
+            : _casts.LastOrDefault();
+    }
+
+    private IEnumerable<HeartBloomCapture> Alive(int timestamp) => _casts
+        .Where(capture => capture.Timestamp <= timestamp
+            && timestamp - capture.Timestamp <= SylvieKit.HeartBloomDurationMs + (capture.PulsePeriodMs / 2));
 
     private List<HeartBloomCast> Compute() =>
     [
@@ -92,6 +140,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         public long FedOverheal { get; init; }
         public bool BlueyAssigned { get; init; }
         public bool BlueyOnAlly { get; init; }
+        public double PulsePeriodMs { get; set; }
+        public double LastPulseAt { get; set; }
+        public double NextPulseAt { get; set; }
         public long Effective { get; private set; }
         public long Overheal { get; private set; }
         public HashSet<int> ReleaseInstants { get; } = [];
@@ -101,6 +152,43 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             Effective += effective;
             Overheal += overheal;
             ReleaseInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+        }
+
+        public bool HasReleasedAt(int timestamp) =>
+            ReleaseInstants.Contains((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+
+        public void AdvanceTo(int timestamp)
+        {
+            while (NextPulseAt + (PulsePeriodMs / 2) < timestamp)
+            {
+                LastPulseAt = NextPulseAt;
+                NextPulseAt += PulsePeriodMs;
+            }
+        }
+
+        public double PulseOffset(int timestamp) =>
+            Math.Min(Math.Abs(timestamp - LastPulseAt), Math.Abs(timestamp - NextPulseAt));
+
+        public void Pulsed(int timestamp, double pulsePeriodMs)
+        {
+            if (Math.Abs(timestamp - NextPulseAt) > Math.Abs(timestamp - LastPulseAt)) return;
+
+            LastPulseAt = timestamp;
+            NextPulseAt = timestamp + pulsePeriodMs;
+            PulsePeriodMs = pulsePeriodMs;
+        }
+
+        public void Rescale(int timestamp, double pulsePeriodMs)
+        {
+            while (NextPulseAt < timestamp)
+            {
+                LastPulseAt = NextPulseAt;
+                NextPulseAt += PulsePeriodMs;
+            }
+
+            var remainingProgress = (NextPulseAt - timestamp) / PulsePeriodMs;
+            NextPulseAt = timestamp + (remainingProgress * pulsePeriodMs);
+            PulsePeriodMs = pulsePeriodMs;
         }
     }
 }

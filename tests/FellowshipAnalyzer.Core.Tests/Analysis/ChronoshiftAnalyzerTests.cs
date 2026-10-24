@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -114,6 +115,8 @@ public sealed class ChronoshiftAnalyzerTests
 
         var fabricatedEnd = parser.Events.OfType<EndChannelEvent>().Single(e => e.Fabricated == true);
         Assert.Equal(8000, fabricatedEnd.Timestamp);
+        Assert.Equal(3, Items.Chronoshift.ChannelDuration);
+        Assert.Equal(TimeSpan.FromSeconds(Items.Chronoshift.ChannelDuration!.Value).TotalMilliseconds, fabricatedEnd.Duration);
 
         var removal = parser.Events.OfType<ChangeCooldownModifierEvent>().Single(e => !e.Added);
         Assert.Equal(8000, removal.Timestamp);
@@ -184,14 +187,14 @@ public sealed class ChronoshiftAnalyzerTests
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { FSLID = Spells.Chronoshift.FSLID, Name = "Chronoshift" },
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
     };
 
     private static EndChannelEvent EndChannel(int timestamp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { FSLID = Spells.Chronoshift.FSLID, Name = "Chronoshift" },
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
     };
 
     private static ApplyBuffEvent Filler(int timestamp) => new()

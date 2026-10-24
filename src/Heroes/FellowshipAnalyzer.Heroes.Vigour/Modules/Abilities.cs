@@ -2,14 +2,12 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Vigour;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
-using VigourTalents = FellowshipAnalyzer.Core.Common.Spells.VigourTalents;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 public class Abilities : CoreAbilities
 {
-    private bool SacredBarrier => Owner?.SelectedCombatant.HasTalent(VigourTalents.SacredBarrier) == true;
-
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
@@ -34,7 +32,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.LuminousBarrier with { Charges = SacredBarrier ? 2 : 1 },
+            PrimarySpell = Spells.LuminousBarrier,
             AdditionalSpells = [Spells.LuminousBarrierAbsorb],
             Category = SpellCategory.Healing,
             Gcd = StandardGcd,
@@ -78,6 +76,13 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.RunicProliferationBuff],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
+        },
+        new()
+        {
+            PrimarySpell = CoreItems.RepositoryOfFrozenLight,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.AncientIceshapersTome.Id) == true,
         },
         new()
         {

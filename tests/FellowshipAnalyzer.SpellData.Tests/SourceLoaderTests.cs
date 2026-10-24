@@ -101,6 +101,50 @@ public class SourceLoaderTests
     }
 
     [Fact]
+    public void Export_KeepsTimeRateHasteOnAMultiChargeAbility()
+    {
+        var stoneShield = Export().Abilities[1122];
+
+        stoneShield.ChargeCount.ShouldBe(2);
+        stoneShield.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(null)]
+    public void Export_ReadsTimeRateHasteAsDurationOnASingleChargeAbility(int? charges)
+    {
+        var entities = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllLines(entities, File.ReadLines(SourcePaths.Entities).Select(line =>
+            {
+                if (line.Length == 0
+                    || System.Text.Json.Nodes.JsonNode.Parse(line) is not System.Text.Json.Nodes.JsonObject record
+                    || (string?)record["$type"] != "ability"
+                    || (int?)record["id"] != 1122)
+                    return line;
+
+                record["charges"] = charges;
+                return record.ToJsonString();
+            }));
+
+            ExportSource.Load(entities, SourcePaths.Settings).Abilities[1122].CooldownHaste
+                .ShouldBe(CooldownHasteScaling.Duration);
+        }
+        finally
+        {
+            File.Delete(entities);
+        }
+    }
+
+    [Fact]
+    public void Merge_GivesTimeRateHasteOnlyToAMultiChargeSpell() =>
+        MergeEngine.Run(MergeInputs.Load()).Spells
+            .Where(spell => spell.Spell.CooldownHaste == CooldownHasteScaling.TimeRate)
+            .ShouldAllBe(spell => spell.Spell.Charges > 1);
+
+    [Fact]
     public void Export_PutsRimeChannelledBeamInHerKit() =>
         Export().Abilities[1027].Heroes.ShouldContain("Rime");
 

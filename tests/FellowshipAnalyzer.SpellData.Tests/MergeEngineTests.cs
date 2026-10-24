@@ -33,6 +33,19 @@ public class MergeEngineTests
         Run().Spells.Single(x => x.Scope == "xavian" && x.Member == "ShiningHalo").Spell.CooldownHaste.ShouldBeNull();
 
     [Fact]
+    public void Vigour_LuminousBarrier_TakesSacredBarriersChargesOntoATimeRateCooldown() =>
+        Run().Spells.Single(x => x.Scope == "vigour" && x.Member == "LuminousBarrier").Spell.ChargeGrant.ShouldBe(new ChargeGrant
+        {
+            Source = GrantSource.Talent,
+            Id = 566,
+            Charges = 2,
+            CooldownHaste = CooldownHasteScaling.TimeRate,
+        });
+
+    [Fact]
+    public void Rime_FrostBolt_HasNoChargeGrant() =>
+        Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FrostBolt").Spell.ChargeGrant.ShouldBeNull();
+    [Fact]
     public void Rime_FreezingTorrent_HasNormalizedScalars()
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");

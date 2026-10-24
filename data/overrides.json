@@ -1,5 +1,9 @@
 {
   "aeona": {
+    "ConvergingTimelinesLonesomeSong": {
+      "id": 2820,
+      "kind": "effect"
+    },
     "ContinuumShift": {
       "id": 2676,
       "kind": "effect"
@@ -167,6 +171,10 @@
     }
   },
   "gunde": {
+    "Bloodbath": {
+      "id": 3216,
+      "kind": "effect"
+    },
     "RendManager": {
       "id": 2286,
       "kind": "ability",

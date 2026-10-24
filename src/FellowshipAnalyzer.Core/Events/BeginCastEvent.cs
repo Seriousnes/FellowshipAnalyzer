@@ -15,6 +15,8 @@ public class BeginCastEvent : Event, IAbilityEvent, IHasSourceEvent
     public virtual BeginChannelEvent? Channel { get; set; }
     /// <summary>Whether the cast was cancelled before it could complete.</summary>
     public virtual bool IsCancelled { get; set; }
+    /// <summary>The global cooldown this begin-cast started, linked in by <see cref="Analysis.GlobalCooldown"/>.</summary>
+    public virtual GlobalCooldownEvent? GlobalCooldown { get; set; }
     /// <summary>The id of the actor performing the cast.</summary>
     public virtual int SourceId { get; set; }
     /// <summary>The target of the cast.</summary>

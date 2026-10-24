@@ -158,6 +158,15 @@ public sealed record SpellbookAbility
     public bool IndependentCharges { get; init; }
 
     /// <summary>
+    /// The seconds the cast occupies: the channel duration, else the cast duration, else 0. The cast
+    /// duration is divided by <c>1 + haste</c> when <see cref="Spell.CastTimeScalesWithHaste"/> is set; the
+    /// channel duration takes no Haste.
+    /// </summary>
+    /// <param name="haste">Player haste as a fraction (0.30 = 30%).</param>
+    public double CastTime(double haste = 0.0) =>
+        ChannelDuration ?? (CastDuration ?? 0) / (PrimarySpell.CastTimeScalesWithHaste == true ? 1 + haste : 1);
+
+    /// <summary>
     /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
     /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>

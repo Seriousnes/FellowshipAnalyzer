@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
@@ -83,6 +84,13 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.Detonate,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
+        },
+        new()
+        {
+            PrimarySpell = CoreItems.Chronoshift,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.AshasChronoshiftSpire_Ardeos.Id) == true,
         },
         new()
         {

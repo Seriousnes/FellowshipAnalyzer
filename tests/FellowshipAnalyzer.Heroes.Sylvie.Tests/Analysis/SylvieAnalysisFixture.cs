@@ -58,6 +58,15 @@ internal static class SylvieAnalysisFixture
         Talents = [.. nativeTalentIds.Select(id => new TalentInfo { Id = FSLID.FromNative(SpellKind.Talent, id).Value })],
     };
 
+    /// <summary>The selected player with <paramref name="legendaryItemId"/> equipped at legendary quality.</summary>
+    public static CombatantInfoEvent CombatantWithLegendary(int legendaryItemId) => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = legendaryItemId, Quality = LegendaryQuality }],
+    };
+
+    private const int LegendaryQuality = 6;
+
     public static CastEvent Cast(int timestamp, Spell spell, int targetId = EnemyId, int? mana = null, int manaMax = 1_440) =>
         new()
         {

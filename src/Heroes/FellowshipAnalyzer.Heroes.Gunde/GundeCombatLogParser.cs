@@ -20,6 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 [AddAnalyzer<BurstAnalyzer>]
 [AddAnalyzer<OwedInBloodEconomyAnalyzer>]
 [AddAnalyzer<CarnageAnalyzer>]
+[AddAnalyzer<BloodbathAnalyzer>]
 public sealed partial class GundeCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(GundeGuide);

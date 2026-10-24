@@ -41,7 +41,7 @@ public class LegendaryTests
         var original = MergeEngine.Run(MergeInputs.Load());
         var restored = SpellDbWriter.Deserialize(SpellDbWriter.Serialize(original));
 
-        restored.Legendaries.Select(l => (l.Scope, l.Member, l.ItemId, l.PowerId, l.PowerName, l.Slot, l.Icon))
-            .ShouldBe(original.Legendaries.Select(l => (l.Scope, l.Member, l.ItemId, l.PowerId, l.PowerName, l.Slot, l.Icon)), ignoreOrder: true);
+        restored.Legendaries.Select(l => (l.Scope, l.Member, l.ItemId, l.ItemName, l.PowerId, l.PowerName, l.Slot, l.Icon))
+            .ShouldBe(original.Legendaries.Select(l => (l.Scope, l.Member, l.ItemId, l.ItemName, l.PowerId, l.PowerName, l.Slot, l.Icon)), ignoreOrder: true);
     }
 }

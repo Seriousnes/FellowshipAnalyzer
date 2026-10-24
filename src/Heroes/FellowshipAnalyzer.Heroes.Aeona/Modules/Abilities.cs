@@ -99,6 +99,13 @@ public class Abilities : CoreAbilities
         },
         new()
         {
+            PrimarySpell = CoreItems.RepositoryOfFrozenLight,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.FragmentsOfFrozenTime.Id) == true,
+        },
+        new()
+        {
             PrimarySpell = Spells.Intercession,
             Category = SpellCategory.Utility,
             Gcd = null,

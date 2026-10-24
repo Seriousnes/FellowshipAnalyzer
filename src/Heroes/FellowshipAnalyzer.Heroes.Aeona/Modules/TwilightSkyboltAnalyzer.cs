@@ -27,6 +27,7 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
 
     private int? _chargesAtPullStart;
     private int? _timeAtMaxChargesMs;
+    private int? _chargesLost;
 
     /// <summary>When each Twilight Skybolt cast completed, in cast order.</summary>
     public IReadOnlyList<int> Casts => _casts;
@@ -50,21 +51,22 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
         PullDurationMs <= 0 ? 0 : (double)TimeAtMaxChargesMs / PullDurationMs;
 
     /// <summary>
-    /// Recharges the pull had room for while every charge was already available, as the time at the
-    /// maximum divided by one charge's recharge duration. Reads 0 without a recharge duration.
+    /// Recharges the pull had room for while every charge was already available, as each capped
+    /// stretch divided by the recharge duration in force across it, summed and rounded down once.
+    /// Reads 0 without a recharge duration.
     /// </summary>
-    public int ChargesLost => RechargeDurationMs <= 0 ? 0 : TimeAtMaxChargesMs / RechargeDurationMs;
+    public int ChargesLost => _chargesLost ??= ComputeChargesLost();
 
     /// <summary>
-    /// How long one Twilight Skybolt charge takes to recharge under the player's haste, from
-    /// <see cref="SpellUsable.RechargeDuration"/>, falling back to the spellbook cooldown when the
-    /// cooldown tracker has nothing for it.
+    /// How long one Twilight Skybolt charge takes to recharge under the player's haste during this pull,
+    /// from <see cref="SpellUsable.RechargeDurationDuring(int, PullStartEvent)"/>, falling back to the
+    /// spellbook cooldown when the cooldown tracker has nothing for it.
     /// </summary>
     public int RechargeDurationMs
     {
         get
         {
-            var tracked = Owner.SpellUsable?.RechargeDuration(CoreItems.TwilightSkybolt.FSLID) ?? 0;
+            var tracked = Owner.SpellUsable?.RechargeDurationDuring(CoreItems.TwilightSkybolt.FSLID, Pull) ?? 0;
             if (tracked > 0)
                 return tracked;
 
@@ -126,5 +128,32 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
         }
 
         return atMax;
+    }
+
+    private int ComputeChargesLost()
+    {
+        var rechargeMs = RechargeDurationMs;
+        if (rechargeMs <= 0)
+            return 0;
+
+        var spellUsable = Owner.SpellUsable;
+        if (spellUsable is null || spellUsable.RechargeDuration(CoreItems.TwilightSkybolt.FSLID) <= 0)
+            return TimeAtMaxChargesMs / rechargeMs;
+
+        var end = Pull.EndTime;
+        var maxCharges = MaxCharges;
+        var timeline = Timeline;
+
+        double recharges = 0;
+        for (var i = 0; i < timeline.Count; i++)
+        {
+            var segmentStart = timeline[i].Timestamp;
+            var segmentEnd = i + 1 < timeline.Count ? timeline[i + 1].Timestamp : end;
+
+            if (segmentEnd > segmentStart && timeline[i].ChargesAvailable >= maxCharges)
+                recharges += spellUsable.RechargesDuring(CoreItems.TwilightSkybolt.FSLID, segmentStart, segmentEnd);
+        }
+
+        return (int)Math.Floor(recharges + 1e-9);
     }
 }

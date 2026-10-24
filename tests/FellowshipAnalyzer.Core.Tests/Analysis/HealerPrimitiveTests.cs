@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -154,6 +155,45 @@ public sealed class HealerPrimitiveTests
     }
 
     [Fact]
+    public async Task HealingEfficiency_HardCastLongerThanItsGlobalCooldown_OccupiesFromItsBeginCastToItsCompletion()
+    {
+        const int castStart = 1_000;
+        const int completion = 3_500;
+        const int gcdMs = 1_500;
+
+        var tracker = await AnalyzeEfficiency([HardCast(castStart, completion, gcdMs, CostedSpell)]);
+
+        tracker.For(CostedSpell).ShouldNotBeNull().ExecutionMs.ShouldBe(completion - castStart);
+        tracker.TotalExecutionMs.ShouldBe(completion - castStart);
+    }
+
+    [Fact]
+    public async Task HealingEfficiency_HardCastShorterThanItsGlobalCooldown_OccupiesItsGlobalCooldown()
+    {
+        const int castStart = 1_000;
+        const int completion = 1_800;
+        const int gcdMs = 1_500;
+
+        var tracker = await AnalyzeEfficiency([HardCast(castStart, completion, gcdMs, CostedSpell)]);
+
+        tracker.For(CostedSpell).ShouldNotBeNull().ExecutionMs.ShouldBe(gcdMs);
+        tracker.TotalExecutionMs.ShouldBe(gcdMs);
+    }
+
+    [Fact]
+    public async Task HealingEfficiency_ChannelWithNoGlobalCooldown_OccupiesItsChannelDuration()
+    {
+        var chronoshift = Items.Chronoshift;
+
+        var tracker = await AnalyzeEfficiency([Cast(1_000, chronoshift.FSLID)]);
+
+        var channelMs = (int)(chronoshift.ChannelDuration.ShouldNotBeNull() * 1000);
+        channelMs.ShouldNotBe((int)(chronoshift.CastDuration.ShouldNotBeNull() * 1000));
+        tracker.For(chronoshift.FSLID).ShouldNotBeNull().ExecutionMs.ShouldBe(channelMs);
+        tracker.TotalExecutionMs.ShouldBe(channelMs);
+    }
+
+    [Fact]
     public async Task DispelTracker_TalliesPerAbilityPerAuraAndPerTarget()
     {
         var tracker = await AnalyzeDispels(
@@ -256,6 +296,20 @@ public sealed class HealerPrimitiveTests
         TargetId = TankId,
         Ability = new Ability { FSLID = spellId, Name = "Cast" },
     };
+
+    private static CastEvent HardCast(int castStart, int completion, int gcdMs, int spellId)
+    {
+        var cast = Cast(completion, spellId);
+        cast.GlobalCooldown = new GlobalCooldownEvent
+        {
+            Timestamp = castStart,
+            Duration = gcdMs,
+            SourceId = PlayerId,
+            TargetId = PlayerId,
+            Ability = new Ability { FSLID = spellId, Name = "Cast" },
+        };
+        return cast;
+    }
 
     private static DispelEvent Dispel(int timestamp, int spellId, int targetId, int removed) => new()
     {

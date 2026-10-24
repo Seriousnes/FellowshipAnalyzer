@@ -12,6 +12,8 @@ using Shouldly;
 
 using Xunit;
 
+using Items = FellowshipAnalyzer.Core.Common.Items.Items;
+
 namespace FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis;
 
 public sealed class EngulfingFlamesEconomyAnalyzerTests
@@ -279,6 +281,29 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.WastedCharges.ShouldBe(11);
     }
 
+    /// <summary>
+    /// Chronoshift's 7.0 Cooldown Acceleration term holds Engulfing Flames' 20000ms recharge at 2500ms
+    /// from 1000 to 4000, so the pull's recharge is (20000 × 16000 + 2500 × 3000) / 19000 = 17237ms, and
+    /// 19 seconds at maximum charges is 16000 / 20000 + 3000 / 2500 = 2 recharge periods.
+    /// </summary>
+    [Fact]
+    public async Task Overcap_ChronoshiftInsidePull_CountsAgainstThePullsRecharge()
+    {
+        var events = new List<Event>
+        {
+            CombatantWithChronoshiftSpire(),
+            BeginChronoshift(1000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 19_000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        parser.SpellUsable!.RechargeDuration(Spells.EngulfingFlames.Id).ShouldBe(20_000);
+        parser.SpellUsable.RechargeDurationDuring(Spells.EngulfingFlames.Id, analyzer.Pull).ShouldBe(17_237);
+        analyzer.CappedSeconds.ShouldBe(19d);
+        analyzer.WastedCharges.ShouldBe(2);
+    }
+
     [Fact]
     public async Task MissedWindowWithOvercap_SurfacesBothSignals()
     {
@@ -399,9 +424,21 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     };
 
     /// <summary>
-    /// A combatant wearing the Devouring Flame legendary, which enables
-    /// the Devouring Flame sub-metric.
+    /// A combatant wearing Asha's Chronoshift Spire.
     /// </summary>
+    private static CombatantInfoEvent CombatantWithChronoshiftSpire() => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = Items.AshasChronoshiftSpire_Ardeos.Id }],
+    };
+
+    private static BeginChannelEvent BeginChronoshift(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        Ability = new Ability { FSLID = Items.Chronoshift.FSLID, Name = "Chronoshift" },
+    };
+
     private static CombatantInfoEvent CombatantWithDevouringBracers() => new()
     {
         SourceId = PlayerId,

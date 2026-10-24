@@ -13,6 +13,8 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;
 [AddAnalyzer<CooldownPairingAnalyzer>]
 [AddAnalyzer<FocusEconomyAnalyzer>]
 [AddAnalyzer<SupremacyAnalyzer>]
+[AddAnalyzer<SkylitGraceAnalyzer>]
+[AddAnalyzer<EventHorizonAccelerationAnalyzer>]
 public sealed partial class ElarionCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ElarionGuide);

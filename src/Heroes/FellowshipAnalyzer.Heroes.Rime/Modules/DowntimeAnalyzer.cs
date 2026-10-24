@@ -61,7 +61,7 @@ public sealed partial class DowntimeAnalyzer : Analyzer
             : castEvent.Timestamp;
         _castStarts.Remove(castEvent);
 
-        var end = castEvent.Timestamp + BusyMs(gcd);
+        var end = Math.Max(castEvent.Timestamp, gcd.Timestamp + BusyMs(gcd));
         if (castEvent.Channel is { } endChannel)
             end = Math.Max(end, endChannel.Timestamp);
 

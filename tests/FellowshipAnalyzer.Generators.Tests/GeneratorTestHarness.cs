@@ -93,7 +93,7 @@ internal static class GeneratorTestHarness
         }
         """;
 
-    public static GeneratorRunResult Run(string userSource)
+    public static GeneratorRunResult Run(string userSource, string? spellDbJson = null)
     {
         var preambleTree = CSharpSyntaxTree.ParseText(Preamble);
         var userTree = CSharpSyntaxTree.ParseText(userSource);
@@ -121,8 +121,12 @@ internal static class GeneratorTestHarness
             references: refList,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
 
+        AdditionalText[] additionalTexts = spellDbJson is null
+            ? []
+            : [new SpellDatabaseGeneratorTestHarness.InMemoryAdditionalText("data/spelldb.json", spellDbJson)];
+
         var driver = CSharpGeneratorDriver
-            .Create(new ModuleGenerator().AsSourceGenerator())
+            .Create(generators: [new ModuleGenerator().AsSourceGenerator()], additionalTexts: additionalTexts)
             .RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var driverDiagnostics);
 
         var driverResult = driver.GetRunResult();

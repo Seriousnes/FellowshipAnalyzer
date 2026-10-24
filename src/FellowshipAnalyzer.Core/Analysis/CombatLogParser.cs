@@ -42,6 +42,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddAnalyzer<ThroughputTracker>]
 [AddAnalyzer<AbilityTracker>]
 [AddAnalyzer<GloriousPurposeAnalyzer>]
+[AddAnalyzer<RepositoryOfFrozenLightAnalyzer>]
 [AddAnalyzer<RubyGemAnalyzer>]
 [AddAnalyzer<AmethystGemAnalyzer>]
 [AddAnalyzer<TopazGemAnalyzer>]
@@ -106,6 +107,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
     public FullCombatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
+
+    /// <summary>The selected player, or <c>null</c> before <see cref="Analyze"/> populates it.</summary>
+    internal FullCombatant? SelectedCombatantIfKnown => CurrentParseContext?.SelectedCombatant;
 
     /// <summary>
     /// Builds the selected player's <see cref="FullCombatant"/> from the resolved combatantinfo. Overridable so
@@ -387,7 +391,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
+        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors, Hero);
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {

@@ -266,6 +266,27 @@ public sealed partial class SpellUsableTests
             probe.Updates.Last(e => e.Ability.FSLID == SpellF).ExpectedRechargeTimestamp);
     }
     [Fact]
+    public async Task RechargeDurationDuring_ReadsTheRechargeInForceInsideTheWindow()
+    {
+        var (parser, spellUsable, _) = await Run([new DungeonStartEvent { Timestamp = 0 }, CreateCast(0, SpellA), CreateHasteBuff(3000)]);
+        var haste = parser.GetModule<Haste>()!.Current;
+
+        Assert.Equal(CdSecondsC * 1000, spellUsable.RechargeDurationDuring(SpellC, 0, 2000));
+        Assert.Equal((int)(CdSecondsC * 1000 / (1 + haste)), spellUsable.RechargeDurationDuring(SpellC, 4000, 6000));
+        Assert.Equal(CdSecondsA * 1000, spellUsable.RechargeDurationDuring(SpellA, 0, 6000));
+    }
+    [Fact]
+    public async Task RechargesDuring_DividesEachStretchByTheRechargeInForceAcrossIt()
+    {
+        var (_, spellUsable, _) = await Run([new DungeonStartEvent { Timestamp = 0 }, CreateCast(0, SpellA), CreateHasteBuff(3000)]);
+
+        var hastedMs = spellUsable.RechargeDurationDuring(SpellC, 3000, 6000);
+        Assert.Equal(
+            (2000.0 / (CdSecondsC * 1000)) + (3000.0 / hastedMs),
+            spellUsable.RechargesDuring(SpellC, 1000, 6000),
+            9);
+    }
+    [Fact]
     public async Task NonHasteSpell_CooldownUnaffectedByHaste()
     {
         var (_, _, probe) = await Run(

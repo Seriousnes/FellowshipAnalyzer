@@ -1,4 +1,8 @@
+using FellowshipAnalyzer.Core.Common.Spells;
+
 using GundeSpells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells;
+using GundeLegendaries = FellowshipAnalyzer.Core.Common.Spells.Gunde.Legendaries;
+using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 
 using Shouldly;
 using Xunit;
@@ -57,4 +61,18 @@ public class GeneratedRegistryTests
         GundeSpells.Warbound.Range.ShouldBeNull();
         GundeSpells.Warbound.Radius.ShouldBeNull();
     }
+
+    [Fact]
+    public void GundeRegistry_GivesHeartSplitterTheChargesBleedingHeartsGrants() =>
+        GundeSpells.HeartSplitter.ChargeGrant.ShouldBe(new ChargeGrant
+        {
+            Source = GrantSource.LegendaryItem,
+            Id = GundeLegendaries.BleedingHearts.Id,
+            Charges = 2,
+            CooldownHaste = CooldownHasteScaling.TimeRate,
+        });
+
+    [Fact]
+    public void RimeRegistry_ScalesFrostBoltsCastTimeWithHaste() =>
+        RimeSpells.FrostBolt.CastTimeScalesWithHaste.ShouldBe(true);
 }

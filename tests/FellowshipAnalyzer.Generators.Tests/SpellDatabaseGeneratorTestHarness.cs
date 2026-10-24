@@ -131,7 +131,7 @@ internal static class SpellDatabaseGeneratorTestHarness
         return new GeneratorRunResult(generatedTexts, driverDiagnostics, compilationDiagnostics);
     }
 
-    private sealed class InMemoryAdditionalText(string path, string content) : AdditionalText
+    internal sealed class InMemoryAdditionalText(string path, string content) : AdditionalText
     {
         private readonly SourceText _text = SourceText.From(content, Encoding.UTF8);
 

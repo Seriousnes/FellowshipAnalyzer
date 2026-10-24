@@ -212,14 +212,14 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
             if (cast.Timestamp < span.OpenedAt || cast.Timestamp > closedAt)
                 continue;
 
-            var idle = cast.Timestamp - cursor;
+            var idle = CastStart(cast) - cursor;
             if (idle >= MinimumGapMs)
             {
                 gaps.Add(new MaidenWindowGap(cursor, idle));
                 idleMs += idle;
             }
 
-            cursor = Math.Max(cursor, cast.Timestamp + BusyMs(cast));
+            cursor = Math.Max(cursor, BusyUntil(cast));
 
             var abilityId = cast.Ability.Id;
             var role = RoleOf(abilityId);
@@ -287,8 +287,13 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
         return held;
     }
 
-    private static int BusyMs(CastEvent cast) =>
-        cast.GlobalCooldown is { Duration: > 0 } gcd ? gcd.Duration : StandardGcdMs;
+    private static int CastStart(CastEvent cast) =>
+        cast is { GlobalCooldown: { } gcd, Channel: null } ? Math.Min(cast.Timestamp, gcd.Timestamp) : cast.Timestamp;
+
+    private static int BusyUntil(CastEvent cast) =>
+        cast.GlobalCooldown is { Duration: > 0 } gcd
+            ? Math.Max(cast.Timestamp, gcd.Timestamp + gcd.Duration)
+            : cast.Timestamp + StandardGcdMs;
 
     private static ClassResource? FindResource(List<ClassResource>? resources, ResourceTypes type)
     {
