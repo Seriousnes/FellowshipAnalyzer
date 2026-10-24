@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -177,6 +178,19 @@ public sealed class HealerPrimitiveTests
 
         tracker.For(CostedSpell).ShouldNotBeNull().ExecutionMs.ShouldBe(gcdMs);
         tracker.TotalExecutionMs.ShouldBe(gcdMs);
+    }
+
+    [Fact]
+    public async Task HealingEfficiency_ChannelWithNoGlobalCooldown_OccupiesItsChannelDuration()
+    {
+        var chronoshift = Items.Chronoshift;
+
+        var tracker = await AnalyzeEfficiency([Cast(1_000, chronoshift.FSLID)]);
+
+        var channelMs = (int)(chronoshift.ChannelDuration.ShouldNotBeNull() * 1000);
+        channelMs.ShouldNotBe((int)(chronoshift.CastDuration.ShouldNotBeNull() * 1000));
+        tracker.For(chronoshift.FSLID).ShouldNotBeNull().ExecutionMs.ShouldBe(channelMs);
+        tracker.TotalExecutionMs.ShouldBe(channelMs);
     }
 
     [Fact]

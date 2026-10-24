@@ -68,7 +68,7 @@ public partial class HealingEfficiencyTracker : Analyzer
     /// <summary>
     /// How long <paramref name="castEvent"/> occupied, in milliseconds. By default, a hard cast runs from its
     /// begin-cast to the later of cast completion and the end of its global cooldown. A channel or instant cast
-    /// has its global cooldown's duration, and a cast with no global cooldown has the spell's cast duration.
+    /// has its global cooldown's duration, and a cast with no global cooldown has the spell's channel duration, or its cast duration when it does not channel.
     /// </summary>
     protected virtual int ExecutionMsOf(CastEvent castEvent)
     {
@@ -77,7 +77,8 @@ public partial class HealingEfficiencyTracker : Analyzer
                 ? Math.Max(castEvent.Timestamp, gcd.Timestamp + gcd.Duration) - gcd.Timestamp
                 : gcd.Duration;
 
-        var castDuration = Common.Spells.SpellRegistry.MaybeGet(castEvent.Ability.Id)?.CastDuration;
+        var spell = Common.Spells.SpellRegistry.MaybeGet(castEvent.Ability.Id);
+        var castDuration = spell?.ChannelDuration ?? spell?.CastDuration;
         return castDuration is > 0 ? (int)(castDuration.Value * 1000) : 0;
     }
 
