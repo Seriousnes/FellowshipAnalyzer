@@ -32,7 +32,7 @@ public sealed partial class ChronoshiftAnalyzer(
 
     private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Items.Chronoshift };
 
-    private const int ChannelDurationMs = 3000;
+    private static readonly int ChannelDurationMs = (int)TimeSpan.FromSeconds(Items.Chronoshift.ChannelDuration ?? 0).TotalMilliseconds;
 
     private readonly List<ChronoshiftWindow> _windows = [];
     private readonly Dictionary<int, int> _recoveryBySpell = [];

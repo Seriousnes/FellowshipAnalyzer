@@ -115,6 +115,8 @@ public sealed class ChronoshiftAnalyzerTests
 
         var fabricatedEnd = parser.Events.OfType<EndChannelEvent>().Single(e => e.Fabricated == true);
         Assert.Equal(8000, fabricatedEnd.Timestamp);
+        Assert.Equal(3, Items.Chronoshift.ChannelDuration);
+        Assert.Equal(TimeSpan.FromSeconds(Items.Chronoshift.ChannelDuration!.Value).TotalMilliseconds, fabricatedEnd.Duration);
 
         var removal = parser.Events.OfType<ChangeCooldownModifierEvent>().Single(e => !e.Added);
         Assert.Equal(8000, removal.Timestamp);
