@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -69,6 +70,13 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.EventHorizon,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
+        },
+        new()
+        {
+            PrimarySpell = CoreItems.Chronoshift,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.AshasChronoshiftBow.Id) == true,
         },
         new()
         {
