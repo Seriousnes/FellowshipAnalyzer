@@ -15,9 +15,7 @@ namespace FellowshipAnalyzer.Api.Tests;
 /// <remarks>
 /// Set <c>FELLOWSHIP_API_PUBLISH_DIR</c> to test an existing publish output. Otherwise the fixture
 /// publishes the API in Release to a temporary directory. The host is Azure Functions Core Tools:
-/// <c>func</c> on PATH, or <c>FUNC_PATH</c> set to the executable. The worker targets net8.0, so the
-/// .NET 8 runtime must be installed.
-/// </remarks>
+/// <c>func</c> on PATH, or <c>FUNC_PATH</c> set to the executable./// </remarks>
 public sealed class FunctionsHost : IAsyncLifetime
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(3);

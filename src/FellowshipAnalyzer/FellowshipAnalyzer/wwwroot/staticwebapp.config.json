@@ -27,7 +27,7 @@
     }
   ],
   "platform": {
-    "apiRuntime": "dotnet-isolated:8.0"
+    "apiRuntime": "dotnet-isolated:10.0"
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
