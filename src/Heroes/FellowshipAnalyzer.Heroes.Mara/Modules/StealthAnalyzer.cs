@@ -83,19 +83,22 @@ public sealed partial class StealthAnalyzer : Analyzer
     }
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spells = [nameof(Spells.WidowBitePoison), nameof(Spells.SkitteringBladesPoison)])]
-    private void OnPoisonApplied(ApplyDebuffEvent debuffEvent) => LinkPoison(debuffEvent);
+    private void OnPoisonApplied(ApplyDebuffEvent debuffEvent) => LinkPoison(debuffEvent.Ability.Id, debuffEvent.Timestamp);
 
     [On<RefreshDebuffEvent>(By = Actor.Player, Spells = [nameof(Spells.WidowBitePoison), nameof(Spells.SkitteringBladesPoison)])]
-    private void OnPoisonRefreshed(RefreshDebuffEvent debuffEvent) => LinkPoison(debuffEvent);
+    private void OnPoisonRefreshed(RefreshDebuffEvent debuffEvent) => LinkPoison(debuffEvent.Ability.Id, debuffEvent.Timestamp);
 
-    private void LinkPoison(BuffEvent debuffEvent)
+    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.BackstabPoisonDamage))]
+    private void OnCausticPoisonDamage(DamageEvent damageEvent) => LinkPoison(damageEvent.Ability.Id, damageEvent.Timestamp);
+
+    private void LinkPoison(int effectId, int timestamp)
     {
         if (_lastConverted is not { PoisonEffectId: null, ConvertingCastAt: { } castAt, ExpectedPoisonEffectId: { } expected } span)
             return;
 
-        if (debuffEvent.Ability.Id != expected) return;
+        if (effectId != expected) return;
 
-        var elapsed = debuffEvent.Timestamp - castAt;
+        var elapsed = timestamp - castAt;
         if (elapsed < 0 || elapsed > PoisonLinkWindowMs) return;
 
         span.PoisonEffectId = expected;
@@ -103,6 +106,7 @@ public sealed partial class StealthAnalyzer : Analyzer
 
     private static int? PoisonOf(int builderAbilityId)
     {
+        if (builderAbilityId == Spells.Backstab.Id) return Spells.BackstabPoisonDamage.FSLID;
         if (builderAbilityId == Spells.WidowBite.Id) return Spells.WidowBitePoison.FSLID;
         if (builderAbilityId == Spells.SkitteringBlades.Id) return Spells.SkitteringBladesPoison.FSLID;
         return null;
