@@ -200,7 +200,8 @@
         : "Builder";
 
     private static string PoisonName(int effectId) =>
-        effectId == Spells.WidowBitePoison.FSLID ? Spells.WidowBitePoison.Name
+        effectId == Spells.BackstabPoisonDamage.FSLID ? Spells.BackstabPoisonDamage.Name
+        : effectId == Spells.WidowBitePoison.FSLID ? Spells.WidowBitePoison.Name
         : effectId == Spells.SkitteringBladesPoison.FSLID ? Spells.SkitteringBladesPoison.Name
         : "Poison";
 

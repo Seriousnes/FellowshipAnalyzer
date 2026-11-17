@@ -90,6 +90,42 @@ public sealed class StealthAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_BackstabStealth_LinksCausticPoison()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.BroodingShadowsBuff),
+            Cast(1200, Spells.BackstabStealth),
+            Damage(1202, Spells.BackstabPoisonDamage),
+            Damage(1500, Spells.BackstabPoisonDamage),
+            Buff<RemoveBuffEvent>(3000, Spells.BroodingShadowsBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.ConvertingAbilityId.ShouldBe(Spells.Backstab.Id);
+        window.PoisonEffectId.ShouldBe(Spells.BackstabPoisonDamage.FSLID);
+        analyzer.WindowsWithPoison.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_CausticPoisonBeyondTheLinkWindow_IsNotCreditedToTheWindow()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.BroodingShadowsBuff),
+            Cast(1200, Spells.BackstabStealth),
+            Buff<RemoveBuffEvent>(1400, Spells.BroodingShadowsBuff),
+            Damage(1200 + StealthAnalyzer.PoisonLinkWindowMs + 1, Spells.BackstabPoisonDamage),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Windows.ShouldHaveSingleItem().PoisonEffectId.ShouldBeNull();
+    }
+
+    [Fact]
     public async Task Analyze_SkitteringBladesStealth_LinksVolatilePoison()
     {
         var events = new List<Event>
@@ -294,6 +330,14 @@ public sealed class StealthAnalyzerTests
     };
 
     private static TEvent Debuff<TEvent>(int timestamp, Spell effect) where TEvent : BuffEvent, new() => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = EnemyId,
+        Ability = new Ability { Id = effect.FSLID },
+    };
+
+    private static DamageEvent Damage(int timestamp, Spell effect) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
