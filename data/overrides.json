@@ -1,5 +1,8 @@
 {
   "aeona": {
+    "FlashRevision": {
+      "resourceGeneration": { "resource": "primary", "amount": 6, "criticalAmount": 9, "trigger": "PerCast" }
+    },
     "ConvergingTimelinesLonesomeSong": {
       "id": 2820,
       "kind": "effect"
@@ -84,11 +87,6 @@
     "WintersBlessing": {
       "id": 1026
     },
-    "WintersBlessingBuff": {
-      "id": 1026,
-      "kind": "effect",
-      "name": "Winter\u0027s Blessing"
-    },
     "FlightOfTheNavirBuff": {
       "id": 2446
     },
@@ -118,12 +116,7 @@
       "icon": "T_Rime_HealingBuff"
     },
     "IceCometAlt": {
-      "id": 2227,
-      "name": "Ice Comet",
-      "icon": "T_Rime_OnTargetPulsatingAOE",
-      "range": 3000,
-      "radius": 700,
-      "costs": { "tertiary": 2 }
+      "id": 2227
     }
   },
   "elarion": {
@@ -177,8 +170,7 @@
     },
     "RendManager": {
       "id": 2286,
-      "kind": "ability",
-      "name": "Rend"
+      "kind": "ability"
     },
     "Rend": {
       "id": 3231,
@@ -223,23 +215,19 @@
   "items": {
     "AdrenalineRush": {
       "id": 1939,
-      "kind": "effect",
-      "name": "Adrenaline Rush"
+      "kind": "effect"
     },
     "AdrenalineRushII": {
       "id": 1940,
-      "kind": "effect",
-      "name": "Adrenaline Rush - II"
+      "kind": "effect"
     },
     "FirstStrike": {
       "id": 1943,
-      "kind": "effect",
-      "name": "First Strike"
+      "kind": "effect"
     },
     "FirstStrikeII": {
       "id": 1944,
-      "kind": "effect",
-      "name": "First Strike - II"
+      "kind": "effect"
     },
     "EssenceOfTheVirtuoso": {
       "id": 1937,
@@ -425,8 +413,7 @@
     "NavigatorsIntuitionTrait": {
       "id": 43,
       "kind": "weapon",
-      "name": "Navigator's Intuition",
-      "icon": "Tex_SpellBook03_42"
+      "name": "Navigator's Intuition"
     },
     "MartialInitiativeTrait": {
       "id": 51,
@@ -551,41 +538,10 @@
   },
   "mara": {
     "BackstabStealth": {
-      "id": 2308,
-      "name": "Backstab",
-      "icon": "Mara_backstab",
-      "abilityCategory": "Core",
-      "resourceGeneration": { "resource": "secondary", "amount": 2, "criticalAmount": 3, "trigger": "PerCast" }
+      "id": 2308
     },
     "SkitteringBladesStealth": {
-      "id": 2309,
-      "name": "Skittering Blades",
-      "icon": "Mara_AOEBuilder",
-      "abilityCategory": "Core",
-      "range": 800,
-      "radius": 800,
-      "costs": { "primary": 35 },
-      "resourceGeneration": { "resource": "secondary", "amount": 1, "criticalAmount": 2, "trigger": "PerHit" }
-    },
-    "KickAlt": {
-      "id": 1167,
-      "name": "Kick",
-      "icon": "Mara_Kick",
-      "abilityCategory": "Utility",
-      "cooldown": 16,
-      "range": 500
-    },
-    "KickLockoutAlt": {
-      "id": 1641,
-      "kind": "effect",
-      "name": "Tremble!",
-      "icon": "Tex_red_10"
-    },
-    "KickInterruptAlt": {
-      "id": 1642,
-      "kind": "effect",
-      "name": "Kick",
-      "icon": "Mara_Kick"
+      "id": 2309
     },
     "BroodingShadowsBuff": {
       "id": 1591,
@@ -620,9 +576,7 @@
       "id": 1122
     },
     "LashingStormkickAlt": {
-      "id": 2310,
-      "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08"
+      "id": 2310
     },
     "EarthfistBarrage": {
       "cooldown": null

@@ -9,8 +9,8 @@ namespace FellowshipAnalyzer.SpellData.Tests;
 
 public class CostMappingTests
 {
-    private static ExportAbility Ability(double? cost, string? resource, bool fraction = false) =>
-        new(1, "Test", null, null, null, cost, resource, fraction, null, null, null, null, null, null, [], []);
+    private static ExportAbility Ability(double? cost, string? resource) =>
+        new(1, "Test", null, null, null, cost, resource, null, null, null, null, null, null, [], []);
 
     [Fact]
     public void WinterOrbCost_MapsToTertiary() =>
@@ -31,10 +31,6 @@ public class CostMappingTests
     [Fact]
     public void CostWithoutAResource_MapsToNothing() =>
         Costs.Map(Ability(30, null), [], "meiko", "EarthFist").ShouldBeEmpty();
-
-    [Fact]
-    public void FractionalCost_MapsToNothing() =>
-        Costs.Map(Ability(0.25, "Fury", fraction: true), [], "tariq", "SkullCrusher").ShouldBeEmpty();
 
     [Fact]
     public void UnresolvableResourceName_RaisesAGap()

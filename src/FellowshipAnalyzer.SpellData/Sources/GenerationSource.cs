@@ -1,5 +1,6 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using Fellowship.SDK.Documents;
 
 using FellowshipAnalyzer.Core.Common.Spells;
 
@@ -30,38 +31,22 @@ public sealed class GenerationSource
             if (line.Length == 0)
                 continue;
 
-            var record = JsonSerializer.Deserialize<DescribedRecord>(line, Options)
-                ?? throw new InvalidOperationException($"Could not read a record from '{entitiesPath}'.");
-
-            if (record.Description is null || KindOf(record.Type) is not { } kind)
+            if (Described(JsonSerializer.Deserialize<EntityDocument>(line, EntityDocuments.Options)) is not var (kind, id, description))
                 continue;
 
-            var statement = Generation.Read(record.Description);
+            var statement = Generation.Read(description);
             if (statement.Stated is not null || statement.Unclaimed.Count > 0)
-                statements[FSLID.FromNative(kind, record.Id).Value] = statement;
+                statements[FSLID.FromNative(kind, id).Value] = statement;
         }
 
         return new GenerationSource(statements);
     }
 
-    private static SpellKind? KindOf(string type) => type switch
+    private static (SpellKind Kind, int Id, string Description)? Described(EntityDocument? document) => document switch
     {
-        "ability" => SpellKind.Ability,
-        "effect" => SpellKind.Effect,
-        "talent" => SpellKind.Talent,
+        AbilityDocument { Description: { } text } ability => (SpellKind.Ability, ability.Id, text),
+        EffectDocument { Description: { } text } effect => (SpellKind.Effect, effect.Id, text),
+        TalentDocument { Description: { } text } talent => (SpellKind.Talent, talent.Id, text),
         _ => null,
     };
-
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
-    private sealed class DescribedRecord
-    {
-        [JsonPropertyName("$type")]
-        public string Type { get; init; } = string.Empty;
-        public int Id { get; init; }
-        public string? Description { get; init; }
-    }
 }

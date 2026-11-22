@@ -20,7 +20,6 @@ public record ExportAbility(
     CooldownHasteScaling? CooldownHaste,
     double? Cost,
     string? Resource,
-    bool CostIsFraction,
     int? Range,
     int? Radius,
     int? Charges,
@@ -156,20 +155,13 @@ public sealed class ExportSource
             if (line.Length == 0)
                 continue;
 
-            using var parsed = JsonDocument.Parse(line);
-            var root = parsed.RootElement;
-
-            if (root.TryGetProperty("tag", out _))
-                throw new InvalidOperationException(
-                    $"The export at '{entitiesPath}' still names internal assets. Regenerate it.");
-
-            switch (root.Deserialize<EntityDocument>(EntityDocuments.Options))
+            switch (JsonSerializer.Deserialize<EntityDocument>(line, EntityDocuments.Options))
             {
                 case AbilityDocument ability:
                     abilities[ability.Id] = new ExportAbility(
                         ability.Id, ability.Name, ability.Category?.ToString(), ability.Cooldown,
                         HasteScaling(ability), ability.Cost,
-                        ability.Resource, CostIsFraction(root), Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
+                        ability.Resource, Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
                         ability.CastTime, ability.ChannelTime, ability.ChannelTick,
                         [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())])
                     {
@@ -301,7 +293,4 @@ public sealed class ExportSource
         reference is null ? null : new EntityRef(EntityTypes.Slug(reference.Type), reference.Id, reference.Name);
 
     private static int? Whole(double? value) => value is { } number ? (int)number : null;
-
-    private static bool CostIsFraction(JsonElement record) =>
-        record.TryGetProperty("costIsFraction", out var fraction) && fraction.ValueKind == JsonValueKind.True;
 }

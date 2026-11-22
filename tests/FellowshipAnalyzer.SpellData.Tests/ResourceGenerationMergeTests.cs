@@ -42,7 +42,15 @@ public class ResourceGenerationMergeTests
 
     [Fact]
     public void AbilityStatingNoCriticalAmount_HasNone() =>
-        Merged("aeona", "FlashRevision").CriticalAmount.ShouldBeNull();
+        Merged("rime", "FreezingTorrent").CriticalAmount.ShouldBeNull();
+
+    [Fact]
+    public void FlashRevision_HasTheGenerationOfItsConstantsRowOverItsDescription()
+    {
+        var generation = Merged("aeona", "FlashRevision");
+        generation.Amount.ShouldBe(6);
+        generation.CriticalAmount.ShouldBe(9);
+    }
 
     [Fact]
     public void RelicStatingAShareOfTheMaximumPool_IsRoutedToItemsWithThatShare()

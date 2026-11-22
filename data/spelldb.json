@@ -204,7 +204,8 @@
       },
       "resourceGeneration": {
         "resource": "primary",
-        "amount": 5,
+        "amount": 6,
+        "criticalAmount": 9,
         "trigger": "PerCast"
       }
     },
@@ -1392,7 +1393,7 @@
     "StarfallVolleyMainTargetBuff": {
       "kind": "effect",
       "id": 3260,
-      "name": "",
+      "name": "Starfall Volley",
       "icon": ""
     },
     "StarfallVolleyTalentBuffWhileActive": {
@@ -1594,7 +1595,7 @@
       "name": "Jawbreaker",
       "icon": "t_gunde_Interrupt",
       "abilityCategory": "Utility",
-      "cooldown": 12,
+      "cooldown": 16,
       "castTimeScalesWithHaste": true,
       "range": 500
     },
@@ -2326,6 +2327,10 @@
       "name": "Backstab",
       "icon": "Mara_backstab",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
+      "costs": {
+        "primary": 20
+      },
       "resourceGeneration": {
         "resource": "secondary",
         "amount": 2,
@@ -2401,7 +2406,6 @@
       "name": "Hemorrhaging Strike",
       "icon": "Mara_Bleed",
       "abilityCategory": "Power",
-      "cooldown": 2,
       "castTimeScalesWithHaste": true,
       "range": 500,
       "costs": {
@@ -2454,36 +2458,15 @@
       "castTimeScalesWithHaste": true,
       "range": 500
     },
-    "KickAlt": {
-      "kind": "ability",
-      "id": 1167,
-      "name": "Kick",
-      "icon": "Mara_Kick",
-      "abilityCategory": "Utility",
-      "cooldown": 16,
-      "range": 500
-    },
     "KickInterrupt": {
       "kind": "effect",
       "id": 1704,
       "name": "Kick",
       "icon": "Mara_Kick"
     },
-    "KickInterruptAlt": {
-      "kind": "effect",
-      "id": 1642,
-      "name": "Kick",
-      "icon": "Mara_Kick"
-    },
     "KickLockout": {
       "kind": "effect",
       "id": 1703,
-      "name": "Tremble!",
-      "icon": "Tex_red_10"
-    },
-    "KickLockoutAlt": {
-      "kind": "effect",
-      "id": 1641,
       "name": "Tremble!",
       "icon": "Tex_red_10"
     },
@@ -2642,6 +2625,7 @@
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder",
       "abilityCategory": "Core",
+      "castTimeScalesWithHaste": true,
       "range": 800,
       "radius": 800,
       "costs": {
@@ -2918,7 +2902,8 @@
       "kind": "ability",
       "id": 2310,
       "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08"
+      "icon": "Meiko_AbilityIcon_08",
+      "abilityCategory": "Power"
     },
     "LashingStormkickDamage": {
       "kind": "effect",
@@ -3589,6 +3574,8 @@
       "id": 2227,
       "name": "Ice Comet",
       "icon": "T_Rime_OnTargetPulsatingAOE",
+      "abilityCategory": "Power",
+      "castTimeScalesWithHaste": true,
       "range": 3000,
       "radius": 700,
       "costs": {
@@ -3686,12 +3673,6 @@
       "abilityCategory": "Major",
       "cooldown": 60,
       "castTimeScalesWithHaste": true
-    },
-    "WintersBlessingBuff": {
-      "kind": "effect",
-      "id": 1026,
-      "name": "Winter\u0027s Blessing",
-      "icon": "T_Nhance_RPG_Icons_AxeSwing"
     },
     "WintersEmbrace": {
       "kind": "effect",
@@ -4356,7 +4337,6 @@
       "name": "Hammer Storm",
       "icon": "T_Ink_Hammerstorm",
       "abilityCategory": "Power",
-      "cooldown": 1.5,
       "castTimeScalesWithHaste": true,
       "radius": 700,
       "channelDuration": 1,
@@ -4553,7 +4533,6 @@
       "name": "Skull Crusher",
       "icon": "T_Ink_Skullcrusher",
       "abilityCategory": "Power",
-      "cooldown": 1,
       "castTimeScalesWithHaste": true,
       "range": 550,
       "costs": {
@@ -4673,7 +4652,6 @@
       "name": "Avatar of Light",
       "icon": "T_Vigor_Spirit",
       "abilityCategory": "Spirit",
-      "cooldown": 0,
       "castTimeScalesWithHaste": true,
       "range": 6000,
       "castDuration": 1.5,
@@ -5502,6 +5480,12 @@
     "SolarShieldDamageReduction": {
       "kind": "effect",
       "id": 2728,
+      "name": "",
+      "icon": ""
+    },
+    "SolarShieldLegendaryDREffect": {
+      "kind": "effect",
+      "id": 3367,
       "name": "",
       "icon": ""
     },
@@ -8987,6 +8971,10 @@
     "2300": "Physical",
     "2301": "Physical",
     "2304": "Magic",
+    "2308": "Physical",
+    "2309": "Physical",
+    "2310": "Physical",
+    "2312": "Magic/Physical",
     "2317": "Magic",
     "2334": "Physical",
     "2336": "Magic",
@@ -9159,6 +9147,7 @@
     "1000492": "Physical",
     "1000493": "Physical",
     "1000499": "Physical",
+    "1000525": "Magic",
     "1000528": "Magic",
     "1000529": "Magic",
     "1000531": "Physical",
@@ -9231,6 +9220,7 @@
     "1000661": "Physical",
     "1000662": "Magic",
     "1000663": "Physical",
+    "1000664": "Magic",
     "1000671": "Magic",
     "1000672": "Physical",
     "1000673": "Magic",
@@ -9856,6 +9846,7 @@
     "1002625": "Magic",
     "1002626": "Magic",
     "1002647": "Physical",
+    "1002656": "Physical",
     "1002657": "Physical",
     "1002660": "Physical",
     "1002665": "Physical",
@@ -9894,6 +9885,7 @@
     "1002793": "Magic",
     "1002795": "Physical",
     "1002797": "Physical",
+    "1002798": "Physical",
     "1002800": "Magic",
     "1002808": "Physical",
     "1002812": "Physical",
@@ -10038,6 +10030,7 @@
     "1003065": "Physical",
     "1003066": "Physical",
     "1003071": "Magic",
+    "1003072": "Magic",
     "1003075": "Physical",
     "1003076": "Physical",
     "1003077": "Physical",
@@ -10069,6 +10062,7 @@
     "1003247": "Physical",
     "1003248": "Physical",
     "1003257": "Physical",
+    "1003260": "Magic",
     "1003287": "Physical",
     "1003289": "Magic",
     "1003290": "Physical",
@@ -10156,6 +10150,9 @@
       "type": "Sigil",
       "modifier": "HeroicTrait"
     },
+    "3": {
+      "type": "ItemTrait"
+    },
     "4": {
       "type": "Sigil",
       "modifier": "HeroicTrait"
@@ -10167,6 +10164,9 @@
     "28": {
       "type": "Sigil",
       "modifier": "HeroicTrait"
+    },
+    "30": {
+      "type": "ItemTrait"
     },
     "31": {
       "type": "Aspect",
@@ -10196,6 +10196,9 @@
       "type": "Sigil",
       "modifier": "HeroicTrait"
     },
+    "43": {
+      "type": "ItemTrait"
+    },
     "46": {
       "type": "Sigil",
       "modifier": "HeroicTrait"
@@ -10207,6 +10210,9 @@
     "48": {
       "type": "Aspect",
       "modifier": "MajorTrait"
+    },
+    "50": {
+      "type": "ItemTrait"
     },
     "51": {
       "type": "Aspect",
