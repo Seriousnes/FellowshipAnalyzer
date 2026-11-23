@@ -242,7 +242,7 @@ public sealed class GlobalCooldownTests
             {
                 PrimarySpell = new Spell { Id = BrainFreezeSpellId, Name = "Brain Freeze" },
                 Category = SpellCategory.Utility,
-                Gcd = Abilities.StandardGcd,
+                Gcd = new GcdInfo { Base = 1500.0 },
             }));
 
         var casts = parser.Events.OfType<CastEvent>().ToList();
@@ -353,7 +353,7 @@ public sealed class GlobalCooldownTests
     }
 
     [Fact]
-    public async Task Cast_WithStandardGcdAndNoExportGlobalCooldown_ShouldApplyTheMinimum()
+    public async Task Cast_WithGcdInfoBaseAndMinimum_ShouldApplyTheMinimum()
     {
         var (parser, _) = await RunWithGcd(
             [CreateApplyBuff(500, OneAndAHalfHasteBuffId), CreateCast(1000, ExportSpellId)],
@@ -361,11 +361,43 @@ public sealed class GlobalCooldownTests
             {
                 PrimarySpell = new Spell { Id = ExportSpellId, Name = "Export Spell" },
                 Category = SpellCategory.Rotational,
-                Gcd = Abilities.StandardGcd,
+                Gcd = new GcdInfo { Base = 1500.0, Minimum = 750.0 },
             }));
 
         var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
         Assert.Equal(750, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task Cast_WithGcdInfoBaseAndNoMinimum_ShouldApplyNoFloor()
+    {
+        var (parser, _) = await RunWithGcd(
+            [CreateApplyBuff(500, OneAndAHalfHasteBuffId), CreateCast(1000, ExportSpellId)],
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = ExportSpellId, Name = "Export Spell" },
+                Category = SpellCategory.Rotational,
+                Gcd = new GcdInfo { Base = 1500.0 },
+            }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(600, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task Cast_WithEmptyGcdInfo_ShouldThrowNamingTheSpell()
+    {
+        var (_, gcd) = await RunWithGcd(
+            [],
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = ExportSpellId, Name = "Export Spell" },
+                Category = SpellCategory.Rotational,
+                Gcd = new GcdInfo(),
+            }));
+
+        var exception = Assert.Throws<InvalidOperationException>(() => gcd.GetGcdDuration(ExportSpellId));
+        Assert.Contains("Export Spell", exception.Message);
     }
 
     [Fact]
@@ -503,7 +535,7 @@ public sealed class GlobalCooldownTests
             {
                 PrimarySpell = new Spell { Id = TestSpellId, Name = "Test Spell" },
                 Category = SpellCategory.Rotational,
-                Gcd = StandardGcd,
+                Gcd = new GcdInfo { Base = 1500.0 },
             });
             configuration.Configure?.Invoke(this);
         }

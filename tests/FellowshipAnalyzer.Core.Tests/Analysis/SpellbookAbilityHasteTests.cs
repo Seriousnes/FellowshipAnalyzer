@@ -64,7 +64,7 @@ public class SpellbookAbilityHasteTests
         {
             PrimarySpell = new Spell { Id = 1 },
             Category = SpellCategory.Rotational,
-            Gcd = Abilities.StandardGcd,
+            Gcd = new GcdInfo { Base = 1500.0 },
         }.OnGlobalCooldown.ShouldBeTrue();
 
     [Fact]

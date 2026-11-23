@@ -103,7 +103,9 @@ public sealed record SpellbookAbility
 
     /// <summary>
     /// GCD information that replaces the export values of <see cref="Spell.GlobalCooldown"/> and
-    /// <see cref="Spell.GlobalCooldownScalesWithHaste"/>. Null leaves the export values in force.
+    /// <see cref="Spell.GlobalCooldownScalesWithHaste"/>. Null leaves the export values in force, which is
+    /// how every hero spellbook reads its global cooldowns. Set it only where the game states a global
+    /// cooldown differing from the export.
     /// </summary>
     public GcdInfo? Gcd { get; init; }
 
@@ -196,13 +198,14 @@ public sealed record SpellbookAbility
 
 /// <summary>
 /// GCD configuration for a spell. Each sub-value can be a fixed number of
-/// milliseconds or a function of the player's <see cref="FullCombatant"/>.
+/// milliseconds or a function of the player's <see cref="FullCombatant"/>. An entry has <see cref="Static"/>
+/// or <see cref="Base"/>; with neither, reading the duration throws <see cref="InvalidOperationException"/>.
 /// </summary>
 public sealed record GcdInfo
 {
     /// <summary>
-    /// The base GCD in milliseconds before haste reduction.
-    /// Typically 1500ms for most abilities.
+    /// The base GCD in milliseconds before haste reduction. The duration is
+    /// <c>Base / (1 + Haste)</c>, no shorter than <see cref="Minimum"/>.
     /// </summary>
     public GcdValue? Base { get; init; }
 
@@ -212,7 +215,7 @@ public sealed record GcdInfo
     public GcdValue? Static { get; init; }
 
     /// <summary>
-    /// The minimum GCD in milliseconds (floor after haste reduction).
+    /// The minimum GCD in milliseconds (floor after haste reduction). Absent means no floor.
     /// </summary>
     public GcdValue? Minimum { get; init; }
 }

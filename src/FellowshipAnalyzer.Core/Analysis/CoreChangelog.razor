@@ -8,6 +8,7 @@
     /// </summary>
     public static readonly List<ChangelogEntry> Entries =
     [
+        Change(new(2026, 11, 23), @<text>Every hero's global cooldowns now come from the game data.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Haste buffs, <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.Chronoshift" />, <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.GloriousPurpose" />, The Monarch and gem cooldown bonuses now take their values from the game data.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Cooldown tracking keeps the exact progress of each recharge through every Haste and Cooldown Recovery change, and through the time between pulls. A recharge's length is set when the first charge is spent, and a cast the tracker did not expect resets the recharge to that cast.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Each cooldown now takes Cooldown Recovery, Ability Cooldown Reduction and Haste only where the game data says it does, so interrupts, dispels and relic abilities keep their base cooldown and charged abilities take no Ability Cooldown Reduction. <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.Chronoshift" /> and <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.FatedStrike" /> recover their own cooldown at the normal rate.</text>, Seriousnes),
