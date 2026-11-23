@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 public sealed partial class AeonaStatBuffs : Analyzer
 {
     private static readonly CooldownModifier FleetingHourCooldownRecovery =
-        CooldownRecoveryModifiers.Of(Spells.FleetingHourSelfBuff);
+        EffectModifierValue.CooldownRecoveryOf(Spells.FleetingHourSelfBuff.Id);
 
     [On<DungeonStartEvent>]
     private void OnDungeonStart(DungeonStartEvent e) =>

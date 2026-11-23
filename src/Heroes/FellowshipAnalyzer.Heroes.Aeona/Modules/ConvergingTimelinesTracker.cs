@@ -21,10 +21,10 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 public sealed partial class ConvergingTimelinesTracker : Analyzer
 {
     private static readonly CooldownModifier ConvergingTimelinesRecovery =
-        CooldownRecoveryModifiers.Of(Spells.ConvergingTimelines);
+        EffectModifierValue.CooldownRecoveryOf(Spells.ConvergingTimelines.Id);
 
     private static readonly CooldownModifier LonesomeSongRecovery =
-        CooldownRecoveryModifiers.Of(Spells.ConvergingTimelinesLonesomeSong);
+        EffectModifierValue.CooldownRecoveryOf(Spells.ConvergingTimelinesLonesomeSong.Id);
 
     private readonly List<AuraWindow> _windows = [];
     private readonly Aura _convergingTimelines = new();
