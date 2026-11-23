@@ -4946,6 +4946,12 @@
       "name": "Intimidate",
       "icon": "T_Ink_IntimidatingRoar"
     },
+    "KillEmAllBuff": {
+      "kind": "effect",
+      "id": 3160,
+      "name": "Kill Em All",
+      "icon": "Berserker6"
+    },
     "LeapSmash": {
       "kind": "ability",
       "id": 1225,
@@ -16434,6 +16440,10 @@
           "EffectDamageThresholdScaler": 30,
           "MaxNumTargets": 40,
           "VisualDelay": 0.3
+        },
+        "KillEmAllBuff": {
+          "AutoAttackBuffDamageScaler": 2.5,
+          "MaxStacks": 2
         },
         "LeapSmash": {
           "IncreasedMovementSpeed.SpeedMultiplier": 1.2,

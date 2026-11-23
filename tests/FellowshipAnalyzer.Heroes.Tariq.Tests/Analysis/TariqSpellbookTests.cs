@@ -20,6 +20,29 @@ public sealed class TariqSpellbookTests
         Assert.DoesNotContain(spellbook, e => e.Category == SpellCategory.Uncategorized);
     }
 
+    [Fact]
+    public void NoEntry_DeclaresAGlobalCooldown()
+    {
+        foreach (var entry in new TariqAbilities().Spellbook())
+            entry.Gcd.ShouldBeNull();
+    }
+
+    [Fact]
+    public void CullingStrikeIsOffTheGlobalCooldownAndSkullCrusherIsOn()
+    {
+        var spellbook = new TariqAbilities().Spellbook().ToList();
+
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == TariqSpells.CullingStrike.FSLID)
+            .OnGlobalCooldown.ShouldBeFalse();
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == TariqSpells.SkullCrusher.FSLID)
+            .OnGlobalCooldown.ShouldBeTrue();
+        TariqSpells.SkullCrusher.GlobalCooldown.ShouldBe(1);
+        TariqSpells.SkullCrusher.GlobalCooldownScalesWithHaste.ShouldBe(true);
+        TariqSpells.CullingStrike.GlobalCooldown.ShouldBeNull();
+        TariqSpells.WildSwing.GlobalCooldown.ShouldBe(1.5);
+        TariqSpells.WildSwing.Cooldown.ShouldBe(1.5);
+    }
+
     /// <summary>
     /// Sledgehammer is the talent splash on Skull Crusher with its own ability id, so it
     /// only reaches the spellbook through Skull Crusher's additional spells. It is absent from Tariq's

@@ -684,6 +684,10 @@
       "id": 3115,
       "kind": "effect"
     },
+    "KillEmAllBuff": {
+      "id": 3160,
+      "kind": "effect"
+    },
     "HeavyStrikeDamage": {
       "id": 1776,
       "kind": "effect"
