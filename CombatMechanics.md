@@ -125,8 +125,14 @@ Community discussion and class guides further emphasize that Haste reduces the g
 
 ### Haste percentage from rating
 
-The Haste percentage used for combat calculations is obtained by applying the same rating to percentage with DR formula described above to Haste rating, then adding any flat Haste percentage bonuses (for example from gems, set bonuses, or temporary buffs such as "heroism"-style effects). [^22][^4]
-As with other secondaries, DR applies only to rating-based Haste; flat Haste percentage bonuses are added on top after DR and are not diminished. [^1]
+Haste is the game's Haste attribute minus 1, floored at 0. The attribute starts at `1 + P(R)`, where `P(R)` is the rating to percentage with DR formula described above applied to Haste rating, and every active Haste modifier joins one fold by its operation: [^22][^4]
+
+- `Additive` values (flat bonuses from gems, set bonuses, or "heroism"-style buffs) add to the base and are not diminished. [^1]
+- `Multiplicitive` values add their part above 1 to one shared factor, so Rune Rush (1.15) and Shadow's Defeat (1.20) active together give `1 + 0.15 + 0.20 = 1.35`.
+- `MultiplyCompound` values each multiply the result.
+- `AddFinal` values add after every multiplication.
+
+`attribute = (1 + P(R) + Σ additive) × (1 + Σ (multiplicitive − 1)) × Π compound + Σ addFinal`, and `h = max(0, attribute − 1)`. The rating curve, `BaseStatMultiplier` and brackets, comes from the generated `RatingCurves`. A Haste rating buff adds to the rating before conversion.
 
 ### Haste time scaling
 

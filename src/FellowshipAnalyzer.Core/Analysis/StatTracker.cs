@@ -280,21 +280,22 @@ public sealed partial class StatTracker : Analyzer
     public double StartingMainStat => _pullStats.MainStat;
 
     /// <summary>
-    /// Converts a stat rating to a percentage using Fellowship's Season 3 diminishing-returns
-    /// formula. The raw percentage is <c>rating × 0.16</c>. The bracket edges, 10, 15, 20 and 25, are
-    /// points of the converted percentage, and each bracket's penalty compounds on every penalty before
-    /// it: rating in the 15 to 20 bracket converts at <c>0.98 × 0.96</c>, and rating past 25 at
-    /// <c>0.98 × 0.96 × 0.94 × 0.92</c>. Returns a decimal fraction (0.30 = 30%). Flat percentage bonuses
-    /// from static effects (e.g. +5% haste) are additive after this and are not modelled here.
+    /// Converts a Haste rating to a percentage through <see cref="RatingCurves.Haste"/>. The raw percentage
+    /// is <c>rating × BaseStatMultiplier</c>. Each bracket's <c>MaxBracketValue</c> is a point of the
+    /// converted percentage, and each bracket's penalty compounds on every penalty before it. Raw points
+    /// past the last bracket convert at the compounded penalty times <c>FinalPenaltyPercentage</c>.
+    /// Returns a decimal fraction (0.30 = 30%). Flat percentage bonuses from static effects are not modelled here.
     /// </summary>
-    public static double RatingToPercentage(double rating)
+    public static double RatingToPercentage(double rating) => RatingToPercentage(rating, RatingCurves.Haste);
+
+    private static double RatingToPercentage(double rating, RatingCurve curve)
     {
         if (rating <= 0) return 0;
 
-        var raw = rating * RatingToRawPercent;
+        var raw = rating * curve.BaseStatMultiplier;
         var converted = 0.0;
         var efficiency = 1.0;
-        foreach (var (edge, penalty) in DiminishingReturnsBrackets)
+        foreach (var (edge, penalty) in curve.Brackets)
         {
             efficiency *= penalty;
             var rawWidth = (edge - converted) / efficiency;
@@ -305,42 +306,41 @@ public sealed partial class StatTracker : Analyzer
             converted = edge;
         }
 
-        return (converted + raw * efficiency * FinalDiminishingReturnsPenalty) / 100.0;
+        return (converted + raw * efficiency * curve.FinalPenaltyPercentage) / 100.0;
     }
-
-    private const double RatingToRawPercent = 0.16;
-
-    private const double FinalDiminishingReturnsPenalty = 0.92;
-
-    private static readonly (double Edge, double Penalty)[] DiminishingReturnsBrackets =
-        [(10.0, 1.0), (15.0, 0.98), (20.0, 0.96), (25.0, 0.94)];
 
     /// <summary>
     /// Returns the crit percentage for a given rating.
     /// When <paramref name="withBase"/> is true, includes the 5% base crit chance.
     /// </summary>
     public double CritPercentage(double rating, bool withBase = false) =>
-        (withBase ? BaseCritChance : 0.0) + RatingToPercentage(rating);
+        (withBase ? BaseCritChance : 0.0) + RatingToPercentage(rating, RatingCurves.CritChance);
 
-    /// <summary>Converts a Haste rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
-    public double HastePercentage(double rating) => RatingToPercentage(rating);
-    /// <summary>Converts an Expertise rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
-    public double ExpertisePercentage(double rating) => RatingToPercentage(rating);
-    /// <summary>Converts a Spirit rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
-    public double SpiritPercentage(double rating) => RatingToPercentage(rating);
+    /// <summary>Converts a Haste rating to a percentage through <see cref="RatingCurves.Haste"/>.</summary>
+    public double HastePercentage(double rating) => RatingToPercentage(rating, RatingCurves.Haste);
+    /// <summary>Converts an Expertise rating to a percentage through <see cref="RatingCurves.Expertise"/>.</summary>
+    public double ExpertisePercentage(double rating) => RatingToPercentage(rating, RatingCurves.Expertise);
+    /// <summary>Converts a Spirit rating to a percentage through <see cref="RatingCurves.Spirit"/>.</summary>
+    public double SpiritPercentage(double rating) => RatingToPercentage(rating, RatingCurves.Spirit);
 
     /// <summary>The player's current Critical Strike chance: the converted rating, the 5% base chance, and every active flat percentage.</summary>
     public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true) + _currentStats.AdditionalCrit;
     /// <summary>
-    /// The player's current Haste percentage: the converted rating plus every active flat percentage, with
-    /// the overall speed that gives, <c>1 + haste</c>, scaled by every active <see cref="HasteMultiplier"/>.
+    /// The player's current Haste percentage: the Haste attribute minus 1, and 0 when the attribute is below 1.
+    /// The attribute starts at 1 plus the converted rating, then every active modifier joins one
+    /// <see cref="AttributeFold"/>: flat percentages add, <see cref="HasteMultiplier"/> terms share one
+    /// factor, <see cref="HasteCompound"/> multiplies the result, and <see cref="HasteAddFinal"/> adds last.
     /// </summary>
     public double CurrentHastePercentage
     {
         get
         {
-            var additive = HastePercentage(CurrentHasteRating) + _currentStats.AdditionalHaste;
-            return additive + (1.0 + additive) * (_currentStats.HasteMultiplier - 1.0);
+            var fold = new AttributeFold();
+            fold.Add(ModifierOp.Additive, _currentStats.AdditionalHaste);
+            fold.Add(ModifierOp.Multiplicitive, _currentStats.HasteMultiplier);
+            fold.Add(ModifierOp.MultiplyCompound, _currentStats.HasteCompound);
+            fold.Add(ModifierOp.AddFinal, _currentStats.HasteAddFinal);
+            return Math.Max(0.0, fold.Apply(1.0 + HastePercentage(CurrentHasteRating)) - 1.0);
         }
     }
     /// <summary>The player's current Expertise percentage: the converted rating plus every active flat percentage.</summary>
@@ -353,11 +353,15 @@ public sealed partial class StatTracker : Analyzer
     /// <summary>The flat Haste active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
     public double AdditionalHaste => _currentStats.AdditionalHaste;
     /// <summary>
-    /// The product of every active multiplier on the player's overall speed, <c>1 + haste</c>, which
-    /// <see cref="CurrentHastePercentage"/> applies after the rating and flat percentages are added; 1 when
+    /// The shared factor of every active <see cref="ModifierOp.Multiplicitive"/> Haste modifier, <c>1 + Σ (value − 1)</c>,
+    /// which <see cref="CurrentHastePercentage"/> applies after the rating and flat percentages are added; 1 when
     /// none is active.
     /// </summary>
     public double HasteMultiplier => _currentStats.HasteMultiplier;
+    /// <summary>The product of every active <see cref="ModifierOp.MultiplyCompound"/> Haste modifier; 1 when none is active.</summary>
+    public double HasteCompound => _currentStats.HasteCompound;
+    /// <summary>The sum of every active <see cref="ModifierOp.AddFinal"/> Haste modifier, added after every multiplication; 0 when none is active.</summary>
+    public double HasteAddFinal => _currentStats.HasteAddFinal;
     /// <summary>The flat Expertise active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
     public double AdditionalExpertise => _currentStats.AdditionalExpertise;
     /// <summary>The flat Spirit active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
@@ -477,6 +481,8 @@ public sealed partial class StatTracker : Analyzer
         ResolveBuffVal(percentage?.ItemId, percentage?.Spirit, trigger),
         ResolveBuffVal(percentage?.ItemId, percentage?.CritPower, trigger),
         percentage?.HasteMultiplier is { } hasteMultiplier ? ResolveBuffVal(percentage.ItemId, hasteMultiplier, trigger) : 1.0,
+        percentage?.HasteCompound is { } hasteCompound ? ResolveBuffVal(percentage.ItemId, hasteCompound, trigger) : 1.0,
+        ResolveBuffVal(percentage?.ItemId, percentage?.HasteAddFinal, trigger),
         ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger) * _multipliers.MainStat,
         ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger) * _multipliers.Stamina,
         ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger) * _multipliers.Armor,
@@ -492,7 +498,9 @@ public sealed partial class StatTracker : Analyzer
         _currentStats.AdditionalExpertise += amounts.AdditionalExpertise * stackDelta;
         _currentStats.AdditionalSpirit += amounts.AdditionalSpirit * stackDelta;
         _currentStats.AdditionalCritPower += amounts.AdditionalCritPower * stackDelta;
-        _currentStats.HasteMultiplier *= Math.Pow(amounts.HasteMultiplier, stackDelta);
+        _currentStats.HasteMultiplier += (amounts.HasteMultiplier - 1.0) * stackDelta;
+        _currentStats.HasteCompound *= Math.Pow(amounts.HasteCompound, stackDelta);
+        _currentStats.HasteAddFinal += amounts.HasteAddFinal * stackDelta;
 
         _currentStats.MainStat += amounts.MainStat * stackDelta;
         _currentStats.Stamina += amounts.Stamina * stackDelta;
@@ -510,6 +518,8 @@ public sealed partial class StatTracker : Analyzer
         double AdditionalSpirit,
         double AdditionalCritPower,
         double HasteMultiplier,
+        double HasteCompound,
+        double HasteAddFinal,
         double MainStat,
         double Stamina,
         double Armor,
@@ -753,7 +763,8 @@ public sealed class StatMultiplierBuff
 }
 
 /// <summary>
-/// Describes a flat percentage stat buff. Every value but <see cref="HasteMultiplier"/> is a fraction
+/// Describes a flat percentage stat buff. Every value but <see cref="HasteMultiplier"/>,
+/// <see cref="HasteCompound"/> and <see cref="HasteAddFinal"/> is a fraction
 /// (0.30 = 30%) added to the rating-derived percentage rather than multiplied with it, and unset fields
 /// contribute 0. Set <see cref="PerStack"/> when the effect scales with its stack count, and
 /// <see cref="ItemId"/> when any value is item-level-dependent.
@@ -771,11 +782,21 @@ public sealed class StatPercentageBuff
     /// <summary>Flat critical strike power contributed while this buff is active.</summary>
     public BuffVal? CritPower { get; init; }
     /// <summary>
-    /// Multiplier on the player's overall speed, <c>1 + haste</c>, while this buff is active (1.15 = 15%
-    /// faster). Unlike the flat values it is not added to the rating-derived percentage but applied to the
-    /// total after everything else is added.
+    /// A <see cref="ModifierOp.Multiplicitive"/> Haste modifier while this buff is active (1.15 = 15% of the
+    /// base). Its part above 1 adds to one factor shared with every other such modifier, and that factor
+    /// multiplies the rating-derived percentage and the flat values added to it.
     /// </summary>
     public BuffVal? HasteMultiplier { get; init; }
+    /// <summary>
+    /// A <see cref="ModifierOp.MultiplyCompound"/> Haste modifier while this buff is active (1.05 = 5%
+    /// more): it multiplies the result on its own, after the shared <see cref="HasteMultiplier"/> factor.
+    /// </summary>
+    public BuffVal? HasteCompound { get; init; }
+    /// <summary>
+    /// An <see cref="ModifierOp.AddFinal"/> Haste modifier while this buff is active: it adds to the Haste
+    /// attribute after every multiplication.
+    /// </summary>
+    public BuffVal? HasteAddFinal { get; init; }
 
     /// <summary>
     /// Whether each value is contributed once per stack. When set, the tracked contribution follows the
@@ -804,6 +825,8 @@ internal sealed class PlayerStats
     public double AdditionalSpirit { get; set; }
     public double AdditionalCritPower { get; set; }
     public double HasteMultiplier { get; set; } = 1.0;
+    public double HasteCompound { get; set; } = 1.0;
+    public double HasteAddFinal { get; set; }
 
     public PlayerStats Clone() => (PlayerStats)MemberwiseClone();
 
@@ -822,6 +845,8 @@ internal sealed class PlayerStats
         AdditionalSpirit = AdditionalSpirit,
         AdditionalCritPower = AdditionalCritPower,
         HasteMultiplier = HasteMultiplier,
+        HasteCompound = HasteCompound,
+        HasteAddFinal = HasteAddFinal,
     };
 }
 

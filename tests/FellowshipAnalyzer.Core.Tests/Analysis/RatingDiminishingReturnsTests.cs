@@ -33,6 +33,10 @@ public sealed class RatingDiminishingReturnsTests
         Assert.Equal(0.0016 * 0.98 * 0.96, StatTracker.RatingToPercentage(111) - StatTracker.RatingToPercentage(110), precision: 10);
 
     [Fact]
+    public void ZeroRating_ConvertsToZero() =>
+        Assert.Equal(0.0, StatTracker.RatingToPercentage(0));
+
+    [Fact]
     public void RatingBelowTheFirstEdge_ConvertsUndiminished() =>
         Assert.Equal(0.08, StatTracker.RatingToPercentage(50), precision: 10);
 }

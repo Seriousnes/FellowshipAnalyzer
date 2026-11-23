@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
@@ -248,6 +249,101 @@ public sealed partial class HasteTests
     }
 
     [Fact]
+    public async Task RuneRushAndShadowsDefeat_ShareOneFactor()
+    {
+        var (parser, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(1000, Spells.RuneRush.FSLID),
+                CreateApplyBuff(2000, Spells.ShadowsDefeat.FSLID),
+                CreateRemoveBuff(3000, Spells.RuneRush.FSLID),
+            ],
+            additionalModules: [typeof(ChangeHasteProbe)]);
+
+        var changes = parser.GetModule<ChangeHasteProbe>()!.ReceivedEvents;
+        Assert.Equal(3, changes.Count);
+        Assert.Equal(0.15, changes[0].NewHaste!.Value, precision: 10);
+        Assert.Equal(0.35, changes[1].NewHaste!.Value, precision: 10);
+        Assert.Equal(0.20, changes[2].NewHaste!.Value, precision: 10);
+        Assert.Equal(0.20, haste.Current, precision: 10);
+    }
+
+    [Fact]
+    public async Task SpiritOfHeroism_OverRating_AddsToTheConvertedRating()
+    {
+        var (_, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(100, RatingBuffSpellId),
+                CreateApplyBuff(200, Spells.SpiritOfHeroism.FSLID),
+            ],
+            configureStats: s => s.Add(RatingBuffSpellId, new StatBuff { Haste = 200.0 }));
+
+        Assert.Equal(0.598242, haste.Current, precision: 6);
+    }
+
+    [Fact]
+    public async Task SpiritOfHeroismAndShadowsDefeat_OverRating_MultiplyTheSum()
+    {
+        var (_, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(100, RatingBuffSpellId),
+                CreateApplyBuff(200, Spells.SpiritOfHeroism.FSLID),
+                CreateApplyBuff(300, Spells.ShadowsDefeat.FSLID),
+            ],
+            configureStats: s => s.Add(RatingBuffSpellId, new StatBuff { Haste = 200.0 }));
+
+        Assert.Equal((1 + StatTracker.RatingToPercentage(200) + 0.3) * 1.2 - 1, haste.Current, precision: 10);
+        Assert.Equal(0.917891, haste.Current, precision: 5);
+    }
+
+    [Fact]
+    public async Task HasteCompound_MultipliesAfterTheSharedFactor()
+    {
+        var (_, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(100, Spells.ShadowsDefeat.FSLID),
+                CreateApplyBuff(200, HasteBuffSpellId),
+            ],
+            configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { HasteCompound = 1.05 }));
+
+        Assert.Equal(1.2 * 1.05 - 1, haste.Current, precision: 10);
+        Assert.Equal(0.26, haste.Current, precision: 10);
+    }
+
+    [Fact]
+    public async Task HasteAddFinal_AddsAfterEveryMultiplication()
+    {
+        var (_, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(100, Spells.ShadowsDefeat.FSLID),
+                CreateApplyBuff(200, HasteBuffSpellId),
+            ],
+            configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { HasteAddFinal = 0.1 }));
+
+        Assert.Equal(0.3, haste.Current, precision: 10);
+    }
+
+    [Fact]
+    public async Task HasteBelowOne_ReadsZero_AndRemovingItReadsZero()
+    {
+        var (parser, haste) = await RunWithHaste(
+            events:
+            [
+                CreateApplyBuff(100, HasteBuffSpellId),
+                CreateRemoveBuff(200, HasteBuffSpellId),
+            ],
+            configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = -1.5 }),
+            additionalModules: [typeof(ChangeHasteProbe)]);
+
+        Assert.Equal(0.0, haste.Current, precision: 10);
+        Assert.All(parser.GetModule<ChangeHasteProbe>()!.ReceivedEvents, e => Assert.Equal(0.0, e.NewHaste!.Value, precision: 10));
+    }
+
+    [Fact]
     public async Task StatChangeThatLeavesHasteAlone_ShouldNotChangeHaste()
     {
         var (_, haste) = await RunWithHaste(
@@ -281,7 +377,7 @@ public sealed partial class HasteTests
         Assert.Single(probe.ReceivedEvents);
         var buffEvent = probe.ReceivedEvents[0];
         Assert.Equal(0.0, buffEvent.OldHaste);
-        Assert.Equal(FlatHaste, buffEvent.NewHaste);
+        Assert.Equal(FlatHaste, buffEvent.NewHaste!.Value, precision: 10);
     }
 
     [Fact]
@@ -306,7 +402,7 @@ public sealed partial class HasteTests
         Assert.Single(probe.ReceivedEvents);
         var startEvent = probe.ReceivedEvents[0];
         Assert.Null(startEvent.OldHaste);
-        Assert.Equal(FlatHaste, startEvent.NewHaste);
+        Assert.Equal(FlatHaste, startEvent.NewHaste!.Value, precision: 10);
     }
 
     [Fact]
