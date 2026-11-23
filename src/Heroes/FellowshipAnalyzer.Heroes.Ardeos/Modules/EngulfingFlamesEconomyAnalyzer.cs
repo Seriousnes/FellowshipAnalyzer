@@ -15,7 +15,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 
     public const double DevouringFlameBonusPerInstance = DevouringFlameAnalyzer.DamageIncreasePerInstance * 100;
 
-    private const int FallbackRechargeMs = 20_000;
+    private static readonly int FallbackRechargeMs = (int)(Spells.EngulfingFlames.Cooldown!.Value * 1000);
 
     private readonly List<int> _wildfireCasts = [];
     private readonly List<int> _wildfireReadyTimes = [];
@@ -47,9 +47,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
         {
             var rechargeMs = Owner.SpellUsable!.RechargeDurationDuring(Spells.EngulfingFlames.Id, Pull);
             if (rechargeMs <= 0)
-                rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
-                    ? (int)(cooldown * 1000)
-                    : FallbackRechargeMs;
+                rechargeMs = FallbackRechargeMs;
             if (rechargeMs <= 0)
                 return 0;
 

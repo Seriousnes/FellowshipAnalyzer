@@ -53,6 +53,25 @@ public sealed class ExplosivoAnalyzerTests
     }
 
     [Fact]
+    public async Task FireBall_TakesEightSecondsOffApocalypse_AndApocalypseHoldsTwoChargesWithExplosivo()
+    {
+        ExplosivoAnalyzer.ApocalypseReductionPerFireBallMs.ShouldBe(8000);
+        FellowshipAnalyzer.Heroes.Ardeos.Modules.Abilities.ExplosivoApocalypseCharges.ShouldBe(2);
+
+        var parser = await AnalyzeAsync(
+        [
+            CombatantWithExplosivo(),
+            Cast(Spells.Apocalypse.FSLID, 1000),
+            Cast(Spells.Apocalypse.FSLID, 1100),
+            Cast(Spells.FireBall.FSLID, 2000),
+        ]);
+
+        var analyzer = parser.GetModule<ExplosivoAnalyzer>().ShouldNotBeNull();
+        analyzer.CooldownReduction.Total.ShouldBe(8000);
+        analyzer.CooldownReduction.Effective.ShouldBe(8000);
+    }
+
+    [Fact]
     public async Task FireBall_WithApocalypseAtFullCharges_WastesTheReduction()
     {
         var parser = await AnalyzeAsync([CombatantWithExplosivo(), Cast(Spells.FireBall.FSLID, 1000)]);

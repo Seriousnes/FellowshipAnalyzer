@@ -13,7 +13,8 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 public sealed partial class ExplosivoAnalyzer : Analyzer
 {
     /// <summary>Apocalypse cooldown reduction per Fire Ball cast, in milliseconds.</summary>
-    public const int ApocalypseReductionPerFireBallMs = 8000;
+    public static readonly int ApocalypseReductionPerFireBallMs =
+        (int)(SpellTuning.FireBall.CooldownReductionToApocalypse_ReductionInSeconds * 1000);
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 

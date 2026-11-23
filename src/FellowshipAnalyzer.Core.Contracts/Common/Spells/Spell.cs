@@ -84,9 +84,6 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// </summary>
     public bool? CastTimeScalesWithHaste { get; init; }
 
-    /// <summary>Seconds removed from this ability's remaining cooldown when a target it has debuffed dies, per qualifying window.</summary>
-    public double? CooldownReductionOnTargetDeath { get; init; }
-
     /// <summary>The spell's maximum range in game units; <c>null</c> when the spell is not range-limited.</summary>
     public int? Range { get; init; }
     /// <summary>The radius of the area the spell affects, in game units; <c>null</c> when the spell affects no area.</summary>

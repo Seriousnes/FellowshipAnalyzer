@@ -74,7 +74,6 @@
   "ardeos": {
     "FireBallMonitor": { "id": 1565 },
     "FireBallAoeMonitor": { "id": 1581 },
-    "EngulfingFlames": { "cooldownReductionOnTargetDeath": 10 },
     "FireFrogsMonitor": { "id": 1532 },
     "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball", "icon": "T_Nhance_RPG_Fire_36" },
     "FireFrogsDot": { "id": 1826, "kind": "effect" },

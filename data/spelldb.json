@@ -710,7 +710,6 @@
       "globalCooldown": 1.5,
       "globalCooldownScalesWithHaste": true,
       "castTimeScalesWithHaste": true,
-      "cooldownReductionOnTargetDeath": 10,
       "range": 3000,
       "charges": 2,
       "castDuration": 1.5,

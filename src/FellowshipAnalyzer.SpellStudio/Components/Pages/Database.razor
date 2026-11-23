@@ -285,11 +285,6 @@
                         <input type="text" class="field-input" @bind="_eCooldown" @bind:event="oninput" placeholder="@Fmt(sel.Spell.Cooldown)" />
                     </label>
                     <label class="field">
-                        <span class="field-key" title="Cooldown reduction on target death">CD on Death @ProvChip(sel.Provenance.For("cooldownReductionOnTargetDeath"))</span>
-                        <input type="text" class="field-input" @bind="_eCooldownReductionOnTargetDeath" @bind:event="oninput"
-                               placeholder="@Fmt(sel.Spell.CooldownReductionOnTargetDeath)" />
-                    </label>
-                    <label class="field">
                         <span class="field-key">Range @ProvChip(sel.Provenance.For("range"))</span>
                         <input type="text" class="field-input" @bind="_eRange" @bind:event="oninput" placeholder="@(sel.Spell.Range?.ToString())" />
                     </label>
@@ -416,7 +411,6 @@
     private string _eIcon = "";
     private string _eAbilityCategory = "";
     private string _eCooldown = "";
-    private string _eCooldownReductionOnTargetDeath = "";
     private string _eRange = "";
     private string _eCharges = "";
     private string _eCastDuration = "";
@@ -538,7 +532,6 @@
         _eIcon = StringField(existing, "icon");
         _eAbilityCategory = StringField(existing, "abilityCategory");
         _eCooldown = NumberField(existing, "cooldown");
-        _eCooldownReductionOnTargetDeath = NumberField(existing, "cooldownReductionOnTargetDeath");
         _eRange = NumberField(existing, "range");
         _eCharges = NumberField(existing, "charges");
         _eCastDuration = NumberField(existing, "castDuration");
@@ -598,7 +591,6 @@
         SetText(delta, existing, "icon", _eIcon);
         SetText(delta, existing, "abilityCategory", _eAbilityCategory);
         SetDouble(delta, existing, "cooldown", _eCooldown);
-        SetDouble(delta, existing, "cooldownReductionOnTargetDeath", _eCooldownReductionOnTargetDeath);
         SetInt(delta, existing, "range", _eRange);
         SetInt(delta, existing, "charges", _eCharges);
         SetDouble(delta, existing, "castDuration", _eCastDuration);

@@ -93,7 +93,6 @@ public static class MergeEngine
 
                 var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon,
                     cooldown: ability.Cooldown,
-                    cooldownReductionOnTargetDeath: null,
                     range: ability.Range,
                     radius: ability.Radius,
                     charges: ability.ChargeCount,
@@ -142,7 +141,6 @@ public static class MergeEngine
 
                     var effectSpell = BuildSpell(SpellKind.Effect, effect.Id, effect.Name ?? string.Empty, effectIcon,
                         cooldown: null,
-                        cooldownReductionOnTargetDeath: null,
                         range: null,
                         radius: null,
                         charges: 1,
@@ -572,7 +570,7 @@ public static class MergeEngine
 
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
-        double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int? radius, int charges,
+        double? cooldown, int? range, int? radius, int charges,
         double? castDuration, double? channelDuration, double? channelTickInterval,
         Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null,
@@ -592,7 +590,6 @@ public static class MergeEngine
             GlobalCooldownScalesWithHaste = globalCooldownScalesWithHaste,
             ChargeGrant = chargeGrant,
             CastTimeScalesWithHaste = castTimeScalesWithHaste,
-            CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
             Radius = radius,
             Charges = charges,
@@ -702,7 +699,6 @@ public static class MergeEngine
 
         var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon,
             cooldown: ability?.Cooldown,
-            cooldownReductionOnTargetDeath: null,
             range: ability?.Range,
             radius: ability?.Radius,
             charges: ability?.ChargeCount ?? 1,
