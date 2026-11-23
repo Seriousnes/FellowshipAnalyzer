@@ -107,6 +107,15 @@ public record ExportEffectData(
 /// </summary>
 public record ExportRatingCurve(string Stat, RatingCurve Curve);
 
+/// <summary>
+/// One numeric <c>tuning</c> row of an export document: <paramref name="Number"/> when the row states one
+/// number, <paramref name="Numbers"/> when it states one number per rank. Exactly one of the two is set.
+/// </summary>
+public record ExportTuningValue(double? Number, double[]? Numbers);
+
+/// <summary>One named glyph, the owner of the <c>tuning</c> rows a glyph states.</summary>
+public record ExportGlyph(int Id, string Name);
+
 public sealed class ExportSource
 {
     public Dictionary<int, ExportAbility> Abilities { get; }
@@ -137,6 +146,16 @@ public sealed class ExportSource
 
     /// <summary>The description of every talent and legendary power, keyed by its type slug and id.</summary>
     public Dictionary<(string Type, int Id), string> GrantDescriptions { get; private init; } = [];
+
+    /// <summary>Every named glyph in the export, ordered by id.</summary>
+    public List<ExportGlyph> Glyphs { get; private init; } = [];
+
+    /// <summary>
+    /// The numeric <c>tuning</c> rows of every ability, effect, talent, legendary power and glyph, keyed by
+    /// the entity's type slug and native id and ordered ordinally by row key. A row that states no number
+    /// is absent.
+    /// </summary>
+    public Dictionary<(string Type, int Id), SortedDictionary<string, ExportTuningValue>> Tuning { get; private init; } = [];
 
     private ExportSource(
         Dictionary<int, ExportAbility> abilities,
@@ -185,6 +204,8 @@ public sealed class ExportSource
         var augmentationDocuments = new List<AugmentationDocument>();
         var effectData = new Dictionary<int, ExportEffectData>();
         var grantDescriptions = new Dictionary<(string Type, int Id), string>();
+        var glyphs = new List<ExportGlyph>();
+        var tuning = new Dictionary<(string Type, int Id), SortedDictionary<string, ExportTuningValue>>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
@@ -206,6 +227,7 @@ public sealed class ExportSource
                         GlobalCooldownScalesWithHaste = ability.GlobalCooldownScalesWithHaste,
                         HasteGrantedBy = [.. (ability.CooldownHasteGrantedBy ?? []).Select(granter => Reference(granter)!)],
                     };
+                    AddTuning(tuning, Fellowship.SDK.EntityType.Ability, ability.Id, ability.Tuning);
                     break;
                 case EffectDocument effect:
                     effects[effect.Id] = new ExportEffect(
@@ -213,14 +235,23 @@ public sealed class ExportSource
                         [.. effect.Schools ?? []], [.. (effect.Heroes ?? []).Select(hero => hero.ToString())]);
                     if (EffectDataOf(effect) is { } data)
                         effectData[effect.Id] = data;
+                    AddTuning(tuning, Fellowship.SDK.EntityType.Effect, effect.Id, effect.Tuning);
                     break;
                 case TalentDocument talent:
                     talentDocuments[talent.Id] = talent;
                     if (talent.Description is { } talentText)
                         grantDescriptions[(EntityTypes.Slug(Fellowship.SDK.EntityType.Talent), talent.Id)] = talentText;
+                    AddTuning(tuning, Fellowship.SDK.EntityType.Talent, talent.Id, talent.Tuning);
                     break;
-                case LegendaryPowerDocument power when power.Description is { } powerText:
-                    grantDescriptions[(EntityTypes.Slug(Fellowship.SDK.EntityType.LegendaryPower), power.Id)] = powerText;
+                case LegendaryPowerDocument power:
+                    if (power.Description is { } powerText)
+                        grantDescriptions[(EntityTypes.Slug(Fellowship.SDK.EntityType.LegendaryPower), power.Id)] = powerText;
+                    AddTuning(tuning, Fellowship.SDK.EntityType.LegendaryPower, power.Id, power.Tuning);
+                    break;
+                case GlyphDocument glyph:
+                    if (!string.IsNullOrEmpty(glyph.Name))
+                        glyphs.Add(new ExportGlyph(glyph.Id, glyph.Name));
+                    AddTuning(tuning, Fellowship.SDK.EntityType.Glyph, glyph.Id, glyph.Tuning);
                     break;
                 case TalentSlotDocument slot:
                     talentSlots.Add(slot);
@@ -292,7 +323,57 @@ public sealed class ExportSource
             [.. effectData.Values.OrderBy(data => data.Id)], BuildRatingCurves(settings), categories)
         {
             GrantDescriptions = grantDescriptions,
+            Glyphs = [.. glyphs.OrderBy(glyph => glyph.Id)],
+            Tuning = tuning,
         };
+    }
+
+    private static void AddTuning(
+        Dictionary<(string Type, int Id), SortedDictionary<string, ExportTuningValue>> tuning,
+        Fellowship.SDK.EntityType type,
+        int id,
+        IReadOnlyDictionary<string, Fellowship.SDK.Models.TuningReference>? rows)
+    {
+        if (rows is null)
+            return;
+
+        SortedDictionary<string, ExportTuningValue>? numeric = null;
+        foreach (var (key, row) in rows)
+        {
+            if (TuningValueOf(row.Value) is not { } value)
+                continue;
+
+            numeric ??= new SortedDictionary<string, ExportTuningValue>(StringComparer.Ordinal);
+            numeric[key] = value;
+        }
+
+        if (numeric is not null)
+            tuning[(EntityTypes.Slug(type), id)] = numeric;
+    }
+
+    private static ExportTuningValue? TuningValueOf(object? value)
+    {
+        if (value is not JsonElement element)
+            return null;
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Number:
+                return new ExportTuningValue(element.GetDouble(), null);
+            case JsonValueKind.Array:
+                var numbers = new double[element.GetArrayLength()];
+                var index = 0;
+                foreach (var item in element.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Number)
+                        return null;
+                    numbers[index++] = item.GetDouble();
+                }
+
+                return numbers.Length == 0 ? null : new ExportTuningValue(null, numbers);
+            default:
+                return null;
+        }
     }
 
     private static List<ExportAugmentation> BuildAugmentations(List<AugmentationDocument> documents, SettingsFile settings)

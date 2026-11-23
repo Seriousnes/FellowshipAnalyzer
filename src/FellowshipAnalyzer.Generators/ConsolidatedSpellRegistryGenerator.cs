@@ -36,6 +36,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string AugmentationsSection = "augmentations";
     private const string EffectsSection = "effects";
     private const string RatingCurvesSection = "ratingCurves";
+    private const string TuningSection = "tuning";
+    private const string GlyphsScope = "glyphs";
     private const string EntityTypeName = "Fellowship.SDK.EntityType";
     private const string ModifierKindName = "Fellowship.SDK.ModifierKind";
     private const string EventsNamespace = "FellowshipAnalyzer.Core.Events";
@@ -55,6 +57,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         TexturesSharedAcrossRungsSection, SchoolsSection, RaritiesSection, TalentsSection,
         LegendariesSection, DungeonsSection, AugmentationsSection, EffectsSection, RatingCurvesSection,
+        TuningSection,
     };
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
@@ -315,6 +318,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         Dictionary<string, JsonValue>? augmentationEntries = null;
         Dictionary<string, JsonValue>? effectEntries = null;
         Dictionary<string, JsonValue>? ratingCurveEntries = null;
+        Dictionary<string, JsonValue>? tuningEntries = null;
 
         foreach (var scopeName in SortedKeys(scopes))
         {
@@ -372,6 +376,12 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             if (string.Equals(scopeName, RatingCurvesSection, StringComparison.Ordinal))
             {
                 ratingCurveEntries = scopeObj;
+                continue;
+            }
+
+            if (string.Equals(scopeName, TuningSection, StringComparison.Ordinal))
+            {
+                tuningEntries = scopeObj;
                 continue;
             }
 
@@ -455,11 +465,169 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         EmitEffectData(spc, effectEntries ?? []);
         EmitRatingCurves(spc, ratingCurveEntries ?? []);
 
+        if (tuningEntries is not null)
+            EmitTuning(spc, tuningEntries, centralNamespace);
+
         if (talentHeroes is not null)
             EmitTalents(spc, talentHeroes, kindTypes["talent"], schema, heroNames);
 
         if (legendaryHeroes is not null)
             EmitLegendaries(spc, legendaryHeroes, heroNames);
+    }
+
+    private static readonly (string Container, string ClassName, string Subject)[] TuningClasses =
+    [
+        ("spells", "SpellTuning", "spells"),
+        ("talents", "TalentTuning", "talents"),
+        ("legendaries", "LegendaryTuning", "legendary powers"),
+    ];
+
+    /// <summary>
+    /// Emits one <c>static</c> class per tuning container of each scope, with one nested <c>static</c> class per
+    /// member and one constant per numeric tuning row. A row whose generated identifier repeats within its
+    /// member, or equals the member name, is left out.
+    /// </summary>
+    private static void EmitTuning(
+        SourceProductionContext spc,
+        Dictionary<string, JsonValue> scopes,
+        string centralNamespace)
+    {
+        foreach (var scopeName in SortedKeys(scopes))
+        {
+            if (scopes[scopeName].Object is not { } containers)
+                continue;
+
+            if (string.Equals(scopeName, GlyphsScope, StringComparison.Ordinal))
+            {
+                if (containers.TryGetValue("glyphs", out var glyphs) && glyphs.Object is { } glyphMembers)
+                    EmitTuningClass(spc, GameNamespace, "GlyphTuning", "glyphs", glyphMembers);
+                continue;
+            }
+
+            string ns;
+            string subjectOwner;
+            var isHero = false;
+            if (string.Equals(scopeName, SharedScope, StringComparison.Ordinal))
+            {
+                ns = centralNamespace;
+                subjectOwner = "the shared scope";
+            }
+            else if (string.Equals(scopeName, ItemsScope, StringComparison.Ordinal))
+            {
+                ns = ItemsNamespace;
+                subjectOwner = "items";
+            }
+            else if (IsValidIdentifierSeed(scopeName))
+            {
+                ns = SpellsNamespace + "." + Pascal(scopeName);
+                subjectOwner = Pascal(scopeName);
+                isHero = true;
+            }
+            else
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(UnknownScopeDescriptor, Location.None, scopeName));
+                continue;
+            }
+
+            foreach (var (container, className, subject) in TuningClasses)
+            {
+                if (!isHero && container != "spells")
+                    continue;
+
+                if (containers.TryGetValue(container, out var members) && members.Object is { } memberRows)
+                    EmitTuningClass(spc, ns, className, subjectOwner + "'s " + subject, memberRows);
+            }
+        }
+    }
+
+    private static void EmitTuningClass(
+        SourceProductionContext spc,
+        string ns,
+        string className,
+        string description,
+        Dictionary<string, JsonValue> members)
+    {
+        var body = new StringBuilder();
+
+        foreach (var memberName in SortedKeys(members))
+        {
+            if (!IsValidIdentifierSeed(memberName) || members[memberName].Object is not { } rows)
+                continue;
+
+            var constants = new StringBuilder();
+            var identifiers = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var key in rows.Keys)
+            {
+                var identifier = TuningIdentifier(key);
+                identifiers[identifier] = identifiers.TryGetValue(identifier, out var count) ? count + 1 : 1;
+            }
+
+            foreach (var key in SortedKeys(rows))
+            {
+                var identifier = TuningIdentifier(key);
+                if (identifier.Length == 0 || identifiers[identifier] > 1 || identifier == memberName)
+                    continue;
+
+                var name = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None ? "@" + identifier : identifier;
+                var summary = "        /// <summary>Tuning row <c>" + XmlEscape(key) + "</c>.</summary>";
+
+                if (rows[key].Number is { } number)
+                {
+                    constants.AppendLine(summary);
+                    constants.AppendLine("        public const double " + name + " = " + Fmt(number) + ";");
+                }
+                else if (rows[key].Array is { Count: > 0 } array && array.TrueForAll(item => item.Number is not null))
+                {
+                    constants.AppendLine(summary);
+                    constants.AppendLine("        public static global::System.ReadOnlySpan<double> " + name + " => ["
+                        + string.Join(", ", array.Select(item => Fmt(item.Number!.Value))) + "];");
+                }
+            }
+
+            if (constants.Length == 0)
+                continue;
+
+            body.AppendLine("    /// <summary>Tuning values of <c>" + memberName + "</c>.</summary>");
+            body.AppendLine("    public static class " + (SyntaxFacts.GetKeywordKind(memberName) != SyntaxKind.None ? "@" + memberName : memberName));
+            body.AppendLine("    {");
+            body.Append(constants);
+            body.AppendLine("    }");
+            body.AppendLine();
+        }
+
+        if (body.Length == 0)
+            return;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("// <auto-generated />");
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + ns + ";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>Numeric tuning values of " + XmlEscape(description) + ", generated from <c>data/spelldb.json</c>.</summary>");
+        sb.AppendLine("public static class " + className);
+        sb.AppendLine("{");
+        sb.Append(body.ToString().TrimEnd('\r', '\n'));
+        sb.AppendLine();
+        sb.AppendLine("}");
+
+        spc.AddSource(HintName(ns, className), sb.ToString());
+    }
+
+    private static string TuningIdentifier(string key)
+    {
+        var sb = new StringBuilder(key.Length + 1);
+        foreach (var c in key)
+        {
+            if (c == '.')
+                sb.Append('_');
+            else if (c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_')
+                sb.Append(c);
+        }
+
+        if (sb.Length > 0 && sb[0] >= '0' && sb[0] <= '9')
+            sb.Insert(0, '_');
+        return sb.ToString();
     }
 
     /// <summary>

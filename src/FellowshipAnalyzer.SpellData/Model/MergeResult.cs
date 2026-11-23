@@ -22,7 +22,15 @@ public enum GapKind
     UnclaimedGeneration,
     /// <summary>A charge grant names no holder for the scope, or its description states no charge count.</summary>
     UnresolvedChargeGrant,
+    /// <summary>Two tuning rows of one member share a generated identifier, or a row's identifier equals its member name.</summary>
+    TuningNameCollision,
 }
+
+/// <summary>
+/// One numeric tuning row of a member. <paramref name="Container"/> is <c>spells</c>, <c>talents</c>,
+/// <c>legendaries</c> or <c>glyphs</c>, and <paramref name="Key"/> is the row key as the export writes it.
+/// </summary>
+public record TuningRow(string Scope, string Container, string Member, string Key, ExportTuningValue Value);
 
 /// <summary>A detected gap in the merged spell data.</summary>
 public record Gap(string Scope, string Member, GapKind Kind);
@@ -79,4 +87,10 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
 
     /// <summary>Every legendary item the export grants a power to, scoped by the hero that equips it.</summary>
     public List<CuratedLegendary> Legendaries { get; init; } = [];
+
+    /// <summary>
+    /// Every numeric tuning row of each selected spell, talent, legendary and glyph, ordered by scope
+    /// (hero scopes ordinally, then <c>shared</c>, <c>items</c> and <c>glyphs</c>), container, member and row key.
+    /// </summary>
+    public List<TuningRow> Tuning { get; init; } = [];
 }

@@ -45,6 +45,9 @@ public static class SpellDbWriter
     /// <summary>The top-level key holding the secondary stat → rating curve map, which is not a spell scope.</summary>
     public const string RatingCurvesSection = "ratingCurves";
 
+    /// <summary>The top-level key holding the numeric tuning rows per scope, container and member, which is not a spell scope.</summary>
+    public const string TuningSection = "tuning";
+
     /// <summary>
     /// The top-level key listing item and gem textures drawn once for every rarity rung, which is not a
     /// spell scope. Named so it cannot collide with the <c>shared</c> spell scope.
@@ -63,7 +66,7 @@ public static class SpellDbWriter
             .Where(k => k != "shared" && k != "items" && k != SchoolsSection && k != RaritiesSection
                         && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != LegendariesSection
                         && k != DungeonsSection && k != AugmentationsSection && k != EffectsSection
-                        && k != RatingCurvesSection)
+                        && k != RatingCurvesSection && k != TuningSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -180,6 +183,29 @@ public static class SpellDbWriter
             root[RatingCurvesSection] = curvesObj;
         }
 
+        if (result.Tuning.Count > 0)
+        {
+            var tuningObj = new JsonObject();
+            foreach (var scope in result.Tuning.GroupBy(row => row.Scope))
+            {
+                var scopeObj = new JsonObject();
+                foreach (var container in scope.GroupBy(row => row.Container))
+                {
+                    var containerObj = new JsonObject();
+                    foreach (var member in container.GroupBy(row => row.Member))
+                    {
+                        var memberObj = new JsonObject();
+                        foreach (var row in member)
+                            memberObj[row.Key] = ToTuningNode(row.Value);
+                        containerObj[member.Key] = memberObj;
+                    }
+                    scopeObj[container.Key] = containerObj;
+                }
+                tuningObj[scope.Key] = scopeObj;
+            }
+            root[TuningSection] = tuningObj;
+        }
+
         if (result.TexturesSharedAcrossRungs.Count > 0)
         {
             var textureArray = new JsonArray();
@@ -204,6 +230,7 @@ public static class SpellDbWriter
         var augmentations = new List<ExportAugmentation>();
         var effectData = new List<ExportEffectData>();
         var ratingCurves = new List<ExportRatingCurve>();
+        var tuning = new List<TuningRow>();
 
         foreach (var (scope, scopeNode) in root)
         {
@@ -266,6 +293,17 @@ public static class SpellDbWriter
                 continue;
             }
 
+            if (scope == TuningSection)
+            {
+                foreach (var (tuningScope, tuningScopeNode) in scopeObj)
+                    foreach (var (container, containerNode) in tuningScopeNode?.AsObject() ?? [])
+                        foreach (var (member, memberNode) in containerNode?.AsObject() ?? [])
+                            foreach (var (key, valueNode) in memberNode?.AsObject() ?? [])
+                                if (FromTuningNode(valueNode) is { } value)
+                                    tuning.Add(new TuningRow(tuningScope, container, member, key, value));
+                continue;
+            }
+
             if (scope == TalentsSection)
             {
                 foreach (var (hero, heroNode) in scopeObj)
@@ -316,8 +354,26 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Augmentations = augmentations, EffectData = effectData, RatingCurves = ratingCurves, Talents = talents, Legendaries = legendaries };
+        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Augmentations = augmentations, EffectData = effectData, RatingCurves = ratingCurves, Talents = talents, Legendaries = legendaries, Tuning = tuning };
     }
+
+    private static JsonNode ToTuningNode(ExportTuningValue value)
+    {
+        if (value.Numbers is not { } numbers)
+            return JsonValue.Create(value.Number!.Value);
+
+        var array = new JsonArray();
+        foreach (var number in numbers)
+            array.Add(JsonValue.Create(number));
+        return array;
+    }
+
+    private static ExportTuningValue? FromTuningNode(JsonNode? node) => node switch
+    {
+        JsonArray array => new ExportTuningValue(null, [.. array.Select(item => item!.GetValue<double>())]),
+        JsonValue number => new ExportTuningValue(number.GetValue<double>(), null),
+        _ => null,
+    };
 
     /// <summary>
     /// Renders a school the way the committed <c>spelldb.json</c> writes it, so a dual-school entry round-trips

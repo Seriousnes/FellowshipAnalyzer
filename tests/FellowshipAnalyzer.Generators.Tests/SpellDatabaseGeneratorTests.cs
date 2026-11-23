@@ -178,4 +178,114 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("public static class RatingCurves");
         gen.ShouldContain("public static RatingCurve Haste { get; } = new(0, [], 0);");
     }
+
+    private const string SpellDbWithTuning = """
+        {
+          "rime": {
+            "ColdSnap": { "id": 1020, "name": "Cold Snap", "icon": "x" }
+          },
+          "items": {
+            "Chronoshift": { "id": 1558, "name": "Chronoshift", "icon": "x" }
+          },
+          "tuning": {
+            "rime": {
+              "spells": {
+                "ColdSnap": {
+                  "A.B": 8,
+                  "MaxCharges": 2,
+                  "Reduction.Seconds": 1.5,
+                  "2ndHit.Damage": 3,
+                  "CooldownAcceleration": [0.03, 0.05, 0.08, 0.12],
+                  "Repeat.Name": 1,
+                  "Repeat_Name": 2,
+                  "ColdSnap": 4,
+                  "default": 5
+                }
+              },
+              "talents": { "Shatter": { "Chance": 0.25 } },
+              "legendaries": { "Frostbound": { "Stacks": 3 } }
+            },
+            "items": { "spells": { "Chronoshift": { "Channel.WhileActiveAddedCooldownRecovery": 8 } } },
+            "glyphs": { "glyphs": { "TheMonarch": { "HasteThreshold": [0.5, 0.5, 0.5, 0.5] } } }
+          }
+        }
+        """;
+
+    [Fact]
+    public void Emits_ANumberTuningRow_AsAConstantInTheMembersNestedClass()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Spells.Rime;");
+        gen.ShouldContain("public static class SpellTuning");
+        gen.ShouldContain("public static class ColdSnap");
+        gen.ShouldContain("public const double A_B = 8;");
+        gen.ShouldContain("public const double MaxCharges = 2;");
+        gen.ShouldContain("public const double Reduction_Seconds = 1.5;");
+    }
+
+    [Fact]
+    public void Emits_AnArrayTuningRow_AsAReadOnlySpanProperty()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("public static global::System.ReadOnlySpan<double> CooldownAcceleration => [0.03, 0.05, 0.08, 0.12];");
+    }
+
+    [Fact]
+    public void Emits_ARowKeyStartingWithADigit_WithALeadingUnderscore()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+
+        run.ConcatenatedGenerated.ShouldContain("public const double _2ndHit_Damage = 3;");
+    }
+
+    [Fact]
+    public void Omits_RowsSharingAnIdentifier_AndARowNamedForItsMember()
+    {
+        var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning).ConcatenatedGenerated;
+
+        gen.ShouldNotContain("Repeat_Name");
+        gen.ShouldNotContain("const double ColdSnap =");
+    }
+
+    [Fact]
+    public void Escapes_ARowIdentifierThatIsAKeyword()
+    {
+        var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning).ConcatenatedGenerated;
+
+        gen.ShouldContain("public const double @default = 5;");
+    }
+
+    [Fact]
+    public void Emits_TalentLegendaryItemsAndGlyphTuning_InTheirOwnClassesAndNamespaces()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithTuning);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("public static class TalentTuning");
+        gen.ShouldContain("public const double Chance = 0.25;");
+        gen.ShouldContain("public static class LegendaryTuning");
+        gen.ShouldContain("public const double Stacks = 3;");
+        gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Items;");
+        gen.ShouldContain("public const double Channel_WhileActiveAddedCooldownRecovery = 8;");
+        gen.ShouldContain("namespace FellowshipAnalyzer.Core.Game;");
+        gen.ShouldContain("public static class GlyphTuning");
+        gen.ShouldContain("public static global::System.ReadOnlySpan<double> HasteThreshold => [0.5, 0.5, 0.5, 0.5];");
+    }
+
+    [Fact]
+    public void Emits_NoTuningClass_AndReportsNoDiagnostic_WhenTheSectionIsAbsent()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbOf("""{ "id": 1020, "name": "Cold Snap", "icon": "x" }"""));
+
+        run.ConcatenatedGenerated.ShouldNotContain("Tuning");
+        run.DriverDiagnostics.ShouldBeEmpty();
+    }
 }

@@ -202,6 +202,9 @@ public static class MergeEngine
             }
         }
 
+        var talents = BuildTalents(inputs, gaps);
+        var legendaries = BuildLegendaries(inputs, gaps);
+
         return new MergeResult(spells, gaps)
         {
             Schools = BuildSchools(inputs, spells),
@@ -211,10 +214,115 @@ public static class MergeEngine
             Augmentations = inputs.Export.Augmentations,
             EffectData = inputs.Export.EffectData,
             RatingCurves = inputs.Export.RatingCurves,
-            Talents = BuildTalents(inputs, gaps),
-            Legendaries = BuildLegendaries(inputs, gaps),
+            Talents = talents,
+            Legendaries = legendaries,
+            Tuning = BuildTuning(inputs, spells, talents, legendaries, gaps),
         };
     }
+
+    private const string SpellsContainer = "spells";
+
+    private const string TalentsContainer = "talents";
+
+    private const string LegendariesContainer = "legendaries";
+
+    private const string GlyphsContainer = "glyphs";
+
+    private const string GlyphsScope = "glyphs";
+
+    private const string SharedScope = "shared";
+
+    private static readonly string[] ContainerOrder = [SpellsContainer, TalentsContainer, LegendariesContainer, GlyphsContainer];
+
+    /// <summary>
+    /// Selects the numeric tuning rows of every spell, talent, legendary and glyph the merge selected. A member's
+    /// rows that share a generated identifier, or whose identifier equals the member name, are left out and the
+    /// member is reported as a <see cref="GapKind.TuningNameCollision"/>.
+    /// </summary>
+    private static List<TuningRow> BuildTuning(
+        MergeInputs inputs,
+        List<CuratedSpell> spells,
+        List<CuratedSpell> talents,
+        List<CuratedLegendary> legendaries,
+        List<Gap> gaps)
+    {
+        var tuning = inputs.Export.Tuning;
+        var selected = new List<(string Scope, string Container, string Member, SortedDictionary<string, ExportTuningValue> Rows)>();
+
+        foreach (var curated in spells.Where(curated => MemberNaming.IsValidIdentifier(curated.Member)))
+        {
+            var type = curated.Kind switch
+            {
+                SpellKind.Ability => "ability",
+                SpellKind.Effect => "effect",
+                _ => null,
+            };
+
+            if (type is not null && tuning.TryGetValue((type, curated.Spell.FSLID.NativeId), out var rows))
+                selected.Add((curated.Scope, SpellsContainer, curated.Member, rows));
+        }
+
+        foreach (var curated in talents.Where(curated => MemberNaming.IsValidIdentifier(curated.Member)))
+        {
+            if (tuning.TryGetValue((TalentType, curated.Spell.FSLID.NativeId), out var rows))
+                selected.Add((curated.Scope, TalentsContainer, curated.Member, rows));
+        }
+
+        foreach (var legendary in legendaries.Where(legendary => MemberNaming.IsValidIdentifier(legendary.Member)))
+        {
+            if (tuning.TryGetValue((LegendaryPowerType, legendary.PowerId), out var rows))
+                selected.Add((legendary.Scope, LegendariesContainer, legendary.Member, rows));
+        }
+
+        foreach (var glyph in inputs.Export.Glyphs)
+        {
+            var member = MemberNaming.Sanitize(glyph.Name);
+            if (MemberNaming.IsValidIdentifier(member) && tuning.TryGetValue((GlyphType, glyph.Id), out var rows))
+                selected.Add((GlyphsScope, GlyphsContainer, member, rows));
+        }
+
+        var members = new Dictionary<(string Scope, string Container, string Member), SortedDictionary<string, ExportTuningValue>>();
+        foreach (var (scope, container, member, rows) in selected)
+            members[(scope, container, member)] = rows;
+
+        var result = new List<TuningRow>();
+        foreach (var ((scope, container, member), rows) in members
+            .OrderBy(entry => ScopeRank(entry.Key.Scope))
+            .ThenBy(entry => entry.Key.Scope, StringComparer.Ordinal)
+            .ThenBy(entry => Array.IndexOf(ContainerOrder, entry.Key.Container))
+            .ThenBy(entry => entry.Key.Member, StringComparer.Ordinal))
+        {
+            var identifiers = rows.Keys
+                .GroupBy(MemberNaming.TuningIdentifier, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+
+            var collides = false;
+            foreach (var (key, value) in rows)
+            {
+                var identifier = MemberNaming.TuningIdentifier(key);
+                if (identifier.Length == 0 || identifiers[identifier] > 1 || identifier == member)
+                {
+                    collides = true;
+                    continue;
+                }
+
+                result.Add(new TuningRow(scope, container, member, key, value));
+            }
+
+            if (collides)
+                gaps.Add(new Gap(scope, member, GapKind.TuningNameCollision));
+        }
+
+        return result;
+    }
+
+    private static int ScopeRank(string scope) => scope switch
+    {
+        SharedScope => 1,
+        ItemsScope => 2,
+        GlyphsScope => 3,
+        _ => 0,
+    };
 
 
     /// <summary>
@@ -274,6 +382,8 @@ public static class MergeEngine
     private const string TalentType = "talent";
 
     private const string LegendaryPowerType = "legendary-power";
+
+    private const string GlyphType = "glyph";
 
     private static ResourceGeneration? GenerationFor(
         MergeInputs inputs, FSLID id, ICollection<Gap> gaps, string scope, string member)
