@@ -45,6 +45,18 @@ public sealed class ChronoshiftTests
     }
 
     [Fact]
+    public async Task Chronoshift_HasAFifteenHundredMillisecondGlobalCooldownHasteShortens()
+    {
+        var parser = await Run([new Item { Id = CoreItems.AshasChronoshiftBow.Id }]);
+
+        var ability = parser.GetModule<CoreAbilities>().ShouldNotBeNull().GetAbility(CoreItems.Chronoshift.FSLID).ShouldNotBeNull();
+        ability.Gcd.ShouldBeNull();
+        ability.PrimarySpell.GlobalCooldown.ShouldBe(1.5);
+        ability.PrimarySpell.GlobalCooldownScalesWithHaste.ShouldBe(true);
+        parser.Events.OfType<CastEvent>().Single().GlobalCooldown.ShouldNotBeNull().Duration.ShouldBe(1500);
+    }
+
+    [Fact]
     public async Task WithoutAshasChronoshiftBow_LeavesChronoshiftOutOfTheSpellbook()
     {
         var parser = await Run([]);

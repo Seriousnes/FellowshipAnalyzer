@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 using ElarionTalents = FellowshipAnalyzer.Core.Common.Spells.ElarionTalents;
 using Spell = FellowshipAnalyzer.Core.Common.Spells.Spell;
@@ -17,14 +18,20 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 [Dependency<StatTracker>]
 public sealed partial class SkylitGraceAnalyzer : Analyzer
 {
+    private static readonly CooldownAccelerationChange Change =
+        EffectData.CooldownAccelerationsOf(Spells.StarfallVolleyTalentBuffWhileActive.Id) is [var change, ..]
+            ? change
+            : throw new InvalidOperationException(
+                $"The export gives effect {Spells.StarfallVolleyTalentBuffWhileActive.Id} no Cooldown Acceleration change.");
+
     /// <summary>The Cooldown Acceleration term Skystrider's Grace has while Starfall Volley is active.</summary>
-    public const double Acceleration = 1.2;
+    public static readonly double Acceleration = Change.Value;
 
     /// <summary>Starfall Volley's duration, in milliseconds.</summary>
     public const int VolleyDurationMs = 8_000;
 
     private static readonly CooldownModifier GraceAcceleration =
-        new(Acceleration, new Spell[] { Spells.SkystridersGrace });
+        new(Change.Value, new Spell[] { new() { Id = Change.AbilityId } });
 
     private RemoveBuffEvent? _scheduledEnd;
     private int? _openedAt;
