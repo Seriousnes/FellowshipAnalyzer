@@ -48,8 +48,29 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// <summary>The base cooldown in seconds; <c>null</c> when the spell has no cooldown.</summary>
     public double? Cooldown { get; init; }
 
-    /// <summary>Where Haste enters the cooldown; <c>null</c> when Haste does not shorten it.</summary>
-    public CooldownHasteScaling? CooldownHaste { get; init; }
+    /// <summary>The attributes the cooldown scales off; <c>null</c> when the game-data export lists none.</summary>
+    public CooldownScaling? CooldownScaling { get; init; }
+
+    /// <summary>
+    /// Where Haste enters the cooldown, from <see cref="CooldownScaling"/>; <c>null</c> when Haste does not
+    /// shorten it. Haste in the time rate takes precedence over Haste in the duration.
+    /// </summary>
+    [JsonIgnore]
+    public CooldownHasteScaling? CooldownHaste => CooldownScaling switch
+    {
+        { TimeRateHaste: true } => CooldownHasteScaling.TimeRate,
+        { DurationHaste: true } => CooldownHasteScaling.Duration,
+        _ => null,
+    };
+
+    /// <summary>The global cooldown in seconds the ability starts; <c>null</c> when it starts none.</summary>
+    public double? GlobalCooldown { get; init; }
+
+    /// <summary>
+    /// <c>true</c> when Haste shortens the global cooldown and <c>false</c> when it does not; <c>null</c>
+    /// when <see cref="GlobalCooldown"/> is <c>null</c>.
+    /// </summary>
+    public bool? GlobalCooldownScalesWithHaste { get; init; }
 
     /// <summary>
     /// The charges and Haste placement a talent or legendary gives this ability; <c>null</c> when none

@@ -69,7 +69,7 @@ public class GeneratedRegistryTests
             Source = GrantSource.LegendaryItem,
             Id = GundeLegendaries.BleedingHearts.Id,
             Charges = 2,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         });
 
     [Fact]

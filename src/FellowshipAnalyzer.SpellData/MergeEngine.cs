@@ -76,7 +76,9 @@ public static class MergeEngine
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
                     .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
                     .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
-                    .SetIf("cooldownHaste", ability.CooldownHaste.HasValue, ProvenanceSource.Export)
+                    .SetIf("cooldownScaling", ability.CooldownScaling is not null, ProvenanceSource.Export)
+                    .SetIf("globalCooldown", ability.GlobalCooldown.HasValue, ProvenanceSource.Export)
+                    .SetIf("globalCooldownScalesWithHaste", ability.GlobalCooldownScalesWithHaste.HasValue, ProvenanceSource.Export)
                     .SetIf("chargeGrant", ability.HasteGrantedBy.Count > 0, ProvenanceSource.Export)
                     .SetIf("castTimeScalesWithHaste", ability.CastTimeScalesWithHaste, ProvenanceSource.Export)
                     .SetIf("range", ability.Range.HasValue, ProvenanceSource.Export)
@@ -101,7 +103,9 @@ public static class MergeEngine
                     costs: costs,
                     abilityCategory: abilityCategory,
                     resourceGeneration: generation,
-                    cooldownHaste: ability.CooldownHaste,
+                    cooldownScaling: ability.CooldownScaling,
+                    globalCooldown: ability.GlobalCooldown,
+                    globalCooldownScalesWithHaste: ability.GlobalCooldownScalesWithHaste,
                     chargeGrant: ChargeGrantFor(inputs, ability, scope, member, gaps),
                     castTimeScalesWithHaste: ability.CastTimeScalesWithHaste ? true : null);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
@@ -221,8 +225,8 @@ public static class MergeEngine
 
     /// <summary>
     /// The charge grant the export names for <paramref name="ability"/>: the talent or the hero's legendary
-    /// item that holds it, the charge count its description states, and the Haste the charge effect takes
-    /// into its time rate. A grant whose holder or count does not resolve is reported as a gap.
+    /// item that holds it, the charge count its description states, and the Cooldown Recovery and Haste the
+    /// charge effect takes into its time rate. A grant whose holder or count does not resolve is reported as a gap.
     /// </summary>
     private static ChargeGrant? ChargeGrantFor(
         MergeInputs inputs, ExportAbility? ability, string scope, string member, ICollection<Gap> gaps)
@@ -261,7 +265,7 @@ public static class MergeEngine
             Source = resolved.Source,
             Id = resolved.Id,
             Charges = count,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         };
     }
 
@@ -461,7 +465,9 @@ public static class MergeEngine
         Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null,
         ResourceGeneration? resourceGeneration = null,
-        CooldownHasteScaling? cooldownHaste = null,
+        CooldownScaling? cooldownScaling = null,
+        double? globalCooldown = null,
+        bool? globalCooldownScalesWithHaste = null,
         ChargeGrant? chargeGrant = null,
         bool? castTimeScalesWithHaste = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
@@ -469,7 +475,9 @@ public static class MergeEngine
             AbilityCategory = abilityCategory,
             ResourceGeneration = resourceGeneration,
             Cooldown = cooldown,
-            CooldownHaste = cooldownHaste,
+            CooldownScaling = cooldownScaling,
+            GlobalCooldown = globalCooldown,
+            GlobalCooldownScalesWithHaste = globalCooldownScalesWithHaste,
             ChargeGrant = chargeGrant,
             CastTimeScalesWithHaste = castTimeScalesWithHaste,
             CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
@@ -566,7 +574,9 @@ public static class MergeEngine
             .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
             .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
             .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
-            .SetIf("cooldownHaste", ability?.CooldownHaste is not null, ProvenanceSource.Export)
+            .SetIf("cooldownScaling", ability?.CooldownScaling is not null, ProvenanceSource.Export)
+            .SetIf("globalCooldown", ability?.GlobalCooldown is not null, ProvenanceSource.Export)
+            .SetIf("globalCooldownScalesWithHaste", ability?.GlobalCooldownScalesWithHaste is not null, ProvenanceSource.Export)
             .SetIf("chargeGrant", ability?.HasteGrantedBy.Count > 0, ProvenanceSource.Export)
             .SetIf("castTimeScalesWithHaste", ability?.CastTimeScalesWithHaste == true, ProvenanceSource.Export)
             .SetIf("range", ability?.Range is not null, ProvenanceSource.Export)
@@ -590,7 +600,9 @@ public static class MergeEngine
             costs: costs,
             abilityCategory: abilityCategory,
             resourceGeneration: generation,
-            cooldownHaste: ability?.CooldownHaste,
+            cooldownScaling: ability?.CooldownScaling,
+            globalCooldown: ability?.GlobalCooldown,
+            globalCooldownScalesWithHaste: ability?.GlobalCooldownScalesWithHaste,
             chargeGrant: ChargeGrantFor(inputs, ability, scope, member, addedGaps),
             castTimeScalesWithHaste: ability?.CastTimeScalesWithHaste == true ? true : null);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);

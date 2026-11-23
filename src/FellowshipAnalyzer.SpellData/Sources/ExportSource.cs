@@ -17,7 +17,7 @@ public record ExportAbility(
     string? Name,
     string? Category,
     double? Cooldown,
-    CooldownHasteScaling? CooldownHaste,
+    CooldownScaling? CooldownScaling,
     double? Cost,
     string? Resource,
     int? Range,
@@ -33,6 +33,12 @@ public record ExportAbility(
 
     /// <summary>True when Haste shortens the cast and channel time.</summary>
     public bool CastTimeScalesWithHaste { get; init; }
+
+    /// <summary>The global cooldown in seconds; <c>null</c> when the ability starts none.</summary>
+    public double? GlobalCooldown { get; init; }
+
+    /// <summary>True when Haste shortens the global cooldown; <c>null</c> when the export states no global cooldown.</summary>
+    public bool? GlobalCooldownScalesWithHaste { get; init; }
 
     /// <summary>
     /// The talents and legendary powers that raise the ability above one charge onto a charge effect with
@@ -160,12 +166,14 @@ public sealed class ExportSource
                 case AbilityDocument ability:
                     abilities[ability.Id] = new ExportAbility(
                         ability.Id, ability.Name, ability.Category?.ToString(), ability.Cooldown,
-                        HasteScaling(ability), ability.Cost,
+                        Scaling(ability), ability.Cost,
                         ability.Resource, Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
                         ability.CastTime, ability.ChannelTime, ability.ChannelTick,
                         [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())])
                     {
                         CastTimeScalesWithHaste = ability.CastTimeScalesWithHaste == true,
+                        GlobalCooldown = ability.GlobalCooldown,
+                        GlobalCooldownScalesWithHaste = ability.GlobalCooldownScalesWithHaste,
                         HasteGrantedBy = [.. (ability.CooldownHasteGrantedBy ?? []).Select(granter => Reference(granter)!)],
                     };
                     break;
@@ -281,13 +289,37 @@ public sealed class ExportSource
 
     private const string NoCategory = "None";
 
-    private const string HasteStat = "Haste";
+    private const string HasteAttribute = "Haste";
 
-    private static CooldownHasteScaling? HasteScaling(AbilityDocument ability) =>
-        ability.CooldownTimeRateScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true
-            ? ability.Charges > 1 ? CooldownHasteScaling.TimeRate : CooldownHasteScaling.Duration
-        : ability.CooldownDurationScalesOff?.Contains(HasteStat, StringComparer.Ordinal) == true ? CooldownHasteScaling.Duration
-        : null;
+    private const string CooldownReductionAttribute = "CooldownReduction";
+
+    private const string CooldownRecoveryAttribute = "CooldownRecovery";
+
+    private static CooldownScaling? Scaling(AbilityDocument ability)
+    {
+        var duration = ability.CooldownDurationScalesOff ?? [];
+        var timeRate = ability.CooldownTimeRateScalesOff ?? [];
+        if (duration.Count == 0 && timeRate.Count == 0)
+            return null;
+
+        foreach (var attribute in duration)
+            if (attribute is not (CooldownReductionAttribute or HasteAttribute))
+                throw new InvalidOperationException(
+                    $"Ability {ability.Id} scales its cooldown duration off '{attribute}', which the cooldown scaling does not model.");
+
+        foreach (var attribute in timeRate)
+            if (attribute is not (CooldownRecoveryAttribute or HasteAttribute))
+                throw new InvalidOperationException(
+                    $"Ability {ability.Id} scales its cooldown time rate off '{attribute}', which the cooldown scaling does not model.");
+
+        return new CooldownScaling
+        {
+            DurationCooldownReduction = duration.Contains(CooldownReductionAttribute),
+            DurationHaste = duration.Contains(HasteAttribute),
+            TimeRateCooldownRecovery = timeRate.Contains(CooldownRecoveryAttribute),
+            TimeRateHaste = timeRate.Contains(HasteAttribute),
+        };
+    }
 
     private static EntityRef? Reference(Fellowship.SDK.Models.EntityReference? reference) =>
         reference is null ? null : new EntityRef(EntityTypes.Slug(reference.Type), reference.Id, reference.Name);

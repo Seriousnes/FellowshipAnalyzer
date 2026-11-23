@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="Abilities"/> applying a <see cref="ChargeGrant"/>: the granted charges and Haste
-/// placement for a player holding the talent or legendary, the spell's own values otherwise, and a
+/// scaling for a player holding the talent or legendary, the spell's own values otherwise, and a
 /// spellbook's <see cref="SpellbookAbility.CooldownReducedByHaste"/> overriding the placement.
 /// </summary>
 public sealed class ChargeGrantTests
@@ -39,6 +39,7 @@ public sealed class ChargeGrantTests
         var abilities = await Run(talents: [GrantingTalent]);
 
         Assert.Equal(2, abilities.GetMaxCharges(TalentGranted));
+        Assert.Equal(TestAbilities.TalentGrant.CooldownScaling, abilities.GetAbility(TalentGranted)!.PrimarySpell.CooldownScaling);
         Assert.Equal(CooldownHasteScaling.TimeRate, abilities.GetAbility(TalentGranted)!.CooldownHaste);
     }
 
@@ -109,12 +110,12 @@ public sealed class ChargeGrantTests
 
     private sealed class TestAbilities : Abilities
     {
-        private static readonly ChargeGrant TalentGrant = new()
+        public static readonly ChargeGrant TalentGrant = new()
         {
             Source = GrantSource.Talent,
             Id = GrantingTalent,
             Charges = 2,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         };
 
         public override IEnumerable<SpellbookAbility> Spellbook() =>
@@ -124,7 +125,7 @@ public sealed class ChargeGrantTests
                 PrimarySpell = new Spell
                 {
                     Id = TalentGranted, Name = "Talent Granted", Cooldown = 20,
-                    CooldownHaste = CooldownHasteScaling.Duration, ChargeGrant = TalentGrant,
+                    CooldownScaling = new() { DurationHaste = true }, ChargeGrant = TalentGrant,
                 },
                 Category = SpellCategory.Rotational,
             },

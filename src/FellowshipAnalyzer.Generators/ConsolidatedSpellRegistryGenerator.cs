@@ -868,8 +868,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// The settable scalar and enum properties of a record in the spells namespace, so a spell entry can
-    /// state the record as a nested object. A record with a property of another shape is not one.
+    /// The settable scalar, enum and nested record properties of a record in the spells namespace, so a
+    /// spell entry can state the record as a nested object. A record with a property of another shape is not one.
     /// </summary>
     private static bool TryClassifyRecord(ITypeSymbol type, out string recordGlobalName, out List<ScalarProp> members)
     {
@@ -888,6 +888,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 members.Add(new ScalarProp(p.Name, key, kind));
             else if (TryClassifyEnum(p.Type, out var enumGlobal, out var enumMembers))
                 members.Add(new ScalarProp(p.Name, key, ScalarKind.Enum, enumGlobal, enumMembers));
+            else if (TryClassifyRecord(p.Type, out var nestedGlobal, out var nestedMembers))
+                members.Add(new ScalarProp(p.Name, key, ScalarKind.Record, nestedGlobal, RecordMembers: nestedMembers));
             else
                 return false;
         }

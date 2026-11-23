@@ -49,6 +49,46 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain(".FSLID.Value] =");
     }
 
+    private const string SpellsNamespace = "global::FellowshipAnalyzer.Core.Common.Spells";
+
+    private static string SpellDbOf(string entry) => "{ \"rime\": { \"ColdSnap\": " + entry + " } }";
+
+    private static string Generate(string entry)
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbOf(entry));
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        return run.ConcatenatedGenerated;
+    }
+
+    [Fact]
+    public void Emits_CooldownScaling_AsANestedRecord() =>
+        Generate("""{ "id": 1020, "name": "Cold Snap", "icon": "x", "cooldownScaling": { "durationHaste": true } }""")
+            .ShouldContain($"CooldownScaling = new {SpellsNamespace}.CooldownScaling {{ DurationHaste = true }}");
+
+    [Fact]
+    public void Emits_AChargeGrantsCooldownScaling_AsARecordNestedInTheRecord() =>
+        Generate("""{ "id": 1020, "name": "Cold Snap", "icon": "x", "chargeGrant": { "source": "LegendaryItem", "id": 5898, "charges": 2, "cooldownScaling": { "timeRateCooldownRecovery": true, "timeRateHaste": true } } }""")
+            .ShouldContain(
+                $"ChargeGrant = new {SpellsNamespace}.ChargeGrant {{ Source = {SpellsNamespace}.GrantSource.LegendaryItem, Id = 5898, Charges = 2, "
+                + $"CooldownScaling = new {SpellsNamespace}.CooldownScaling {{ TimeRateCooldownRecovery = true, TimeRateHaste = true }} }}");
+
+    [Fact]
+    public void Emits_TheGlobalCooldownAndItsHasteScaling()
+    {
+        var generated = Generate("""{ "id": 1020, "name": "Cold Snap", "icon": "x", "globalCooldown": 1, "globalCooldownScalesWithHaste": false }""");
+
+        generated.ShouldContain("GlobalCooldown = 1");
+        generated.ShouldContain("GlobalCooldownScalesWithHaste = false");
+    }
+
+    [Fact]
+    public void Reports_TheRetiredCooldownHasteKey_AsUnknown()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbOf("""{ "id": 1020, "name": "Cold Snap", "icon": "x", "cooldownHaste": "Duration" }"""));
+
+        run.DriverDiagnostics.ShouldContain(d => d.Id == "FA0009" && d.GetMessage(null).Contains("'cooldownHaste'"));
+    }
+
     private const string SpellDbWithLegendaries = """
         {
           "aeona": {

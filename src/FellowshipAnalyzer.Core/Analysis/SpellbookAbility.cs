@@ -53,6 +53,11 @@ public sealed record SpellbookAbility
     public AbilityCategory? AbilityCategory => PrimarySpell.AbilityCategory;
 
     /// <summary>
+    /// The attributes the cooldown scales off, read from <see cref="PrimarySpell"/>.
+    /// </summary>
+    public CooldownScaling? CooldownScaling => PrimarySpell.CooldownScaling;
+
+    /// <summary>
     /// Where Haste enters the cooldown, or <c>null</c> when Haste does not shorten it. Defaults to
     /// <see cref="PrimarySpell"/>'s <see cref="Spell.CooldownHaste"/>.
     /// </summary>

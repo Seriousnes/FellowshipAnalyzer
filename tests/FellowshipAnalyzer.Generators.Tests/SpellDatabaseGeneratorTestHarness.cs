@@ -51,11 +51,36 @@ internal static class SpellDatabaseGeneratorTestHarness
                 public int Fslid { get; }
             }
 
+            public enum CooldownHasteScaling { Duration, TimeRate }
+
+            public enum GrantSource { Talent, LegendaryItem }
+
+            public sealed record CooldownScaling
+            {
+                public bool DurationCooldownReduction { get; init; }
+                public bool DurationHaste { get; init; }
+                public bool TimeRateCooldownRecovery { get; init; }
+                public bool TimeRateHaste { get; init; }
+            }
+
+            public sealed record ChargeGrant
+            {
+                public GrantSource Source { get; init; }
+                public int Id { get; init; }
+                public int Charges { get; init; }
+                public CooldownScaling CooldownScaling { get; init; } = new();
+            }
+
             public record Spell(int Id = 0, string Name = "", string Icon = "")
             {
                 public virtual FSLID FSLID => new FSLID(Id);
                 public AbilityCategory? AbilityCategory { get; init; }
                 public double? Cooldown { get; init; }
+                public CooldownScaling? CooldownScaling { get; init; }
+                public CooldownHasteScaling? CooldownHaste => null;
+                public double? GlobalCooldown { get; init; }
+                public bool? GlobalCooldownScalesWithHaste { get; init; }
+                public ChargeGrant? ChargeGrant { get; init; }
                 public int? Range { get; init; }
                 public int Charges { get; init; } = 1;
                 public double? CastDuration { get; init; }

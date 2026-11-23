@@ -37,7 +37,7 @@ public sealed class AceOfSpadesTests
             Source = GrantSource.Talent,
             Id = TariqTalents.AceOfSpades,
             Charges = 2,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         });
     }
 

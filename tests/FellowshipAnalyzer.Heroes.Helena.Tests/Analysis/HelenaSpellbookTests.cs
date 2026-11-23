@@ -57,7 +57,7 @@ public sealed class HelenaSpellbookTests
         grant.Source.ShouldBe(GrantSource.LegendaryItem);
         grant.Id.ShouldBe(Legendaries.IronSentinel.Id);
         grant.Charges.ShouldBe(2);
-        grant.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        grant.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
     }
 
     [Fact]

@@ -11,8 +11,8 @@ public enum GrantSource
 }
 
 /// <summary>
-/// The charges a talent or legendary gives an ability, and where Haste enters the ability's cooldown
-/// while the player holds it. The game-data export names the grant in <c>cooldownHasteGrantedBy</c>.
+/// The charges a talent or legendary gives an ability, and the attributes the ability's cooldown scales
+/// off while the player holds it. The game-data export names the grant in <c>cooldownHasteGrantedBy</c>.
 /// </summary>
 public sealed record ChargeGrant
 {
@@ -25,6 +25,6 @@ public sealed record ChargeGrant
     /// <summary>The ability's charges while the player holds the grant.</summary>
     public int Charges { get; init; }
 
-    /// <summary>Where Haste enters the cooldown while the player holds the grant.</summary>
-    public CooldownHasteScaling CooldownHaste { get; init; }
+    /// <summary>The attributes the ability's cooldown scales off while the player holds the grant.</summary>
+    public CooldownScaling CooldownScaling { get; init; } = new();
 }

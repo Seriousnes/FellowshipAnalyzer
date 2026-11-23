@@ -43,7 +43,7 @@ public class Abilities : Module
     /// <summary>
     /// <paramref name="entry"/> with its primary spell's <see cref="Spell.ChargeGrant"/> applied when the
     /// selected player holds the grant: the granted charges, unless the spellbook states more, and the
-    /// grant's Haste placement. A <see cref="SpellbookAbility.CooldownReducedByHaste"/> the spellbook sets
+    /// grant's cooldown scaling. A <see cref="SpellbookAbility.CooldownReducedByHaste"/> the spellbook sets
     /// still overrides the placement.
     /// </summary>
     private SpellbookAbility Granted(SpellbookAbility entry)
@@ -64,7 +64,7 @@ public class Abilities : Module
                 PrimarySpell = entry.PrimarySpell with
                 {
                     Charges = Math.Max(entry.PrimarySpell.Charges, grant.Charges),
-                    CooldownHaste = grant.CooldownHaste,
+                    CooldownScaling = grant.CooldownScaling,
                 },
             }
             : entry;

@@ -596,12 +596,12 @@ public sealed partial class SpellUsableTests
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownHaste = CooldownHasteScaling.Duration },
+                PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownScaling = new() { DurationHaste = true } },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownHaste = CooldownHasteScaling.Duration },
+                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownScaling = new() { DurationHaste = true } },
                 Category = SpellCategory.Rotational,
             },
         ];
