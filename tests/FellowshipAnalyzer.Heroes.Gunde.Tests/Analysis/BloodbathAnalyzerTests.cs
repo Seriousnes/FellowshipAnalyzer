@@ -26,6 +26,7 @@ public sealed class BloodbathAnalyzerTests
     private const int BossId = 99;
     private const int DungeonEnd = 120_000;
     private const int LegendaryQuality = 6;
+    private const int BloodbathDurationMs = 3000;
 
     [Fact]
     public void BloodbathTalentConstant_IsTalent764()
@@ -61,7 +62,7 @@ public sealed class BloodbathAnalyzerTests
         var analyzer = parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull();
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.BeginTimestamp.ShouldBe(10_000);
-        window.EndTimestamp.ShouldBe(10_000 + BloodbathAnalyzer.DurationMs);
+        window.EndTimestamp.ShouldBe(10_000 + BloodbathDurationMs);
 
         parser.GetModule<StatTracker>()!
             .CurrentCooldownAcceleration(parser.GetModule<GundeAbilities>()!.GetAbility(Spells.ReignInBlood.FSLID))
@@ -77,7 +78,7 @@ public sealed class BloodbathAnalyzerTests
             .Where(b => b.Ability.FSLID.Value == Spells.Bloodbath.FSLID.Value)
             .ShouldHaveSingleItem();
         buff.Start.ShouldBe(10_000);
-        buff.End.ShouldBe(10_000 + BloodbathAnalyzer.DurationMs);
+        buff.End.ShouldBe(10_000 + BloodbathDurationMs);
         parser.SelectedCombatant.Buffs.ShouldNotContain(b => b.Ability.FSLID.Value == Talents.Bloodbath.FSLID.Value);
     }
 
@@ -183,18 +184,55 @@ public sealed class BloodbathAnalyzerTests
         heartSplitter.CooldownHaste.ShouldBe(CooldownHasteScaling.Duration);
     }
 
+    [Fact]
+    public async Task Analyze_WithBloodbath_ReignInBloodTakesTwoAndHeartSplitterNoneFromTheExportedChange()
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            BloodbathBuff<ApplyBuffEvent>(10_000),
+            Cast(Spells.DoubleStrike.FSLID, 11_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+        var abilities = parser.GetModule<GundeAbilities>()!;
+        var stats = parser.GetModule<StatTracker>()!;
+
+        stats.CurrentCooldownAcceleration(abilities.GetAbility(Spells.ReignInBlood.FSLID)).ShouldBe(2.0, 0.0001);
+        stats.CurrentCooldownAcceleration(abilities.GetAbility(Spells.HeartSplitter.FSLID)).ShouldBe(0.0, 0.0001);
+    }
+
+    [Theory]
+    [InlineData(3000, 13_000)]
+    [InlineData(5000, 15_000)]
+    [InlineData(null, 13_000)]
+    public async Task Analyze_WithBloodbath_TheWindowEndsAtTheLoggedDurationOrTheExportedOne(int? duration, int expectedEnd)
+    {
+        List<Event> events =
+        [
+            Cast(Spells.ReignInBlood.FSLID, 0),
+            BloodbathBuff<ApplyBuffEvent>(10_000, duration),
+            Cast(Spells.DoubleStrike.FSLID, 100_000),
+        ];
+
+        var (parser, _) = await RunAsync(events, talents: [Talents.Bloodbath.Id]);
+
+        parser.GetModule<BloodbathAnalyzer>().ShouldNotBeNull().Windows.ShouldHaveSingleItem().EndTimestamp.ShouldBe(expectedEnd);
+    }
+
     private static List<Event> Scenario() =>
     [
         Cast(Spells.ReignInBlood.FSLID, 0),
         Cast(Spells.Rupture.FSLID, 0),
         Cast(Spells.GrimCarve.FSLID, 10_000),
         BloodbathBuff<ApplyBuffEvent>(10_000),
-        BloodbathBuff<RemoveBuffEvent>(10_000 + BloodbathAnalyzer.DurationMs),
+        BloodbathBuff<RemoveBuffEvent>(10_000 + BloodbathDurationMs),
         Cast(Spells.DoubleStrike.FSLID, 100_000),
     ];
 
-    private static T BloodbathBuff<T>(int timestamp) where T : BuffEvent, new() => new()
+    private static T BloodbathBuff<T>(int timestamp, int? duration = null) where T : BuffEvent, new() => new()
     {
+        Duration = duration,
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,

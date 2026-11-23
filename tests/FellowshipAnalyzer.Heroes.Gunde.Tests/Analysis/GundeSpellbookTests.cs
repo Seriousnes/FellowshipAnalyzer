@@ -69,6 +69,23 @@ public sealed class GundeSpellbookTests
         Entry(Spells.Warbound.FSLID).GetCooldown().ShouldBe(8);
     }
 
+    [Fact]
+    public void GlobalCooldown_ComesFromTheSpellRecord()
+    {
+        var spellbook = new GundeAbilities().Spellbook().ToList();
+
+        spellbook.ShouldAllBe(e => e.Gcd == null);
+    }
+
+    [Fact]
+    public void OwedInBloodSlaughterAndReignInBlood_HaveNoGlobalCooldown()
+    {
+        Entry(Spells.OwedInBlood.FSLID).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.Slaughter.FSLID).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.ReignInBlood.FSLID).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.HeartSplitter.FSLID).OnGlobalCooldown.ShouldBeTrue();
+    }
+
     private static SpellbookAbility Entry(int fslid) =>
         new GundeAbilities().Spellbook().Single(e => e.PrimarySpell.FSLID.Value == fslid);
 }
