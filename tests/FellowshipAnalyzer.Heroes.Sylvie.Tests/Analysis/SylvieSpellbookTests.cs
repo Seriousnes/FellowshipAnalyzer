@@ -1,12 +1,17 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 using Shouldly;
 
 using Xunit;
 
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Sylvie.Spells;
 using SylvieAbilities = FellowshipAnalyzer.Heroes.Sylvie.Modules.Abilities;
+
+using static FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis.SylvieAnalysisFixture;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 
@@ -19,6 +24,53 @@ public sealed class SylvieSpellbookTests
 
         Assert.NotEmpty(spellbook);
         Assert.DoesNotContain(spellbook, e => e.Category == SpellCategory.Uncategorized);
+    }
+
+    [Fact]
+    public void NoEntry_DeclaresAGlobalCooldown()
+    {
+        foreach (var entry in new SylvieAbilities().Spellbook())
+            entry.Gcd.ShouldBeNull();
+    }
+
+    [Fact]
+    public void EnfeeblingRootsapIsOffTheGlobalCooldownAndCureAilmentIsOn()
+    {
+        var spellbook = new SylvieAbilities().Spellbook().ToList();
+
+        Entry(spellbook, Spells.EnfeeblingRootsap).OnGlobalCooldown.ShouldBeFalse();
+        Entry(spellbook, Spells.CureAilment).OnGlobalCooldown.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void EveryGlobalCooldownSpellHasFifteenHundredMillisecondsScaledByHaste()
+    {
+        var spells = new[]
+        {
+            CoreItems.RepositoryOfFrozenLight,
+            Spells.FluttercallProtect,
+            Spells.FluttercallEmbrace,
+            Spells.CureAilment,
+            Spells.FluttercallJubilee,
+        };
+
+        foreach (var spell in spells)
+        {
+            spell.GlobalCooldown.ShouldBe(1.5);
+            spell.GlobalCooldownScalesWithHaste.ShouldBe(true);
+        }
+
+        Spells.EnfeeblingRootsap.GlobalCooldown.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ACureAilmentCastAtHasteZeroHasAFifteenHundredMillisecondGlobalCooldown()
+    {
+        var parser = await Analyze(Cast(PullStart + 1_000, Spells.CureAilment));
+
+        var gcd = parser.Events.OfType<GlobalCooldownEvent>().ShouldHaveSingleItem();
+
+        gcd.Duration.ShouldBe(1_500);
     }
 
     [Fact]
@@ -79,12 +131,17 @@ public sealed class SylvieSpellbookTests
         SylvieKit.ManaCost(Spells.FluttercallEmbrace.FSLID).ShouldBe(0);
     }
 
+    private static SpellbookAbility Entry(List<SpellbookAbility> spellbook, Spell spell) =>
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == spell.FSLID);
+
     [Fact]
     public void KitConstantsMatchTheSeasonThreeGameData()
     {
         SylvieKit.HeartBloomAccumulatedShare.ShouldBe(0.12, 0.0001);
         SylvieKit.HeartBloomTickIntervalMs.ShouldBe(2_000);
         SylvieKit.HeartBloomDurationMs.ShouldBe(16_000);
+        SylvieKit.NettleboltCooldownReductionMs.ShouldBe(1_500);
+        SylvieKit.NettleboltCritCooldownReductionMs.ShouldBe(3_000);
         SylvieKit.BlueyAllyHealScaler.ShouldBe(2.0, 0.0001);
         SylvieKit.BlueySelfHealScaler.ShouldBe(1.5, 0.0001);
         SylvieKit.EmbraceManaCostScaler.ShouldBe(0.8, 0.0001);

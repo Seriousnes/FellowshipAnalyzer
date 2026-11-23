@@ -4531,6 +4531,12 @@
         "mana": 5
       }
     },
+    "NettleboltCooldownReduction": {
+      "kind": "ability",
+      "id": 1052,
+      "name": "",
+      "icon": ""
+    },
     "NettleboltDamage": {
       "kind": "effect",
       "id": 1480,
@@ -16050,6 +16056,10 @@
           "ManaCost": 5,
           "Spread": 0.1,
           "Talent.ButterflyHealProc.AdditionalCrit": 0.2
+        },
+        "NettleboltCooldownReduction": {
+          "CooldownReductionInSecondsCrit": 3,
+          "CooldownReductionInSecondsDamage": 1.5
         },
         "NettleboltDamage": {
           "ButterflyHealProc.AdditionalCrit": 0.2

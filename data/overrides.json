@@ -647,6 +647,10 @@
       "id": 2731,
       "kind": "effect"
     },
+    "NettleboltCooldownReduction": {
+      "id": 1052,
+      "kind": "ability"
+    },
     "SafeHavenDamageReductionBuff": {
       "icon": "T_Mosse_LinkCD"
     },

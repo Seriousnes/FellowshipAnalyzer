@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 using Shouldly;
@@ -56,6 +57,36 @@ public sealed class LifePetalAnalyzerTests
         analyzer.NettleboltsAtFullCharges.ShouldBe(0);
         analyzer.CooldownReduction.Effective.ShouldBe(analyzer.CooldownReduction.Total);
         analyzer.CooldownReduction.Efficiency.ShouldBe(1d, 0.001);
+    }
+
+    [Theory]
+    [InlineData(HitType.Normal, 1_500)]
+    [InlineData(HitType.Crit, 3_000)]
+    public async Task ANettleboltHitTakesItsReductionOffTheRunningRecharge(HitType hitType, int reductionMs)
+    {
+        var parser = await Analyze(
+            Cast(PullStart + 1_000, Spells.LifePetal),
+            Cast(PullStart + 2_000, Spells.LifePetal),
+            Damage(PullStart + 3_000, Spells.Nettlebolt, amount: 500, hitType: hitType));
+
+        var analyzer = parser.LifePetalAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.CooldownReduction.Total.ShouldBe(reductionMs);
+        analyzer.CooldownReduction.Effective.ShouldBe(reductionMs);
+    }
+
+    [Fact]
+    public async Task LifePetalRechargesInSixtySecondsWithEmeraldAtRankTenAndHasteZero()
+    {
+        var combatant = Combatant();
+        combatant.Emerald = 1500;
+
+        var parser = await Analyze(
+            combatant,
+            Cast(PullStart + 1_000, Spells.LifePetal));
+
+        parser.GetModule<SpellUsable>().ShouldNotBeNull()
+            .RechargeDuration(Spells.LifePetal.FSLID).ShouldBe(60_000);
     }
 
     [Fact]

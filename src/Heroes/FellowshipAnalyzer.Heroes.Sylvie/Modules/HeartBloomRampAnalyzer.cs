@@ -9,6 +9,9 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 [Dependency<Haste>]
 public sealed partial class HeartBloomRampAnalyzer : Analyzer
 {
+    /// <summary>Allowance for floating-point error when rounding pulse progress down to whole releases.</summary>
+    private const double ProgressTolerance = 1e-9;
+
     private readonly List<HeartBloomCapture> _casts = [];
 
     private long _pendingEffective;
@@ -31,7 +34,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
 
     public int TotalReleases => Result.Sum(cast => cast.Releases);
 
-    public int FullyReleasedCasts => Result.Count(cast => cast.Releases >= SylvieKit.HeartBloomReleases);
+    public int TotalExpectedReleases => Result.Sum(cast => cast.ExpectedReleases);
+
+    public int FullyReleasedCasts => Result.Count(cast => cast.ReleasedInFull);
 
     [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.FluttercallHealHot))]
     private void OnFlutterflyHeal(HealEvent healEvent)
@@ -59,6 +64,8 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             PulsePeriodMs = pulsePeriodMs,
             LastPulseAt = castEvent.Timestamp,
             NextPulseAt = castEvent.Timestamp + pulsePeriodMs,
+            HasteInForce = Haste.Current,
+            ProgressAt = castEvent.Timestamp,
         });
 
         _pendingEffective = 0;
@@ -79,7 +86,14 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent changeHasteEvent)
     {
-        var pulsePeriodMs = PulsePeriodAt(changeHasteEvent.NewHaste ?? Haste.Current);
+        var newHaste = changeHasteEvent.NewHaste ?? Haste.Current;
+        var pulsePeriodMs = PulsePeriodAt(newHaste);
+
+        foreach (var capture in _casts)
+        {
+            capture.AccumulateTo(changeHasteEvent.Timestamp);
+            capture.HasteInForce = newHaste;
+        }
 
         foreach (var capture in Alive(changeHasteEvent.Timestamp))
         {
@@ -104,6 +118,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         foreach (var capture in alive)
         {
             capture.AdvanceTo(timestamp);
+            capture.AccumulateTo(timestamp);
         }
 
         return alive.Count > 0
@@ -128,6 +143,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             capture.BlueyAssigned,
             capture.BlueyOnAlly,
             capture.ReleaseInstants.Count,
+            capture.ExpectedReleases(Pull.EndTime),
             capture.Effective,
             capture.Overheal))
     ];
@@ -147,15 +163,50 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         public long Overheal { get; private set; }
         public HashSet<int> ReleaseInstants { get; } = [];
 
-        public void Record(int timestamp, long effective, long overheal)
+        public double HasteInForce { get; set; }
+        public int ProgressAt { get; set; }
+        public double Progress { get; private set; }
+        public double? ExpiryProgress { get; private set; }
+
+        public void AccumulateTo(int timestamp)
         {
-            Effective += effective;
-            Overheal += overheal;
-            ReleaseInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+            if (timestamp <= ProgressAt) return;
+
+            var expiresAt = Timestamp + SylvieKit.HeartBloomDurationMs;
+            if (ExpiryProgress is null && timestamp >= expiresAt)
+            {
+                ExpiryProgress = Progress + ProgressOver(expiresAt - ProgressAt);
+            }
+
+            Progress += ProgressOver(timestamp - ProgressAt);
+            ProgressAt = timestamp;
         }
 
-        public bool HasReleasedAt(int timestamp) =>
-            ReleaseInstants.Contains((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+        public int ExpectedReleases(int pullEnd)
+        {
+            if (ExpiryProgress is null) AccumulateTo(Math.Min(Timestamp + SylvieKit.HeartBloomDurationMs, pullEnd));
+
+            return (int)Math.Floor((ExpiryProgress ?? Progress) + ProgressTolerance);
+        }
+
+        public void Record(int timestamp, long effective, long overheal)
+        {
+            AccumulateTo(timestamp);
+            Effective += effective;
+            Overheal += overheal;
+            ReleaseInstants.Add(ReleaseIndex());
+        }
+
+        public bool HasReleasedAt(int timestamp)
+        {
+            AccumulateTo(timestamp);
+            return ReleaseInstants.Contains(ReleaseIndex());
+        }
+
+        private int ReleaseIndex() => (int)Math.Round(Progress, MidpointRounding.AwayFromZero);
+
+        private double ProgressOver(int elapsedMs) =>
+            elapsedMs * (1.0 + HasteInForce) / SylvieKit.HeartBloomTickIntervalMs;
 
         public void AdvanceTo(int timestamp)
         {
@@ -201,6 +252,7 @@ public sealed record HeartBloomCast(
     bool BlueyAssigned,
     bool BlueyOnAlly,
     int Releases,
+    int ExpectedReleases,
     long Effective,
     long Overheal)
 {
@@ -210,5 +262,5 @@ public sealed record HeartBloomCast(
 
     public double OverhealShare => TotalHealing > 0 ? Overheal / (double)TotalHealing : 0;
 
-    public bool ReleasedInFull => Releases >= SylvieKit.HeartBloomReleases;
+    public bool ReleasedInFull => Releases >= ExpectedReleases;
 }

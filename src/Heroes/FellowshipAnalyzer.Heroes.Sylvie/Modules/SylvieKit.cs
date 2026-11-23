@@ -25,15 +25,16 @@ public static class SylvieKit
 
     public const double HeartBloomAccumulatedShare = 0.12;
 
-    public const int HeartBloomTickIntervalMs = 2_000;
+    public static readonly int HeartBloomTickIntervalMs = (int)(SpellTuning.HeartBloom.TickInterval * 1000);
 
-    public const int HeartBloomDurationMs = 16_000;
+    public static readonly int HeartBloomDurationMs = (int)(SpellTuning.HeartBloom.Duration * 1000);
 
+    /// <summary>Heart Bloom releases in one cast at Haste 0.</summary>
     public static int HeartBloomReleases => HeartBloomDurationMs / HeartBloomTickIntervalMs;
 
-    public const int NettleboltCooldownReductionMs = 1_500;
+    public static readonly int NettleboltCooldownReductionMs = (int)(SpellTuning.NettleboltCooldownReduction.CooldownReductionInSecondsDamage * 1000);
 
-    public const int NettleboltCritCooldownReductionMs = 3_000;
+    public static readonly int NettleboltCritCooldownReductionMs = (int)(SpellTuning.NettleboltCooldownReduction.CooldownReductionInSecondsCrit * 1000);
 
     public static int LifePetalCharges => Spells.LifePetal.Charges;
 

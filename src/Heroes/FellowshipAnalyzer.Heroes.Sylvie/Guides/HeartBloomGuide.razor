@@ -33,7 +33,7 @@
             new OverviewStat(
                 $"{casts}",
                 "Heart Blooms",
-                $"Casts across every pull, releasing {analyzers.Sum(analyzer => analyzer.TotalReleases)} times against {SylvieKit.HeartBloomReleases} per cast."),
+                $"Casts across every pull, releasing {analyzers.Sum(analyzer => analyzer.TotalReleases)} times against {analyzers.Sum(analyzer => analyzer.TotalExpectedReleases)} expected at your Haste."),
             new OverviewStat(
                 $"{fullReleases}/{casts}",
                 "Fully Released",
@@ -69,7 +69,7 @@
                         "Released",
                         $"{cast.Effective:N0} effective healing and {cast.Overheal:N0} overheal."),
                     new PerCastStat(
-                        $"{cast.Releases}/{SylvieKit.HeartBloomReleases}",
+                        $"{cast.Releases}/{cast.ExpectedReleases}",
                         "Releases",
                         "Release intervals for this cast.",
                         cast.ReleasedInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),

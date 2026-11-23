@@ -7,6 +7,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
+[After<SpellUsable>]
 public sealed partial class LifePetalAnalyzer : Analyzer
 {
     private int _lastChargeSample;
