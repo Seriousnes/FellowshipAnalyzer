@@ -612,7 +612,7 @@ public sealed partial class StatTrackerCooldownTests
     {
         var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), acr: 0.10, haste: 0.2);
 
-        Assert.Equal(20454, spellUsable.RechargeDuration(HastedSpell.Id));
+        Assert.Equal(20455, spellUsable.RechargeDuration(HastedSpell.Id));
     }
 
     [Fact]
@@ -652,7 +652,7 @@ public sealed partial class StatTrackerCooldownTests
     {
         var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Recovery(8.0)]);
 
-        Assert.Equal(3703, spellUsable.RechargeDuration(StandardSpell.Id));
+        Assert.Equal(3704, spellUsable.RechargeDuration(StandardSpell.Id));
     }
 
 

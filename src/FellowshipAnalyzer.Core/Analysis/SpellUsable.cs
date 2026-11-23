@@ -10,6 +10,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="UpdateSpellUsableEvent"/> events when spells go on/off cooldown.
 /// Also tracks all player casts (replacing the former TrackedStateModule).
 /// </summary>
+/// <remarks>
+/// Each ability has one <see cref="CooldownState"/> for the whole dungeon, keyed by its primary spell id, so a
+/// cast under an additional spell id spends a charge of the primary spell's state. The log's casts are the
+/// authority: a cast logged while the state has no charge returns the charge recharging at the cast and adds
+/// a <see cref="CooldownDrift"/> to <see cref="Drifts"/>.
+/// </remarks>
 public partial class SpellUsable(
     Lazy<Abilities> abilities,
     Lazy<DebugAnnotations> debugAnnotations,
@@ -17,241 +23,252 @@ public partial class SpellUsable(
     Lazy<StatTracker> statTracker) : Analyzer
 {
     private const int CooldownLagMargin = 150;
+    private const double RechargeTolerance = 1e-6;
 
-    private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
+    private readonly Dictionary<int, CooldownState> _cooldowns = [];
+    private readonly Dictionary<int, UpdateSpellUsableEvent> _pending = [];
+    private readonly Dictionary<int, List<ChargeTimer>> _timers = [];
+    private readonly List<CooldownDrift> _drifts = [];
     private readonly List<TrackedAbilityCast> _casts = [];
     private Dictionary<int, int>? _deferredStarts;
 
     /// <summary>Every player cast during dispatch, in the order it occurred.</summary>
     public List<TrackedAbilityCast> Casts => _casts;
 
+    /// <summary>
+    /// Every cast logged while the ability's state had no charge, in the order it occurred. The state
+    /// returned the charge recharging at the cast.
+    /// </summary>
+    public IReadOnlyList<CooldownDrift> Drifts => _drifts;
+
+    /// <summary>
+    /// The <see cref="CooldownState"/> of <paramref name="spellId"/>'s ability, or <c>null</c> before the
+    /// ability's first cooldown starts. An ability declaring <see cref="SpellbookAbility.IndependentCharges"/>
+    /// has one single-charge state per spent charge, and this is the state of the earliest, or <c>null</c>
+    /// with none recharging.
+    /// </summary>
+    public CooldownState? StateOf(int spellId)
+    {
+        var key = KeyOf(spellId);
+        return _timers.TryGetValue(key, out var timers)
+            ? timers.FirstOrDefault()?.State
+            : _cooldowns.GetValueOrDefault(key);
+    }
+
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
-    public virtual List<int> GetSpellsOnCooldown() => [.. _cooldowns.Keys];
+    public virtual List<int> GetSpellsOnCooldown() =>
+    [
+        .. _cooldowns.Where(static cooldown => cooldown.Value.Recharging).Select(static cooldown => cooldown.Key),
+        .. _timers.Where(static timers => timers.Value.Count > 0).Select(static timers => timers.Key),
+    ];
 
     /// <summary>
     /// Reduces the remaining cooldown of a spell by <paramref name="milliseconds"/> of cooldown progress
-    /// (e.g. Rolling Flames). Ability Cooldown Reduction does not scale the request. The cooldown recovers
-    /// at <see cref="EffectiveRate"/>, so the request shortens the time left by
-    /// <c>milliseconds / EffectiveRate</c>: 1000ms is worth 500ms while the cooldown recovers at 2×. For
-    /// multi-charge spells each charge is restored in sequence as the reduction overflows into the next. An
-    /// ability declaring <see cref="SpellbookAbility.IndependentCharges"/> takes the reduction on its earliest
-    /// timer, and a reduction past that timer's end completes it and shortens the next.
+    /// (e.g. Rolling Flames). Neither Ability Cooldown Reduction nor the recovery rate scales the request: the
+    /// progress left shortens by exactly <paramref name="milliseconds"/>, and the time left by
+    /// <c>milliseconds / EffectiveRate</c>. For multi-charge spells each charge is restored in sequence as the
+    /// reduction overflows into the next. An ability declaring <see cref="SpellbookAbility.IndependentCharges"/>
+    /// takes the reduction on its earliest timer, and a reduction past that timer's end completes it and
+    /// shortens the next.
     /// </summary>
     /// <returns>
     /// The requested cooldown progress, and how much of it shortened a running cooldown, both in
-    /// milliseconds of cooldown progress. The two differ when the spell was already available, or had less
-    /// progress left than the request.
+    /// milliseconds of cooldown progress. The two differ when the spell was already available, held, or had
+    /// less progress left than the request.
     /// </returns>
     public virtual CooldownReductionResult ReduceCooldown(int spellId, int milliseconds, int? timestamp = null)
     {
         if (milliseconds <= 0)
             return new(0, 0);
 
-        var rate = EffectiveRate(spellId);
-        var shortenedMs = (int)Math.Round(milliseconds / rate);
-        var appliedMs = ApplyReduction(spellId, shortenedMs, timestamp);
-        var effective = appliedMs >= shortenedMs ? milliseconds : Math.Min(milliseconds, (int)Math.Round(appliedMs * rate));
-        return new(milliseconds, effective);
+        var key = KeyOf(spellId);
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        var applied = _timers.ContainsKey(key) ? ReduceTimers(key, milliseconds, ts) : ReduceState(key, milliseconds, ts);
+        return new(milliseconds, (int)Math.Round(applied, MidpointRounding.AwayFromZero));
     }
 
-    private int ApplyReduction(int spellId, int milliseconds, int? timestamp)
+    private double ReduceState(int key, int milliseconds, int ts)
     {
-        if (!_cooldowns.TryGetValue(spellId, out var cd) || cd.Held || milliseconds <= 0)
+        if (Advanced(key, ts) is not { } state)
             return 0;
 
-        if (cd.HasIndependentTimers)
-            return ApplyIndependentReduction(spellId, cd, milliseconds, timestamp ?? Owner.CurrentTimestamp);
-
-        var remaining = Math.Max(0, cd.ExpectedEnd - (timestamp ?? Owner.CurrentTimestamp));
-
-        if (milliseconds < remaining)
-        {
-            _cooldowns[spellId] = cd with { ExpectedEnd = cd.ExpectedEnd - milliseconds };
-            RefreshPendingEnd(spellId);
-            return milliseconds;
-        }
-
-        EndCooldown(spellId, timestamp ?? Owner.CurrentTimestamp);
-        return remaining + ApplyReduction(spellId, milliseconds - remaining, timestamp);
+        var before = state.Charges;
+        var applied = state.Reduce(ts, milliseconds);
+        FabricateReturns(key, state, ts, 0, state.Charges - before);
+        SyncPending(key);
+        return applied;
     }
 
-    private int ApplyIndependentReduction(int spellId, CooldownInfo cd, int milliseconds, int timestamp)
+    private double ReduceTimers(int key, double milliseconds, int ts)
     {
-        var earliest = cd.Timers[0];
-        var remaining = Math.Max(0, earliest.ExpectedEnd - timestamp);
-
-        if (milliseconds < remaining)
+        var timers = _timers[key];
+        AdvanceTimers(key, ts);
+        var left = milliseconds;
+        var applied = 0.0;
+        while (left > 0 && timers.Count > 0)
         {
-            var shortened = earliest with { ExpectedEnd = earliest.ExpectedEnd - milliseconds };
-            _cooldowns[spellId] = WithTimers(cd, [shortened, .. cd.Timers[1..]]);
-            RefreshTimers(spellId);
-            return milliseconds;
+            var timer = timers[0];
+            var taken = timer.State.Reduce(ts, left);
+            applied += taken;
+            left -= taken;
+            if (timer.State.Recharging)
+                break;
+
+            CompleteTimers(key, timers, 0, 1, ts);
         }
 
-        EndCooldown(spellId, timestamp);
-        return remaining + ApplyReduction(spellId, milliseconds - remaining, timestamp);
+        SyncTimers(key);
+        return applied;
     }
 
     /// <summary>Whether <paramref name="spellId"/> has at least one charge available to cast right now.</summary>
-    public virtual bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
+    public virtual bool IsAvailable(int spellId) => ChargesAvailable(spellId) > 0;
 
     /// <summary>Whether any charge of <paramref name="spellId"/> is currently recharging.</summary>
-    public virtual bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);
+    public virtual bool IsOnCooldown(int spellId)
+    {
+        var key = KeyOf(spellId);
+        return _timers.TryGetValue(key, out var timers)
+            ? timers.Count > 0
+            : _cooldowns.TryGetValue(key, out var state) && state.Recharging;
+    }
 
     /// <summary>How many charges of <paramref name="spellId"/> can be cast right now.</summary>
-    public virtual int ChargesAvailable(int spellId) =>
-        _cooldowns.TryGetValue(spellId, out var cd)
-            ? cd.ChargesAvailable
-            : _abilities.GetMaxCharges(spellId);
+    public virtual int ChargesAvailable(int spellId)
+    {
+        var key = KeyOf(spellId);
+        if (_timers.TryGetValue(key, out var timers))
+            return _abilities.GetMaxCharges(key) - timers.Count;
+
+        return _cooldowns.TryGetValue(key, out var state) ? state.Charges : _abilities.GetMaxCharges(key);
+    }
 
     /// <summary>
     /// Milliseconds until <paramref name="spellId"/>'s next charge recharges, evaluated at
     /// <paramref name="atTimestamp"/> (defaulting to the current dispatch time). Zero when a charge is
-    /// already available.
+    /// already available. A held cooldown reports <see cref="RechargeDuration"/>. The member reads the state
+    /// and changes nothing.
     /// </summary>
     public virtual int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
-        var ts = atTimestamp ?? Owner.CurrentTimestamp;
-        if (!_cooldowns.TryGetValue(spellId, out var cd))
+        var key = KeyOf(spellId);
+        var at = atTimestamp ?? Owner.CurrentTimestamp;
+        if (StateOf(key) is not { Recharging: true } state)
             return 0;
 
-        return cd.Held ? RechargeDuration(spellId) : Math.Max(0, cd.ExpectedEnd - ts);
+        if (state.Held)
+            return RechargeDuration(key);
+
+        return state.NextChargeAt is { } next ? Math.Max(0, next - at) : RechargeDuration(key);
     }
 
     /// <summary>
     /// The full recharge duration one charge of <paramref name="spellId"/> currently takes: its base
-    /// cooldown after Ability Cooldown Reduction, divided by the current <see cref="EffectiveRate"/>.
-    /// This is the value <see cref="BeginCooldown"/> assigns a fresh recharge, exposed for metrics that
-    /// need the effective (haste/gear/recovery-accelerated) period rather than the raw curated cooldown.
-    /// Returns 0 for a spell with no configured cooldown.
+    /// cooldown after Ability Cooldown Reduction and Haste on its duration, divided by the current
+    /// <see cref="EffectiveRate"/>. This is the value <see cref="BeginCooldown"/> assigns a fresh recharge,
+    /// exposed for metrics that need the effective (haste/gear/recovery-accelerated) period rather than the
+    /// raw curated cooldown. Returns 0 for a spell with no configured cooldown.
     /// </summary>
-    public virtual int RechargeDuration(int spellId)
+    public virtual int RechargeDuration(int spellId) =>
+        (int)Math.Round(ExactRechargeDuration(spellId), MidpointRounding.AwayFromZero);
+
+    private double ExactRechargeDuration(int spellId)
     {
-        var ability = _abilities.GetAbility(spellId);
-        var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-        return baseDurationMs <= 0 ? 0 : StartDuration(ability, baseDurationMs, EffectiveRate(spellId));
+        var key = KeyOf(spellId);
+        var baseMs = _abilities.GetExpectedCooldown(key) * 1000;
+        return baseMs <= 0 ? 0 : StartLength(_abilities.GetAbility(key), baseMs) / EffectiveRate(key);
     }
 
     /// <summary>
-    /// Consumes a charge of <paramref name="spellId"/>: starts a fresh recharge if none is running, spends an
-    /// already-available charge if one exists, or, if every charge is spent, forces the current recharge to
-    /// complete before beginning a new one, so the tracker stays in sync with an in-game cast it did not
-    /// expect to be possible. An ability declaring <see cref="SpellbookAbility.CooldownStartsWhenBuffEnds"/>
-    /// consumes its charge and holds, with nothing recharging until that buff leaves the player. An ability
-    /// declaring <see cref="SpellbookAbility.IndependentCharges"/> starts a timer of its own for the charge
-    /// this cast spent, alongside any timer already running.
+    /// Consumes a charge of <paramref name="spellId"/>. A spend from every charge sets the cooldown
+    /// milliseconds of the recharge, and every later charge of the chain recharges over that length. A cast
+    /// logged while every charge is spent returns the charge recharging at the cast, so the tracker stays in
+    /// sync with an in-game cast it did not expect to be possible, and adds a <see cref="CooldownDrift"/>. An
+    /// ability declaring <see cref="SpellbookAbility.CooldownStartsWhenBuffEnds"/> consumes its charge and
+    /// holds, with nothing recharging until that buff leaves the player. An ability declaring
+    /// <see cref="SpellbookAbility.IndependentCharges"/> starts a timer of its own for the charge this cast
+    /// spent, alongside any timer already running.
     /// </summary>
     public virtual void BeginCooldown(int spellId, int? timestamp = null)
     {
         var ts = timestamp ?? Owner.CurrentTimestamp;
-        if (_abilities.GetAbility(spellId)?.IndependentCharges == true)
+        var key = KeyOf(spellId);
+        var baseMs = _abilities.GetExpectedCooldown(key) * 1000;
+        if (baseMs <= 0)
+            return;
+
+        var ability = _abilities.GetAbility(key);
+        if (ability?.IndependentCharges == true)
         {
-            BeginIndependentCooldown(spellId, ts);
+            BeginIndependentCooldown(key, ability, baseMs, ts);
             return;
         }
 
-        if (!_cooldowns.TryGetValue(spellId, out var cd))
+        if (!_cooldowns.ContainsKey(key))
+            _cooldowns[key] = new CooldownState(_abilities.GetMaxCharges(key));
+
+        var state = Advanced(key, ts)!;
+        if (state.Charges == 0)
         {
-            var ability = _abilities.GetAbility(spellId);
-            var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-            if (baseDurationMs <= 0) return;
-            var rate = EffectiveRate(spellId);
-            var cdDuration = StartDuration(ability, baseDurationMs, rate);
-
-            var maxCharges = _abilities.GetMaxCharges(spellId);
-
-            if (ability?.CooldownStartsWhenBuffEnds is not null)
-            {
-                cd = new CooldownInfo(
-                    OverallStart: ts,
-                    ChargeStart: ts,
-                    ExpectedEnd: ts,
-                    RechargeDuration: cdDuration,
-                    ChargesAvailable: maxCharges - 1,
-                    MaxCharges: maxCharges,
-                    Rate: rate,
-                    PendingEnd: null,
-                    Held: true);
-                _cooldowns[spellId] = cd;
-                FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
-                return;
-            }
-
-            cd = new CooldownInfo(
-                OverallStart: ts,
-                ChargeStart: ts,
-                ExpectedEnd: ts + cdDuration,
-                RechargeDuration: cdDuration,
-                ChargesAvailable: maxCharges - 1,
-                MaxCharges: maxCharges,
-                Rate: rate,
-                PendingEnd: null);
-            _cooldowns[spellId] = cd;
-
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
-            RefreshPendingEnd(spellId);
+            _drifts.Add(new CooldownDrift(key, ts, Lateness(key, state, ts)));
+            state.CompleteCharge(ts);
+            FabricateUpdate(
+                state.Recharging ? UpdateSpellUsableType.RestoreCharge : UpdateSpellUsableType.EndCooldown,
+                key,
+                ts,
+                Describe(key, state, ts));
         }
-        else if (cd.ChargesAvailable > 0)
-        {
-            cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
-            _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, cd);
-            RefreshPendingEnd(spellId);
-        }
-        else
-        {
-            EndCooldown(spellId, ts);
-            BeginCooldown(spellId, ts);
-        }
+
+        var wasFull = state.Charges == state.MaxCharges;
+        state.Spend(ts, StartLength(ability, baseMs), EffectiveRate(key), hold: ability?.CooldownStartsWhenBuffEnds is not null);
+        FabricateUpdate(
+            wasFull ? UpdateSpellUsableType.BeginCooldown : UpdateSpellUsableType.UseCharge,
+            key,
+            ts,
+            Describe(key, state, ts));
+        SyncPending(key);
     }
 
     /// <summary>
     /// Forces a charge (or, with <paramref name="restoreAllCharges"/>, all charges) back onto
     /// <paramref name="spellId"/> synchronously, e.g. from a reduction that completes a running recharge or
-    /// a reset effect. The restore is applied to <see cref="_cooldowns"/> and its notification fabricated at
-    /// the current dispatch time rather than scheduled, since it happens now rather than at a future natural
-    /// expiry. Any pending natural-expiry end is cancelled; when charges remain on cooldown a fresh pending
-    /// end is scheduled for the next charge. An ability declaring
-    /// <see cref="SpellbookAbility.IndependentCharges"/> completes its earliest timer, or every timer with
-    /// <paramref name="restoreAllCharges"/>, and the timers left keep running.
+    /// a reset effect. The restore is applied to the state and its notification fabricated at the current
+    /// dispatch time rather than scheduled, since it happens now rather than at a future natural expiry. A
+    /// single restored charge starts a full recharge of the next charge when charges remain on cooldown. An
+    /// ability declaring <see cref="SpellbookAbility.IndependentCharges"/> completes its earliest timer, or
+    /// every timer with <paramref name="restoreAllCharges"/>, and the timers left keep running.
     /// </summary>
     public virtual void EndCooldown(int spellId, int? timestamp = null, bool restoreAllCharges = false)
     {
+        var key = KeyOf(spellId);
         var ts = timestamp ?? Owner.CurrentTimestamp;
-        if (!_cooldowns.TryGetValue(spellId, out var cd)) return;
-
-        if (cd.HasIndependentTimers)
+        if (_timers.TryGetValue(key, out var timers))
         {
-            CompleteTimers(spellId, cd, ts, 0, restoreAllCharges ? cd.Timers.Length : 1);
+            AdvanceTimers(key, ts);
+            if (timers.Count > 0)
+            {
+                CompleteTimers(key, timers, 0, restoreAllCharges ? timers.Count : 1, Owner.CurrentTimestamp);
+                SyncTimers(key);
+            }
+
             return;
         }
 
-        var eventTs = Owner.CurrentTimestamp;
+        if (Advanced(key, ts) is not { Recharging: true } state)
+            return;
 
-        if (cd.PendingEnd is not null)
-        {
-            Owner.EventEmitter.Cancel(cd.PendingEnd);
-            cd = cd with { PendingEnd = null };
-        }
-
-        cd = restoreAllCharges
-            ? cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts }
-            : cd with { ChargesAvailable = cd.ChargesAvailable + 1 };
-
-        if (cd.ChargesAvailable >= cd.MaxCharges)
-        {
-            cd = cd with { ExpectedEnd = ts };
-            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
-            _cooldowns.Remove(spellId);
-        }
+        if (restoreAllCharges)
+            state.ResetAll(ts);
         else
-        {
-            var nextDuration = RechargeDuration(spellId);
-            cd = cd with { ChargeStart = ts, ExpectedEnd = ts + nextDuration, RechargeDuration = nextDuration, Rate = EffectiveRate(spellId), Held = false };
-            _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
-            RefreshPendingEnd(spellId);
-        }
+            state.CompleteCharge(ts);
+
+        var eventTs = Owner.CurrentTimestamp;
+        FabricateUpdate(
+            state.Recharging ? UpdateSpellUsableType.RestoreCharge : UpdateSpellUsableType.EndCooldown,
+            key,
+            eventTs,
+            Describe(key, state, eventTs));
+        SyncPending(key);
     }
 
     /// <summary>
@@ -259,42 +276,35 @@ public partial class SpellUsable(
     /// running, as a refund proc does: the charge that was recovering keeps the progress it had made.
     /// <see cref="EndCooldown"/> is the wrong call for a refund, since it restarts the next charge's
     /// recharge from the moment it runs. A refund past the last charge on cooldown leaves nothing
-    /// recharging, so the pending expiry is cancelled and the spell drops to fully available. An ability
-    /// declaring <see cref="SpellbookAbility.IndependentCharges"/> drops its latest timer, and the timers
-    /// left keep the progress they had made.
+    /// recharging. An ability declaring <see cref="SpellbookAbility.IndependentCharges"/> drops its latest
+    /// timer, and the timers left keep the progress they had made.
     /// </summary>
     /// <returns><c>true</c> when a charge was handed back, <c>false</c> when every charge was already available.</returns>
     public virtual bool RefundCharge(int spellId, int? timestamp = null)
     {
-        if (!_cooldowns.TryGetValue(spellId, out var cd)) return false;
-
+        var key = KeyOf(spellId);
         var ts = timestamp ?? Owner.CurrentTimestamp;
-        if (cd.HasIndependentTimers)
+        if (_timers.TryGetValue(key, out var timers))
         {
-            CompleteTimers(spellId, cd, ts, cd.Timers.Length - 1, 1);
+            AdvanceTimers(key, ts);
+            if (timers.Count == 0)
+                return false;
+
+            CompleteTimers(key, timers, timers.Count - 1, 1, Owner.CurrentTimestamp);
+            SyncTimers(key);
             return true;
         }
+
+        if (Advanced(key, ts) is not { } state || !state.GrantCharge(ts))
+            return false;
 
         var eventTs = Owner.CurrentTimestamp;
-        cd = cd with { ChargesAvailable = cd.ChargesAvailable + 1, Held = false };
-
-        if (cd.ChargesAvailable < cd.MaxCharges)
-        {
-            _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
-            RefreshPendingEnd(spellId);
-            return true;
-        }
-
-        if (cd.PendingEnd is not null)
-        {
-            Owner.EventEmitter.Cancel(cd.PendingEnd);
-            cd = cd with { PendingEnd = null };
-        }
-
-        cd = cd with { ExpectedEnd = ts };
-        FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
-        _cooldowns.Remove(spellId);
+        FabricateUpdate(
+            state.Recharging ? UpdateSpellUsableType.RestoreCharge : UpdateSpellUsableType.EndCooldown,
+            key,
+            eventTs,
+            Describe(key, state, eventTs));
+        SyncPending(key);
         return true;
     }
 
@@ -309,16 +319,15 @@ public partial class SpellUsable(
     private void RecordCooldownDebugInfo(CastEvent e)
     {
         var ability = _abilities.GetAbility(e.Ability.Id);
+        var key = KeyOf(e.Ability.Id);
 
-        if (_cooldowns.TryGetValue(e.Ability.Id, out var cd)
-            && cd.ChargesAvailable == 0
-            && cd.ExpectedEnd - e.Timestamp > CooldownLagMargin)
+        if (LateWithNoCharge(key, e.Timestamp) is { } late && late > CooldownLagMargin)
         {
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
                 Color: FaVar.Danger,
                 Summary: $"Used with no charges available: {e.Ability.Name}  (ID: {e.Ability.Id})",
-                Details: $"Tracker believed {e.Ability.Name} held 0/{cd.MaxCharges} charges with " +
-                         $"{cd.ExpectedEnd - e.Timestamp}ms until the next recharge. Casting with no charges " +
+                Details: $"Tracker believed {e.Ability.Name} held 0/{_abilities.GetMaxCharges(key)} charges with " +
+                         $"{late}ms until the next recharge. Casting with no charges " +
                          $"is impossible in-game, so its configured cooldown or charge count is likely too slow.",
                 Priority: 10));
         }
@@ -332,6 +341,20 @@ public partial class SpellUsable(
         }
     }
 
+    private int? LateWithNoCharge(int key, int ts)
+    {
+        if (_timers.TryGetValue(key, out var timers))
+        {
+            AdvanceTimers(key, ts);
+            return timers.Count >= _abilities.GetMaxCharges(key) ? Lateness(key, timers[0].State, ts) : null;
+        }
+
+        return Advanced(key, ts) is { Charges: 0 } state ? Lateness(key, state, ts) : null;
+    }
+
+    private int Lateness(int key, CooldownState state, int ts) =>
+        !state.Held && state.NextChargeAt is { } next ? Math.Max(0, next - ts) : RechargeDuration(key);
+
     [On<FilterCooldownInfoEvent>(By = Actor.Player)]
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
@@ -339,30 +362,16 @@ public partial class SpellUsable(
     [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnDeferredCooldownBuffRemoved(RemoveBuffEvent e)
     {
-        if (!DeferredStarts.TryGetValue(e.Ability.Id, out var spellId))
+        if (!DeferredStarts.TryGetValue(e.Ability.Id, out var key))
             return;
 
-        if (!_cooldowns.TryGetValue(spellId, out var cd) || !cd.Held)
+        if (Advanced(key, e.Timestamp) is not { Held: true } state)
             return;
 
-        var ability = _abilities.GetAbility(spellId);
-        var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-        var rate = EffectiveRate(spellId);
-        var cdDuration = StartDuration(ability, baseDurationMs, rate);
-
-        cd = cd with
-        {
-            OverallStart = e.Timestamp,
-            ChargeStart = e.Timestamp,
-            ExpectedEnd = e.Timestamp + cdDuration,
-            RechargeDuration = cdDuration,
-            Rate = rate,
-            Held = false,
-        };
-        _cooldowns[spellId] = cd;
-
-        FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, e.Timestamp, cd);
-        RefreshPendingEnd(spellId);
+        var ability = _abilities.GetAbility(key);
+        state.Release(e.Timestamp, StartLength(ability, _abilities.GetExpectedCooldown(key) * 1000), EffectiveRate(key));
+        FabricateUpdate(UpdateSpellUsableType.BeginCooldown, key, e.Timestamp, Describe(key, state, e.Timestamp));
+        SyncPending(key);
     }
 
     private Dictionary<int, int> DeferredStarts => _deferredStarts ??= BuildDeferredStarts();
@@ -380,61 +389,84 @@ public partial class SpellUsable(
     [On<UpdateSpellUsableEvent>]
     private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
     {
-        var spellId = e.Ability.Id;
-        if (!_cooldowns.TryGetValue(spellId, out var cd))
-            return;
-
-        if (cd.HasIndependentTimers)
+        var key = e.Ability.Id;
+        if (_timers.TryGetValue(key, out var timers))
         {
-            if (cd.Timers.Any(t => ReferenceEquals(t.Pending, e)))
-                ReleaseTimers(spellId, cd, [.. cd.Timers.Where(t => !ReferenceEquals(t.Pending, e))]);
+            if (timers.Find(timer => ReferenceEquals(timer.Pending, e)) is { } returned)
+            {
+                if (returned.State.Advance(e.Timestamp) > 0)
+                    timers.Remove(returned);
+
+                SyncTimers(key);
+            }
+
             return;
         }
 
-        if (!ReferenceEquals(cd.PendingEnd, e))
+        if (!_pending.TryGetValue(key, out var pending) || !ReferenceEquals(pending, e))
             return;
 
-        if (e.UpdateType == UpdateSpellUsableType.EndCooldown)
-        {
-            _cooldowns.Remove(spellId);
-            return;
-        }
-
-        var restoreTs = e.Timestamp;
-        var nextDuration = RechargeDuration(spellId);
-        _cooldowns[spellId] = cd with
-        {
-            ChargesAvailable = cd.ChargesAvailable + 1,
-            ChargeStart = restoreTs,
-            ExpectedEnd = restoreTs + nextDuration,
-            RechargeDuration = nextDuration,
-            Rate = EffectiveRate(spellId),
-            PendingEnd = null,
-        };
-        RefreshPendingEnd(spellId);
+        _pending.Remove(key);
+        var state = _cooldowns[key];
+        FabricateReturns(key, state, e.Timestamp, 1, state.Advance(e.Timestamp));
+        SyncPending(key);
     }
 
-    private void RefreshPendingEnd(int spellId)
+    private CooldownState? Advanced(int key, int ts)
     {
-        var cd = _cooldowns[spellId];
-        if (cd.PendingEnd is null)
+        if (!_cooldowns.TryGetValue(key, out var state))
+            return null;
+
+        var returned = state.Advance(ts);
+        if (returned > 0)
         {
-            var pending = CreatePendingEnd(spellId, cd);
-            _cooldowns[spellId] = cd with { PendingEnd = pending };
-            Owner.EventEmitter.Schedule(pending);
+            DropPending(key);
+            FabricateReturns(key, state, ts, 0, returned);
+            SyncPending(key);
         }
-        else
+
+        return state;
+    }
+
+    private void FabricateReturns(int key, CooldownState state, int ts, int from, int returned)
+    {
+        for (var i = from; i < returned; i++)
         {
-            ApplyPendingEndState(spellId, cd.PendingEnd, cd);
-            Owner.EventEmitter.Reschedule(cd.PendingEnd);
+            var charges = state.Charges - (returned - 1 - i);
+            FabricateUpdate(
+                charges >= state.MaxCharges ? UpdateSpellUsableType.EndCooldown : UpdateSpellUsableType.RestoreCharge,
+                key,
+                ts,
+                Describe(key, state, ts, charges));
         }
     }
 
-    private UpdateSpellUsableEvent CreatePendingEnd(int spellId, CooldownInfo cd)
+    private void DropPending(int key)
     {
-        var e = NewPendingUpdate(spellId);
-        ApplyPendingEndState(spellId, e, cd);
-        return e;
+        if (_pending.Remove(key, out var pending))
+            Owner.EventEmitter.Cancel(pending);
+    }
+
+    private void SyncPending(int key)
+    {
+        var state = _cooldowns[key];
+        if (state.NextChargeAt is not { } at)
+        {
+            DropPending(key);
+            return;
+        }
+
+        if (_pending.TryGetValue(key, out var pending))
+        {
+            ApplyPendingState(key, pending, state, at);
+            Owner.EventEmitter.Reschedule(pending);
+            return;
+        }
+
+        pending = NewPendingUpdate(key);
+        ApplyPendingState(key, pending, state, at);
+        _pending[key] = pending;
+        Owner.EventEmitter.Schedule(pending);
     }
 
     private UpdateSpellUsableEvent NewPendingUpdate(int spellId)
@@ -450,36 +482,71 @@ public partial class SpellUsable(
         };
     }
 
-    private void ApplyPendingEndState(int spellId, UpdateSpellUsableEvent e, CooldownInfo cd)
+    private void ApplyPendingState(int key, UpdateSpellUsableEvent e, CooldownState state, int at)
     {
-        var endTs = cd.ExpectedEnd;
-        var chargesAfter = cd.ChargesAvailable + 1;
+        var chargesAfter = state.Charges + 1;
+        var full = chargesAfter >= state.MaxCharges;
 
-        e.Timestamp = endTs;
-        e.OverallStartTimestamp = cd.OverallStart;
-        e.MaxCharges = cd.MaxCharges;
+        e.Timestamp = at;
+        e.OverallStartTimestamp = state.OverallStart;
+        e.MaxCharges = state.MaxCharges;
         e.ChargesAvailable = chargesAfter;
+        e.IsAvailable = true;
+        e.IsOnCooldown = !full;
+        e.UpdateType = full ? UpdateSpellUsableType.EndCooldown : UpdateSpellUsableType.RestoreCharge;
+        e.ExpectedRechargeDuration = RechargeLengthMilliseconds(key, state);
 
-        if (chargesAfter >= cd.MaxCharges)
+        if (full)
         {
-            e.UpdateType = UpdateSpellUsableType.EndCooldown;
-            e.IsOnCooldown = false;
-            e.IsAvailable = true;
-            e.ChargeStartTimestamp = cd.ChargeStart;
-            e.ExpectedRechargeTimestamp = endTs;
-            e.ExpectedRechargeDuration = cd.RechargeDuration;
+            e.ChargeStartTimestamp = state.ChargeStart;
+            e.ExpectedRechargeTimestamp = at;
+            return;
         }
-        else
-        {
-            var nextDuration = RechargeDuration(spellId);
-            e.UpdateType = UpdateSpellUsableType.RestoreCharge;
-            e.IsOnCooldown = true;
-            e.IsAvailable = true;
-            e.ChargeStartTimestamp = endTs;
-            e.ExpectedRechargeTimestamp = endTs + nextDuration;
-            e.ExpectedRechargeDuration = nextDuration;
-        }
+
+        e.ChargeStartTimestamp = at;
+        e.ExpectedRechargeTimestamp = (int)Math.Ceiling(state.Timestamp + (state.ProgressLeft + state.RechargeLength) / state.Rate - RechargeTolerance);
     }
+
+    private int RechargeLengthMilliseconds(int key, CooldownState state) =>
+        state.Rate > 0
+            ? (int)Math.Round(state.RechargeLength / state.Rate, MidpointRounding.AwayFromZero)
+            : RechargeDuration(key);
+
+    private readonly record struct Snapshot(int Charges, int MaxCharges, int OverallStart, int ChargeStart, int NextAt, int Duration);
+
+    private Snapshot Describe(int key, CooldownState state, int ts, int? charges = null, int? maxCharges = null) => new(
+        charges ?? state.Charges,
+        maxCharges ?? state.MaxCharges,
+        state.OverallStart,
+        state.ChargeStart,
+        state.NextChargeAt ?? ts,
+        RechargeLengthMilliseconds(key, state));
+
+    private void FabricateUpdate(UpdateSpellUsableType updateType, int key, int timestamp, Snapshot snapshot)
+    {
+        var ability = _abilities.GetAbility(key);
+
+        Owner.EventEmitter.FabricateEvent(new UpdateSpellUsableEvent
+        {
+            Timestamp = timestamp,
+            Ability = new Ability { FSLID = key, Name = ability?.Name ?? string.Empty },
+            UpdateType = updateType,
+            IsOnCooldown = snapshot.Charges < snapshot.MaxCharges,
+            IsAvailable = snapshot.Charges > 0,
+            ChargesAvailable = snapshot.Charges,
+            MaxCharges = snapshot.MaxCharges,
+            OverallStartTimestamp = snapshot.OverallStart,
+            ChargeStartTimestamp = snapshot.ChargeStart,
+            ExpectedRechargeTimestamp = snapshot.NextAt,
+            ExpectedRechargeDuration = snapshot.Duration,
+            SourceId = Owner.PlayerId,
+            TargetId = Owner.PlayerId,
+            SourceIsFriendly = true,
+            TargetIsFriendly = true,
+        });
+    }
+
+    private int KeyOf(int spellId) => _abilities.GetAbility(spellId)?.PrimarySpell.FSLID.Value ?? spellId;
 
     /// <summary>
     /// The recovery rate of <paramref name="spellId"/>'s cooldown, the progress it makes per millisecond:
@@ -489,7 +556,7 @@ public partial class SpellUsable(
     /// <see cref="StatTracker.CurrentCooldownAcceleration"/> for the ability. The third is the player's Haste
     /// when Haste enters the ability's time rate, else 0, so Haste adds outside the Cooldown Recovery
     /// attribute. Unlike Ability Cooldown Reduction, which <see cref="BeginCooldown"/> fixes at cast, the rate
-    /// is dynamic: a change to any term rescales the affected in-flight cooldowns.
+    /// is dynamic: a change to any term changes the recovery rate of the affected in-flight cooldowns.
     /// </summary>
     public virtual double EffectiveRate(int spellId)
     {
@@ -500,31 +567,81 @@ public partial class SpellUsable(
     }
 
     /// <summary>
-    /// The milliseconds a cooldown starting now runs at <paramref name="rate"/>: the base after Ability
-    /// Cooldown Reduction, where the ability's duration scales off it, divided by <c>1 + haste</c> when Haste
-    /// scales the duration, then by the rate.
+    /// The cooldown milliseconds a recharge starting now needs: the base after Ability Cooldown Reduction,
+    /// where the ability's duration scales off it, divided by <c>1 + haste</c> when Haste scales the duration.
+    /// The value has no rounding.
     /// </summary>
-    private int StartDuration(SpellbookAbility? ability, int baseDurationMs, double rate) =>
-        (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs)
-            / (ability?.CooldownHaste == CooldownHasteScaling.Duration ? 1.0 + _haste.Current : 1.0)
-            / rate);
+    private double StartLength(SpellbookAbility? ability, double baseMs)
+    {
+        var reduction = ability?.CooldownScaling is { DurationCooldownReduction: true }
+            ? _statTracker.CurrentAbilityCooldownReduction(ability)
+            : 0.0;
+        var haste = ability?.CooldownHaste == CooldownHasteScaling.Duration ? 1.0 + _haste.Current : 1.0;
+        return baseMs * (1.0 - reduction) / haste;
+    }
 
     [On<ChangeCooldownModifierEvent>]
     private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
     {
-        RescaleChangedCooldowns(e.Timestamp);
+        ChangeRates(e.Timestamp);
         SampleRechargeDurations(e.Timestamp);
     }
 
     [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent e)
     {
-        RescaleChangedCooldowns(e.Timestamp);
+        ChangeRates(e.Timestamp);
         SampleRechargeDurations(e.Timestamp);
     }
 
     [On<DungeonStartEvent>]
     private void OnDungeonStartSample(DungeonStartEvent e) => SampleRechargeDurations(e.Timestamp);
+
+    private void ChangeRates(int ts)
+    {
+        foreach (var (key, state) in _cooldowns.ToList())
+        {
+            var rate = EffectiveRate(key);
+            var earlier = state.Rate;
+            var returned = state.SetRate(ts, rate);
+            if (returned > 0)
+            {
+                DropPending(key);
+                FabricateReturns(key, state, ts, 0, returned);
+            }
+
+            if (state.Recharging && !state.Held && rate != earlier)
+                FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, key, ts, Describe(key, state, ts));
+
+            SyncPending(key);
+        }
+
+        foreach (var (key, timers) in _timers.ToList())
+        {
+            if (timers.Count == 0)
+                continue;
+
+            var rate = EffectiveRate(key);
+            var changed = rate != timers[0].State.Rate;
+            List<ChargeTimer> returned = [];
+            foreach (var timer in timers)
+            {
+                if (timer.State.SetRate(ts, rate) > 0)
+                    returned.Add(timer);
+            }
+
+            foreach (var timer in returned)
+            {
+                timers.Remove(timer);
+                Owner.EventEmitter.Cancel(timer.Pending);
+                FabricateTimerRemoval(key, timers, timer, ts);
+            }
+
+            SyncTimers(key);
+            if (changed && timers.Count > 0)
+                FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, key, ts, TimerSnapshot(key, timers, ts));
+        }
+    }
 
     /// <summary>
     /// The time-weighted mean of <see cref="RechargeDuration"/> for <paramref name="spellId"/> across
@@ -533,7 +650,7 @@ public partial class SpellUsable(
     /// </summary>
     public int RechargeDurationDuring(int spellId, int start, int end)
     {
-        var key = _abilities.GetAbility(spellId)?.PrimarySpell.FSLID.Value ?? spellId;
+        var key = KeyOf(spellId);
         if (end <= start || !_rechargeHistory.TryGetValue(key, out var history) || history.Count == 0)
             return RechargeDuration(spellId);
 
@@ -550,12 +667,12 @@ public partial class SpellUsable(
 
             if (timestamp >= end) break;
 
-            weighted += (double)duration * (timestamp - at);
+            weighted += duration * (timestamp - at);
             at = timestamp;
             duration = value;
         }
 
-        weighted += (double)duration * (end - at);
+        weighted += duration * (end - at);
         return (int)Math.Round(weighted / (end - start));
     }
 
@@ -576,11 +693,11 @@ public partial class SpellUsable(
         if (end <= start)
             return 0;
 
-        var key = _abilities.GetAbility(spellId)?.PrimarySpell.FSLID.Value ?? spellId;
+        var key = KeyOf(spellId);
         if (!_rechargeHistory.TryGetValue(key, out var history) || history.Count == 0)
         {
-            var current = RechargeDuration(spellId);
-            return current > 0 ? (double)(end - start) / current : 0;
+            var current = ExactRechargeDuration(spellId);
+            return current > 0 ? (end - start) / current : 0;
         }
 
         double recharges = 0;
@@ -596,23 +713,23 @@ public partial class SpellUsable(
 
             if (timestamp >= end) break;
 
-            recharges += (double)(timestamp - at) / duration;
+            recharges += (timestamp - at) / duration;
             at = timestamp;
             duration = value;
         }
 
-        recharges += (double)(end - at) / duration;
+        recharges += (end - at) / duration;
         return recharges;
     }
 
-    private readonly Dictionary<int, List<(int Timestamp, int Duration)>> _rechargeHistory = [];
+    private readonly Dictionary<int, List<(int Timestamp, double Duration)>> _rechargeHistory = [];
 
     private void SampleRechargeDurations(int timestamp)
     {
         foreach (var ability in _abilities.GetAbilities())
         {
             int spellId = ability.PrimarySpell.FSLID;
-            var duration = RechargeDuration(spellId);
+            var duration = ExactRechargeDuration(spellId);
             if (duration <= 0) continue;
 
             if (!_rechargeHistory.TryGetValue(spellId, out var history))
@@ -625,222 +742,121 @@ public partial class SpellUsable(
         }
     }
 
-    private void RescaleChangedCooldowns(int timestamp)
+    private void BeginIndependentCooldown(int key, SpellbookAbility ability, double baseMs, int ts)
     {
-        foreach (var spellId in _cooldowns.Keys.ToList())
+        if (!_timers.TryGetValue(key, out var timers))
+            _timers[key] = timers = [];
+
+        AdvanceTimers(key, ts);
+        if (timers.Count >= _abilities.GetMaxCharges(key))
         {
-            if (!_cooldowns.TryGetValue(spellId, out var cd)) continue;
-
-            if (cd.Held) continue;
-
-            var newRate = EffectiveRate(spellId);
-            if (newRate > 0 && newRate != cd.Rate)
-                HandleChangeRate(spellId, newRate, timestamp);
-            else if (!cd.HasIndependentTimers)
-                RefreshPendingEnd(spellId);
-        }
-    }
-
-    private void HandleChangeRate(int spellId, double newRate, int timestamp)
-    {
-        var cd = _cooldowns[spellId];
-        if (cd.HasIndependentTimers)
-        {
-            HandleIndependentChangeRate(spellId, cd, newRate, timestamp);
-            return;
+            _drifts.Add(new CooldownDrift(key, ts, Lateness(key, timers[0].State, ts)));
+            CompleteTimers(key, timers, 0, 1, ts);
         }
 
-        var rateChange = newRate / cd.Rate;
-        var remaining = Math.Max(0, cd.ExpectedEnd - timestamp);
-        var percentRemaining = cd.RechargeDuration == 0 ? 0 : (double)remaining / cd.RechargeDuration;
-        var newRecharge = (int)Math.Round(cd.RechargeDuration / rateChange);
-        var newRemaining = (int)Math.Round(newRecharge * percentRemaining);
-        cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining, Rate = newRate };
-        _cooldowns[spellId] = cd;
-        FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
-        RefreshPendingEnd(spellId);
-    }
-
-    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
-    {
-        var ability = _abilities.GetAbility(spellId);
-
-        Owner.EventEmitter.FabricateEvent(new UpdateSpellUsableEvent
-        {
-            Timestamp = timestamp,
-            Ability = new Ability { FSLID = spellId, Name = ability?.Name ?? string.Empty },
-            UpdateType = updateType,
-            IsOnCooldown = cd.ChargesAvailable < cd.MaxCharges,
-            IsAvailable = cd.ChargesAvailable > 0,
-            ChargesAvailable = cd.ChargesAvailable,
-            MaxCharges = cd.MaxCharges,
-            OverallStartTimestamp = cd.OverallStart,
-            ChargeStartTimestamp = cd.ChargeStart,
-            ExpectedRechargeTimestamp = cd.ExpectedEnd,
-            ExpectedRechargeDuration = cd.RechargeDuration,
-            SourceId = Owner.PlayerId,
-            TargetId = Owner.PlayerId,
-            SourceIsFriendly = true,
-            TargetIsFriendly = true,
-        });
-    }
-
-    private void BeginIndependentCooldown(int spellId, int ts)
-    {
-        if (!_cooldowns.TryGetValue(spellId, out var cd))
-        {
-            var ability = _abilities.GetAbility(spellId);
-            var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-            if (baseDurationMs <= 0) return;
-            var rate = EffectiveRate(spellId);
-            var cdDuration = StartDuration(ability, baseDurationMs, rate);
-            var maxCharges = _abilities.GetMaxCharges(spellId);
-
-            cd = new CooldownInfo(
-                OverallStart: ts,
-                ChargeStart: ts,
-                ExpectedEnd: ts + cdDuration,
-                RechargeDuration: cdDuration,
-                ChargesAvailable: maxCharges - 1,
-                MaxCharges: maxCharges,
-                Rate: rate,
-                PendingEnd: null);
-            _cooldowns[spellId] = WithTimers(cd, [StartTimer(spellId, ts, cdDuration)]);
-
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, _cooldowns[spellId]);
-            RefreshTimers(spellId);
-        }
-        else if (cd.ChargesAvailable > 0)
-        {
-            ChargeTimer[] timers = [.. cd.Timers, StartTimer(spellId, ts, RechargeDuration(spellId))];
-            _cooldowns[spellId] = WithTimers(cd with { ChargesAvailable = cd.ChargesAvailable - 1 }, timers);
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, _cooldowns[spellId]);
-            RefreshTimers(spellId);
-        }
-        else
-        {
-            EndCooldown(spellId, ts);
-            BeginIndependentCooldown(spellId, ts);
-        }
-    }
-
-    private ChargeTimer StartTimer(int spellId, int start, int duration)
-    {
-        var pending = NewPendingUpdate(spellId);
-        pending.Timestamp = start + duration;
+        var state = new CooldownState(1);
+        state.Spend(ts, StartLength(ability, baseMs), EffectiveRate(key));
+        var pending = NewPendingUpdate(key);
+        pending.Timestamp = state.NextChargeAt ?? ts;
         Owner.EventEmitter.Schedule(pending);
-        return new ChargeTimer(start, start + duration, duration, pending);
+        timers.Add(new ChargeTimer(state, pending));
+
+        SyncTimers(key);
+        FabricateUpdate(
+            timers.Count == 1 ? UpdateSpellUsableType.BeginCooldown : UpdateSpellUsableType.UseCharge,
+            key,
+            ts,
+            TimerSnapshot(key, timers, ts));
     }
 
-    private void CompleteTimers(int spellId, CooldownInfo cd, int ts, int start, int count)
+    private void AdvanceTimers(int key, int ts)
     {
-        var eventTs = Owner.CurrentTimestamp;
-        for (var i = start; i < start + count; i++)
-            Owner.EventEmitter.Cancel(cd.Timers[i].Pending);
-
-        ChargeTimer[] remaining = [.. cd.Timers[..start], .. cd.Timers[(start + count)..]];
-        if (remaining.Length == 0)
+        var timers = _timers[key];
+        foreach (var timer in timers.ToArray())
         {
-            cd = cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts, Timers = remaining };
-            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
-            _cooldowns.Remove(spellId);
+            if (timer.State.Advance(ts) == 0)
+                continue;
+
+            timers.Remove(timer);
+            Owner.EventEmitter.Cancel(timer.Pending);
+            FabricateTimerRemoval(key, timers, timer, ts);
+        }
+
+        SyncTimers(key);
+    }
+
+    private void CompleteTimers(int key, List<ChargeTimer> timers, int start, int count, int eventTs)
+    {
+        var removed = timers.GetRange(start, count);
+        timers.RemoveRange(start, count);
+        foreach (var timer in removed)
+            Owner.EventEmitter.Cancel(timer.Pending);
+
+        FabricateTimerRemoval(key, timers, removed[^1], eventTs);
+    }
+
+    private void FabricateTimerRemoval(int key, List<ChargeTimer> timers, ChargeTimer removed, int eventTs)
+    {
+        var maxCharges = _abilities.GetMaxCharges(key);
+        if (timers.Count == 0)
+        {
+            FabricateUpdate(UpdateSpellUsableType.EndCooldown, key, eventTs, Describe(key, removed.State, eventTs, maxCharges, maxCharges));
             return;
         }
 
-        ReleaseTimers(spellId, cd, remaining);
-        FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, _cooldowns[spellId]);
+        timers.Sort(CompareTimers);
+        FabricateUpdate(UpdateSpellUsableType.RestoreCharge, key, eventTs, TimerSnapshot(key, timers, eventTs));
     }
 
-    private void ReleaseTimers(int spellId, CooldownInfo cd, ChargeTimer[] remaining)
+    private Snapshot TimerSnapshot(int key, List<ChargeTimer> timers, int ts)
     {
-        if (remaining.Length == 0)
+        var maxCharges = _abilities.GetMaxCharges(key);
+        return Describe(key, timers[0].State, ts, maxCharges - timers.Count, maxCharges);
+    }
+
+    private static int CompareTimers(ChargeTimer a, ChargeTimer b)
+    {
+        var byEnd = (a.State.NextChargeAt ?? int.MaxValue).CompareTo(b.State.NextChargeAt ?? int.MaxValue);
+        return byEnd != 0 ? byEnd : a.State.OverallStart.CompareTo(b.State.OverallStart);
+    }
+
+    private void SyncTimers(int key)
+    {
+        var timers = _timers[key];
+        timers.Sort(CompareTimers);
+        var maxCharges = _abilities.GetMaxCharges(key);
+        for (var i = 0; i < timers.Count; i++)
         {
-            _cooldowns.Remove(spellId);
-            return;
-        }
-
-        _cooldowns[spellId] = WithTimers(cd with { ChargesAvailable = cd.MaxCharges - remaining.Length }, remaining);
-        RefreshTimers(spellId);
-    }
-
-    private void HandleIndependentChangeRate(int spellId, CooldownInfo cd, double newRate, int timestamp)
-    {
-        var rateChange = newRate / cd.Rate;
-        var timers = Array.ConvertAll(cd.Timers, t => RescaleTimer(t, rateChange, timestamp));
-        _cooldowns[spellId] = WithTimers(cd with { Rate = newRate }, timers);
-        FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, _cooldowns[spellId]);
-        RefreshTimers(spellId);
-    }
-
-    private static ChargeTimer RescaleTimer(ChargeTimer timer, double rateChange, int timestamp)
-    {
-        var remaining = Math.Max(0, timer.ExpectedEnd - timestamp);
-        var percentRemaining = timer.RechargeDuration == 0 ? 0 : (double)remaining / timer.RechargeDuration;
-        var newRecharge = (int)Math.Round(timer.RechargeDuration / rateChange);
-        var newRemaining = (int)Math.Round(newRecharge * percentRemaining);
-        return timer with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining };
-    }
-
-    private void RefreshTimers(int spellId)
-    {
-        var cd = _cooldowns[spellId];
-        for (var i = 0; i < cd.Timers.Length; i++)
-        {
-            ApplyTimerState(cd, i);
-            Owner.EventEmitter.Reschedule(cd.Timers[i].Pending);
+            ApplyTimerState(key, timers, i, maxCharges);
+            Owner.EventEmitter.Reschedule(timers[i].Pending);
         }
     }
 
-    private static void ApplyTimerState(CooldownInfo cd, int index)
+    private void ApplyTimerState(int key, List<ChargeTimer> timers, int index, int maxCharges)
     {
-        var timer = cd.Timers[index];
-        var last = index == cd.Timers.Length - 1;
-        var next = last ? timer : cd.Timers[index + 1];
+        var timer = timers[index];
+        var last = index == timers.Count - 1;
+        var next = last ? timer.State : timers[index + 1].State;
         var e = timer.Pending;
 
-        e.Timestamp = timer.ExpectedEnd;
-        e.OverallStartTimestamp = timer.Start;
-        e.ChargeStartTimestamp = next.Start;
-        e.ExpectedRechargeTimestamp = next.ExpectedEnd;
-        e.ExpectedRechargeDuration = next.RechargeDuration;
-        e.MaxCharges = cd.MaxCharges;
-        e.ChargesAvailable = cd.MaxCharges - (cd.Timers.Length - index - 1);
+        e.Timestamp = timer.State.NextChargeAt ?? int.MaxValue;
+        e.OverallStartTimestamp = timer.State.OverallStart;
+        e.ChargeStartTimestamp = next.ChargeStart;
+        e.ExpectedRechargeTimestamp = next.NextChargeAt ?? e.Timestamp;
+        e.ExpectedRechargeDuration = RechargeLengthMilliseconds(key, next);
+        e.MaxCharges = maxCharges;
+        e.ChargesAvailable = maxCharges - (timers.Count - index - 1);
         e.UpdateType = last ? UpdateSpellUsableType.EndCooldown : UpdateSpellUsableType.RestoreCharge;
         e.IsOnCooldown = !last;
         e.IsAvailable = true;
     }
 
-    private static CooldownInfo WithTimers(CooldownInfo cd, ChargeTimer[] timers)
+    private sealed class ChargeTimer(CooldownState state, UpdateSpellUsableEvent pending)
     {
-        ChargeTimer[] sorted = [.. timers.OrderBy(static t => t.ExpectedEnd).ThenBy(static t => t.Start)];
-        var earliest = sorted[0];
-        return cd with
-        {
-            OverallStart = earliest.Start,
-            ChargeStart = earliest.Start,
-            ExpectedEnd = earliest.ExpectedEnd,
-            RechargeDuration = earliest.RechargeDuration,
-            Timers = sorted,
-        };
+        public CooldownState State { get; } = state;
+
+        public UpdateSpellUsableEvent Pending { get; } = pending;
     }
-
-    private record struct CooldownInfo(
-        int OverallStart,
-        int ChargeStart,
-        int ExpectedEnd,
-        int RechargeDuration,
-        int ChargesAvailable,
-        int MaxCharges,
-        double Rate,
-        UpdateSpellUsableEvent? PendingEnd,
-        bool Held = false)
-    {
-        public ChargeTimer[] Timers { get; init; } = [];
-
-        public bool HasIndependentTimers => Timers.Length > 0;
-    }
-
-    private sealed record ChargeTimer(int Start, int ExpectedEnd, int RechargeDuration, UpdateSpellUsableEvent Pending);
 }
 
 /// <summary>

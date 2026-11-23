@@ -80,7 +80,7 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal(1.0, statTracker.StartingCooldownRecovery, precision: 6);
     }
 
-    /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090ms.</summary>
+    /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090.9ms, which returns the charge at the first whole millisecond after it: 9091ms.</summary>
     [Fact]
     public async Task Legendary_ShortensBaseCooldownByTenPercent()
     {
@@ -88,7 +88,7 @@ public sealed class GearCooldownAccelerationTests
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
-        Assert.Equal((int)(BaseCdMsA / 1.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(9091, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class GearCooldownAccelerationTests
 
     /// <summary>
     /// One multiplicative factor: the legendary's 1.1 and Chronoshift's 8 add their parts above 1 rather
-    /// than multiplying, so an ability scaling off Cooldown Recovery recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234ms.
+    /// than multiplying, so an ability scaling off Cooldown Recovery recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234.6ms, which returns the charge at the first whole millisecond after it: 1235ms.
     /// </summary>
     [Fact]
     public async Task Legendary_ComposesAdditivelyWithChronoshift()
@@ -114,16 +114,16 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal(8.10, spellUsable.EffectiveRate(SpellA), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
-        Assert.Equal((int)(BaseCdMsA / 8.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(1235, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
-    /// <summary>RechargeDuration reports the effective (accelerated) period a fresh charge takes: 10000 / 1.10.</summary>
+    /// <summary>RechargeDuration reports the effective (accelerated) period a fresh charge takes, rounded to the nearest millisecond: 10000 / 1.10 = 9091.</summary>
     [Fact]
     public async Task Legendary_ShortensRechargeDuration()
     {
         var spellUsable = await Run(LegendaryQuality);
 
-        Assert.Equal((int)(BaseCdMsA / 1.10), spellUsable.RechargeDuration(SpellA));
+        Assert.Equal(9091, spellUsable.RechargeDuration(SpellA));
     }
 
     [Fact]
@@ -136,8 +136,7 @@ public sealed class GearCooldownAccelerationTests
 
     /// <summary>
     /// ACR shortens the base (SpellB: 20000 × 0.88 = 17600ms). Without a legendary that is the whole
-    /// recharge; with one the acceleration divides the pool: 17600 / (1 + 0.10) = 15999ms after the
-    /// truncation to whole milliseconds the recharge computation applies (16000 in exact arithmetic).
+    /// recharge; with one the acceleration divides the pool: 17600 / (1 + 0.10) = 16000ms.
     /// </summary>
     [Fact]
     public async Task AcrAndAcceleration_Compose_OnTheRechargeDuration()
@@ -146,7 +145,7 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal(17_600, acrOnly.RechargeDuration(SpellB));
 
         var acrAndAcceleration = await Run(LegendaryQuality, emerald: EmeraldCap);
-        Assert.Equal(15_999, acrAndAcceleration.RechargeDuration(SpellB));
+        Assert.Equal(16_000, acrAndAcceleration.RechargeDuration(SpellB));
     }
 
     /// <summary>
