@@ -35,13 +35,17 @@ internal static class XavianAnalysisFixture
 
     /// <summary>Runs the parser for a player who selected <paramref name="talents"/>.</summary>
     public static Task<XavianCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events) =>
-        Run(talents, BossDungeon, events);
+        Run(Combatant(talents), BossDungeon, events);
+
+    /// <summary>Runs the parser for the player described by <paramref name="combatant"/>, for tests that set gear.</summary>
+    public static Task<XavianCombatLogParser> AnalyzeAs(CombatantInfoEvent combatant, params Event[] events) =>
+        Run(combatant, BossDungeon, events);
 
     /// <summary>Runs the parser over <paramref name="dungeon"/>, for tests that need more than one pull.</summary>
     public static Task<XavianCombatLogParser> AnalyzeIn(ReportDungeon dungeon, params Event[] events) =>
-        Run([], dungeon, events);
+        Run(Combatant(), dungeon, events);
 
-    private static async Task<XavianCombatLogParser> Run(Talent[] talents, ReportDungeon dungeon, Event[] events)
+    private static async Task<XavianCombatLogParser> Run(CombatantInfoEvent combatant, ReportDungeon dungeon, Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -52,7 +56,7 @@ internal static class XavianAnalysisFixture
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<XavianCombatLogParser>();
-        await parser.Analyze([Combatant(talents), .. events], PlayerId, dungeon);
+        await parser.Analyze([combatant, .. events], PlayerId, dungeon);
         return parser;
     }
 

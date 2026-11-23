@@ -801,6 +801,10 @@
     "MagicWard": {
       "id": 2650,
       "kind": "effect"
+    },
+    "InvictusCooldownRecovery": {
+      "id": 2719,
+      "kind": "effect"
     }
   }
 }

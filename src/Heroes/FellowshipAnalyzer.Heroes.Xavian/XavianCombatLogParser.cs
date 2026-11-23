@@ -8,6 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Xavian.Analysis;
 [AddAnalyzer<ShiningHaloAnalyzer>]
 [AddAnalyzer<SolarShieldAnalyzer>]
 [AddAnalyzer<OmegaReprievalAnalyzer>]
+[AddAnalyzer<InvictusAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<XavianAuras>]
 public sealed partial class XavianCombatLogParser : CombatLogParser

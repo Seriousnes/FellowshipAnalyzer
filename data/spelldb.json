@@ -5916,6 +5916,12 @@
       "name": "Tremble!",
       "icon": "Tex_red_10"
     },
+    "InvictusCooldownRecovery": {
+      "kind": "effect",
+      "id": 2719,
+      "name": "",
+      "icon": ""
+    },
     "MagicWard": {
       "kind": "effect",
       "id": 2650,
@@ -17377,6 +17383,9 @@
         },
         "InterruptLockout": {
           "VisualDelay": 0.2
+        },
+        "InvictusCooldownRecovery": {
+          "HasteToCooldownRecoveryScaler": 0.33334
         },
         "MagicWard": {
           "IncomingMagicDamageMultiplier": 0.7
