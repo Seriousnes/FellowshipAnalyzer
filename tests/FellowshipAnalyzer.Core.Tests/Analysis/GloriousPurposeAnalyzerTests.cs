@@ -128,6 +128,56 @@ public sealed class GloriousPurposeAnalyzerTests
     }
 
     [Fact]
+    public async Task LoggedDuration_EndsTheWindow()
+    {
+        var analyzer = await Analyze([ApplyBuff(10_000, duration: 9000), Filler(30_000)]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(19_000, window.EndTimestamp);
+    }
+
+    [Fact]
+    public async Task NoLoggedDuration_EndsTheWindowAfterSixSeconds()
+    {
+        var analyzer = await Analyze([ApplyBuff(10_000), Filler(30_000)]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(16_000, window.EndTimestamp);
+    }
+
+    [Fact]
+    public async Task RefreshWithLoggedDuration_ExtendsTheWindowToTheRefreshEnd()
+    {
+        var analyzer = await Analyze(
+        [
+            ApplyBuff(10_000, duration: 6000),
+            RefreshBuff(14_000, duration: 6000),
+            Filler(30_000),
+        ]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(20_000, window.EndTimestamp);
+    }
+
+    [Fact]
+    public async Task LoggedRemoval_EndsTheWindowBeforeTheLoggedDuration()
+    {
+        var analyzer = await Analyze(
+        [
+            ApplyBuff(10_000, duration: 6000),
+            RemoveBuff(12_000),
+            Filler(30_000),
+        ]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(12_000, window.EndTimestamp);
+    }
+
+    [Fact]
     public async Task RepeatedApplies_DoNotCompound()
     {
         var analyzer = await Analyze(
@@ -258,20 +308,22 @@ public sealed class GloriousPurposeAnalyzerTests
         Channel = new EndChannelEvent(),
     };
 
-    private static ApplyBuffEvent ApplyBuff(int timestamp) => new()
+    private static ApplyBuffEvent ApplyBuff(int timestamp, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = Items.GloriousPurpose.FSLID, Name = "Glorious Purpose" },
+        Duration = duration,
     };
 
-    private static RefreshBuffEvent RefreshBuff(int timestamp) => new()
+    private static RefreshBuffEvent RefreshBuff(int timestamp, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = Items.GloriousPurpose.FSLID, Name = "Glorious Purpose" },
+        Duration = duration,
     };
 
     private static RemoveBuffEvent RemoveBuff(int timestamp) => new()

@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Models the cooldown recovery Glorious Purpose grants. The Fated Strike weapon's active applies the
-/// buff for a fixed 6 seconds, taking cooldown recovery to 3× for an ability with no haste contribution,
+/// buff for the duration the log states, 6 seconds when it states none, taking cooldown recovery to 3× for an ability with no haste contribution,
 /// so it joins the pool <see cref="StatTracker"/> tracks as an added term of 2.0. Fated Strike is a Weapon
 /// ability and takes the term for its own cooldown too, as the modifier's <see cref="CooldownModifier.GrantedBy"/>.
 /// <para>
@@ -118,7 +118,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     /// </summary>
     private void ExtendWindow(BuffEvent buffEvent)
     {
-        _scheduledEnd = buffEvent.Timestamp + BuffDurationMs;
+        _scheduledEnd = buffEvent.ExpectedEnd ?? buffEvent.Timestamp + BuffDurationMs;
         _windows[^1] = _windows[^1] with { EndTimestamp = _scheduledEnd.Value };
 
         FabricateExpiry(buffEvent);
@@ -127,7 +127,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     private void OpenWindow(BuffEvent buffEvent)
     {
         _openTimestamp = buffEvent.Timestamp;
-        _scheduledEnd = buffEvent.Timestamp + BuffDurationMs;
+        _scheduledEnd = buffEvent.ExpectedEnd ?? buffEvent.Timestamp + BuffDurationMs;
         _windows.Add(new GloriousPurposeWindow(buffEvent.Timestamp, _scheduledEnd.Value));
 
         _statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, buffEvent);
