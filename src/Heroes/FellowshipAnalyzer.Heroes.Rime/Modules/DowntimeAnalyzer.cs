@@ -1,16 +1,17 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 
+using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
+[Dependency<CoreAbilities>]
 public sealed partial class DowntimeAnalyzer : Analyzer
 {
     public const int MinimumGapMs = 500;
 
     public const int TopGapLimit = 10;
-
-    public const int FallbackGcdMs = 1500;
 
     private readonly List<ActivityWindow> _windows = [];
     private readonly Dictionary<CastEvent, int> _castStarts = [];
@@ -81,7 +82,16 @@ public sealed partial class DowntimeAnalyzer : Analyzer
         _windows.Add(new ActivityWindow(beginChannelEvent.Timestamp, end));
     }
 
-    private static int BusyMs(GlobalCooldownEvent gcd) => gcd.Duration > 0 ? gcd.Duration : FallbackGcdMs;
+    private int BusyMs(GlobalCooldownEvent gcd) => gcd.Duration > 0 ? gcd.Duration : FallbackGcdMs(gcd.Ability.Id);
+
+    /// <summary>
+    /// Unhasted global cooldown in milliseconds of the spell with id <paramref name="spellId"/>, read from its
+    /// spell data. 0 when the spell has none.
+    /// </summary>
+    private int FallbackGcdMs(int spellId) =>
+        (int)Math.Round(
+            (Abilities.GetAbility(spellId)?.SpellFor(spellId).GlobalCooldown ?? 0) * 1000,
+            MidpointRounding.AwayFromZero);
 
     private void EnsureMaterialized()
     {

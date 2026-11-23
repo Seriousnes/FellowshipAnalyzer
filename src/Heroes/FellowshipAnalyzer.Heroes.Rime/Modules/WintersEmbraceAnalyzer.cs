@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
 public abstract partial class WintersEmbraceAnalyzer : Analyzer
 {
-    public const int BaseWindowDurationMs = 3000;
+    public static readonly int BaseWindowDurationMs = (int)(SpellTuning.BurstingIce.AoeDuration * 1000);
 
     public const int StarvedOrbThreshold = 1;
 
@@ -47,6 +47,12 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
     private string _stSpenderName = Spells.GlacialBlast.Name;
     private string _aoeSpenderName = Spells.IceComet.Name;
 
+    /// <summary>
+    /// Haste, as a fraction, a window records when it opens. A subclass that reads Haste overrides this;
+    /// the default is no Haste.
+    /// </summary>
+    protected virtual double HasteNow => 0;
+
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
     private void OnWintersEmbraceApplied(ApplyBuffEvent applyBuffEvent)
     {
@@ -56,6 +62,7 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
         {
             StartTimestamp = applyBuffEvent.Timestamp,
             EndTimestamp = applyBuffEvent.Timestamp,
+            HasteAtOpen = HasteNow,
             OrbsBankedAtOpen = _lastBurstingIce?.OrbsBanked,
             BurstingIceTarget = _lastBurstingIce?.Target,
             MajorsActiveAtOpen = SampleMajors(applyBuffEvent.Timestamp),
@@ -191,6 +198,7 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
 
         evaluation.StartTimestamp = window.StartTimestamp;
         evaluation.EndTimestamp = window.EndTimestamp;
+        evaluation.HasteAtOpen = window.HasteAtOpen;
         evaluation.BoundaryTruncated = window.BoundaryTruncated;
         evaluation.EndedByTargetDeath = window.EndedByTargetDeath;
         evaluation.OrbsBankedAtOpen = window.OrbsBankedAtOpen;
@@ -235,6 +243,8 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
         public int StartTimestamp { get; init; }
         public int EndTimestamp { get; set; }
 
+        public double HasteAtOpen { get; init; }
+
         public bool BoundaryTruncated { get; set; }
 
         public bool EndedByTargetDeath { get; set; }
@@ -255,6 +265,8 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
         public int EndTimestamp { get; set; }
 
         public int DurationMs => Math.Max(EndTimestamp - StartTimestamp, 0);
+
+        public double HasteAtOpen { get; set; }
 
         public bool BoundaryTruncated { get; set; }
 

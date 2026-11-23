@@ -23,10 +23,10 @@ public sealed class DowntimeAnalyzerTests
 
     /// <summary>
     /// The global cooldown the core module fabricates for a hand-built log. Haste is zero, so every
-    /// on-GCD ability takes the unhasted baseline. Every expectation below is derived from this one
-    /// value.
+    /// on-GCD ability takes the unhasted global cooldown of Cold Snap. Every expectation below is derived
+    /// from this one value.
     /// </summary>
-    private const int Gcd = 1_500;
+    private static readonly int Gcd = (int)(Spells.ColdSnap.GlobalCooldown!.Value * 1000);
 
     private const int DungeonEnd = 60_000;
 
@@ -40,6 +40,30 @@ public sealed class DowntimeAnalyzerTests
         cast.GlobalCooldown.ShouldNotBeNull();
         cast.GlobalCooldown!.Duration.ShouldBe(Gcd);
         parser.DowntimeAnalyzers.ShouldHaveSingleItem();
+    }
+
+    [Fact]
+    public async Task ACastWithAZeroDurationGlobalCooldown_IsBusyForTheSpellsGlobalCooldown()
+    {
+        var cast = Cast(1_000, Spells.ColdSnap);
+        cast.GlobalCooldown = ZeroDurationGlobalCooldown(1_000, Spells.ColdSnap);
+
+        var analyzer = await AnalyzeAsync(dungeonEndTime: DungeonEnd, cast);
+
+        analyzer.ActiveMs.ShouldBe(Gcd);
+        analyzer.Gaps.ShouldHaveSingleItem().StartTimestamp.ShouldBe(1_000 + Gcd);
+    }
+
+    [Fact]
+    public async Task ACastWithAZeroDurationGlobalCooldownAndNoneInItsSpellData_LeavesNothingToMeasure()
+    {
+        var cast = Cast(1_000, Spells.IceDash);
+        cast.GlobalCooldown = ZeroDurationGlobalCooldown(1_000, Spells.IceDash);
+
+        var analyzer = await AnalyzeAsync(dungeonEndTime: DungeonEnd, cast);
+
+        analyzer.ActiveMs.ShouldBe(0);
+        analyzer.Gaps.ShouldBeEmpty();
     }
 
     [Fact]
@@ -237,7 +261,7 @@ public sealed class DowntimeAnalyzerTests
     public async Task ATrailingIdleBelowTheNoiseThreshold_IsAbsorbedRatherThanRecorded()
     {
         const int tailMs = DowntimeAnalyzer.MinimumGapMs - 1;
-        const int dungeonEnd = 1_000 + Gcd + tailMs;
+        var dungeonEnd = 1_000 + Gcd + tailMs;
 
         var analyzer = await AnalyzeAsync(dungeonEnd, Cast(1_000, Spells.ColdSnap));
 
@@ -298,6 +322,15 @@ public sealed class DowntimeAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = EnemyId,
+        Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
+    };
+
+    private static GlobalCooldownEvent ZeroDurationGlobalCooldown(int timestamp, Spell spell) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Duration = 0,
         Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
     };
 

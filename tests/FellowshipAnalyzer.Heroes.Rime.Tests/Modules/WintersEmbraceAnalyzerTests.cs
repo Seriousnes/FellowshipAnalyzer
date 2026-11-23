@@ -175,6 +175,69 @@ public sealed class WintersEmbraceAnalyzerTests
             .ShouldBe((int)(Spells.GlacialBlast.CastDuration!.Value * 1000));
     }
 
+    [Theory]
+    [InlineData(0, false, 1_500)]
+    [InlineData(0, true, 2_000)]
+    [InlineData(0.25, true, 1_600)]
+    [InlineData(0.5, false, 1_000)]
+    public async Task GlacialBlastSpenderTime_TakesHasteAtTheWindowStartOnCastTimeAndGlobalCooldown(
+        double haste, bool greaterGlacialBlast, int expectedMs)
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(haste, greaterGlacialBlast ? [RimeTalents.GreaterGlacialBlast] : []),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(WindowEnd));
+
+        analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs.ShouldBe(expectedMs);
+    }
+
+    [Fact]
+    public async Task TalonStrikeSpenderTime_TakesGreaterGlacialBlastsCastTimeIncrease()
+    {
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(0, [RimeTalents.IcyTalons, RimeTalents.GreaterGlacialBlast]),
+            BurstingIce(WindowStart, orbs: 4),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.TalonStrike),
+            EmbraceRemoved(WindowEnd));
+
+        var globalCooldownMs = (int)(Spells.TalonStrike.GlobalCooldown!.Value * 1000);
+        var castMs = (int)((Spells.TalonStrike.CastDuration ?? 0) * 1000) + 500;
+        analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs
+            .ShouldBe(Math.Max(globalCooldownMs, castMs));
+    }
+
+    [Fact]
+    public async Task HasteGainedAfterAWindowOpens_DoesNotChangeThatWindowsExpectedSpenders()
+    {
+        const int longWindowMs = 3_600;
+        const int firstStart = WindowStart;
+        const int secondStart = 6_000;
+
+        var analyzer = await AnalyzeSingleTarget(
+            Combatant(),
+            BurstingIce(firstStart, orbs: 5),
+            EmbraceApplied(firstStart),
+            Cast(firstStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(firstStart + longWindowMs),
+            BuffApplied(5_000, Core.Common.Spells.Spells.SpiritOfHeroism),
+            BurstingIce(secondStart, orbs: 5),
+            EmbraceApplied(secondStart),
+            Cast(secondStart + 100, Spells.GlacialBlast),
+            EmbraceRemoved(secondStart + longWindowMs));
+
+        analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Windows[0].HasteAtOpen.ShouldBe(0);
+        analyzer.Windows[1].HasteAtOpen.ShouldBeGreaterThan(0);
+
+        var first = analyzer.Windows[0].ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        var second = analyzer.Windows[1].ShouldBeOfType<SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation>();
+        first.ExpectedStSpenderCount.ShouldBe(1);
+        second.ExpectedStSpenderCount.ShouldBe(2);
+    }
+
     [Fact]
     public async Task ThreeSecondWindow_ExpectsOneSpenderAndAFinisher()
     {
@@ -321,7 +384,7 @@ public sealed class WintersEmbraceAnalyzerTests
 
         analyzer.Build.ShouldBe(RimeBuild.IcyTalons);
         analyzer.ShouldBeOfType<SingleTargetEmbraceAnalyzer>().SpenderCastTimeMs
-            .ShouldBe(SingleTargetEmbraceAnalyzer.BaselineGlobalCooldownMs);
+            .ShouldBe((int)(Spells.TalonStrike.GlobalCooldown!.Value * 1000));
         analyzer.StSpenderName.ShouldBe(Spells.TalonStrike.Name);
         analyzer.AoeSpenderName.ShouldBe(Spells.RisingTalons.Name);
 
@@ -407,11 +470,25 @@ public sealed class WintersEmbraceAnalyzerTests
         parser.For(entry.Pull).WintersEmbraceAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
-    private static CombatantInfoEvent Combatant(params int[] nativeTalentIds) => new()
+    private static CombatantInfoEvent Combatant(params int[] nativeTalentIds) => Combatant(0, nativeTalentIds);
+
+    private static CombatantInfoEvent Combatant(double haste, int[] nativeTalentIds)
     {
-        SourceId = PlayerId,
-        Talents = [.. nativeTalentIds.Select(id => new TalentInfo { Id = FSLID.FromNative(SpellKind.Talent, id) })],
-    };
+        var combatant = new CombatantInfoEvent
+        {
+            SourceId = PlayerId,
+            Talents = [.. nativeTalentIds.Select(id => new TalentInfo { Id = FSLID.FromNative(SpellKind.Talent, id) })],
+        };
+
+        if (haste > 0)
+        {
+            combatant.Haste = Enumerable.Range(1, 200_000)
+                .MinBy(rating => Math.Abs(StatTracker.RatingToPercentage(rating) - haste));
+            Math.Abs(StatTracker.RatingToPercentage(combatant.Haste) - haste).ShouldBeLessThan(0.0002);
+        }
+
+        return combatant;
+    }
 
     private static CastEvent Cast(int timestamp, Spell spell) => new()
     {

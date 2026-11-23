@@ -45,6 +45,17 @@ public sealed class ChronoshiftTests
     }
 
     [Fact]
+    public async Task AChronoshiftCast_HasTheSpellsGlobalCooldownAtZeroHaste()
+    {
+        var cast = new CastEvent { Timestamp = CastAt, SourceId = PlayerId, TargetId = -1, Activation = true, Ability = Chronoshift() };
+
+        await Run([new Item { Id = CoreItems.AshasChronoshiftSpire_Rime.Id }], cast);
+
+        var globalCooldown = cast.GlobalCooldown.ShouldNotBeNull();
+        globalCooldown.Duration.ShouldBe((int)(CoreItems.Chronoshift.GlobalCooldown!.Value * 1000));
+    }
+
+    [Fact]
     public async Task WithoutAshasChronoshiftSpire_LeavesChronoshiftOutOfTheSpellbook()
     {
         var parser = await Run([]);
@@ -62,8 +73,10 @@ public sealed class ChronoshiftTests
         Name = CoreItems.Chronoshift.Name,
     };
 
-    private static async Task<RimeCombatLogParser> Run(List<Item> gear)
+    private static async Task<RimeCombatLogParser> Run(List<Item> gear, CastEvent? cast = null)
     {
+        cast ??= new CastEvent { Timestamp = CastAt, SourceId = PlayerId, TargetId = -1, Activation = true, Ability = Chronoshift() };
+
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddCoreAnalysisServices();
@@ -78,7 +91,7 @@ public sealed class ChronoshiftTests
         await parser.Analyze(
         [
             new CombatantInfoEvent { Timestamp = 0, SourceId = PlayerId, Gear = gear },
-            new CastEvent { Timestamp = CastAt, SourceId = PlayerId, TargetId = -1, Activation = true, Ability = Chronoshift() },
+            cast,
             new BeginChannelEvent { Timestamp = ChannelAt, SourceId = PlayerId, Ability = Chronoshift() },
         ], PlayerId, dungeon);
         return parser;
