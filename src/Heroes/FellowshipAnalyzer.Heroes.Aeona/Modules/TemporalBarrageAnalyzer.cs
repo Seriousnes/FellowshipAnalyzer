@@ -114,9 +114,16 @@ public sealed record BarrageChannel
 public sealed partial class TemporalBarrageAnalyzer : Analyzer
 {
     /// <summary>
-    /// The Fleeting Hour benefit each Temporal Barrage bolt gives with Temporal Shift, in milliseconds.
+    /// The Fleeting Hour cooldown each Temporal Barrage bolt removes with Temporal Shift, in milliseconds.
     /// </summary>
-    public const int TemporalShiftBenefitMs = 300;
+    public static readonly int TemporalShiftCooldownReductionMs =
+        (int)(SpellTuning.TemporalBarrage.CooldownReduction_ReductionInSeconds * 1000);
+
+    /// <summary>
+    /// The Fleeting Hour duration each Temporal Barrage bolt adds with Temporal Shift, in milliseconds.
+    /// </summary>
+    public static readonly int TemporalShiftDurationExtensionMs =
+        (int)(SpellTuning.TemporalBarrage.CooldownReduction_DurationIncreaseSeconds * 1000);
 
     /// <summary>
     /// The share of the ally's Stagger each bolt aimed at an ally cleanses under Fleeting Hour with
@@ -247,7 +254,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         if (!TemporalShiftTaken || FleetingHourAnalyzer.IsBuffActiveAt(timestamp)) return;
 
         channel.AddCooldownReduction(
-            SpellUsable.ReduceCooldown(Spells.FleetingHour.FSLID, TemporalShiftBenefitMs, timestamp).Effective);
+            SpellUsable.ReduceCooldown(Spells.FleetingHour.FSLID, TemporalShiftCooldownReductionMs, timestamp).Effective);
     }
 
     private BarrageChannel Project(ChannelBuilder builder)
@@ -280,7 +287,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
             FleetingHourActiveAtStart = FleetingHourAnalyzer.IsBuffActiveAt(builder.Start),
             BoltsWhileFleetingHourActive = active,
             BoltsWhileFleetingHourInactive = builder.BoltTimestamps.Count - active,
-            FleetingHourDurationExtendedMs = active * TemporalShiftBenefitMs,
+            FleetingHourDurationExtendedMs = active * TemporalShiftDurationExtensionMs,
             FleetingHourCooldownReducedMs = builder.CooldownReducedMs,
         };
     }

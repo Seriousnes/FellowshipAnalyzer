@@ -28,7 +28,8 @@ public sealed record KindRewindCast(
 /// </summary>
 /// <remarks>
 /// The reduction is applied to <see cref="SpellUsable"/> at the cast, so Temporal Barrage's
-/// availability elsewhere in the analysis follows the talent. Codex <c>talent 613</c> states 2 seconds.
+/// availability elsewhere in the analysis follows the talent. The reduction is the Time Shard tuning row
+/// <c>CooldownReduction.ReductionInSeconds</c>.
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [RequiresTalent(AeonaTalents.KindRewind)]
@@ -36,7 +37,8 @@ public sealed record KindRewindCast(
 public sealed partial class KindRewindAnalyzer : Analyzer, IKindRewindAnalyzer
 {
     /// <summary>The Temporal Barrage cooldown one qualifying Time Shard removes.</summary>
-    public const int TemporalBarrageReductionMs = 2_000;
+    public static readonly int TemporalBarrageReductionMs =
+        (int)(SpellTuning.TimeShard.CooldownReduction_ReductionInSeconds * 1000);
 
     private readonly List<KindRewindCast> _casts = [];
     private readonly Dictionary<UnitKey, int> _echoesOpen = [];

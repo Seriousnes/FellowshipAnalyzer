@@ -9,17 +9,18 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// not list, so <see cref="StatTracker"/> tracks them while they are up on the player.
 /// </summary>
 /// <remarks>
-/// Fleeting Hour (effect 2744) grants +50% Cooldown Acceleration, which every other off-cooldown metric
-/// in the hero has to see or it reads availability too late.
+/// Fleeting Hour (effect 2744) joins the Cooldown Recovery attribute with the value of its export modifier,
+/// so it speeds only the cooldowns that scale off Cooldown Recovery.
 /// </remarks>
 [Dependency<StatTracker>]
 public sealed partial class AeonaStatBuffs : Analyzer
 {
-    private const double FleetingHourCooldownAcceleration = 0.5;
+    private static readonly CooldownModifier FleetingHourCooldownRecovery =
+        CooldownRecoveryModifiers.Of(Spells.FleetingHourSelfBuff);
 
     [On<DungeonStartEvent>]
     private void OnDungeonStart(DungeonStartEvent e) =>
         StatTracker.AddCooldownBuff(
             Spells.FleetingHourSelfBuff.FSLID,
-            new CooldownBuff(CooldownAcceleration: new CooldownModifier(FleetingHourCooldownAcceleration)));
+            new CooldownBuff(CooldownRecovery: FleetingHourCooldownRecovery));
 }
