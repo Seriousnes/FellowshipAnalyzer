@@ -8,6 +8,7 @@
     /// </summary>
     public static readonly List<ChangelogEntry> Entries =
     [
+        Change(new(2026, 11, 23), @<text>A buff or debuff the log gives a duration and no removal ends at the end the log states. A refresh with a duration moves that end, and a permanent buff or debuff ends with the dungeon.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Every hero's global cooldowns now come from the game data.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Haste buffs, <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.Chronoshift" />, <SpellLink Spell="FellowshipAnalyzer.Core.Common.Items.Items.GloriousPurpose" />, The Monarch and gem cooldown bonuses now take their values from the game data.</text>, Seriousnes),
         Change(new(2026, 11, 23), @<text>Cooldown tracking keeps the exact progress of each recharge through every Haste and Cooldown Recovery change, and through the time between pulls. A recharge's length is set when the first charge is spent, and a cast the tracker did not expect resets the recharge to that cast.</text>, Seriousnes),

@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
@@ -115,6 +116,94 @@ public sealed class CombatantsAuraRegistryTests
         selected.GetBuff(600, forTimestamp: 0)!.IsDebuff.ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task LoggedDuration_WithoutRemoval_EndsAtExpectedEnd()
+    {
+        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.ExpectedEnd.ShouldBe(15_000);
+        window.End.ShouldBe(15_000);
+        window.EndedByDungeonEnd.ShouldBeTrue();
+        window.StackHistory[^1].Timestamp.ShouldBe(15_000);
+    }
+
+    [Fact]
+    public async Task LoggedDuration_WithRemovalBeforeExpectedEnd_EndsAtRemoval()
+    {
+        var combatants = await Run(
+            ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000),
+            RemoveDebuff(12_000, 100, 1, EffectId));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.End.ShouldBe(12_000);
+        window.EndedByDungeonEnd.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task PermanentDuration_WithoutRemoval_EndsAtDungeonEnd()
+    {
+        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: BuffEvent.InfiniteDurationMs));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.ExpectedEnd.ShouldBeNull();
+        window.End.ShouldBe(60_000);
+        window.EndedByDungeonEnd.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task NoLoggedDuration_WithoutRemoval_EndsAtDungeonEnd()
+    {
+        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.ExpectedEnd.ShouldBeNull();
+        window.End.ShouldBe(60_000);
+    }
+
+    [Fact]
+    public async Task ExpectedEndBeyondDungeonEnd_EndsAtDungeonEnd()
+    {
+        var combatants = await Run(ApplyDebuff(50_000, 100, 1, EffectId, duration: 30_000));
+
+        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(60_000);
+    }
+
+    [Fact]
+    public async Task RefreshWithNewDuration_MovesExpectedEnd()
+    {
+        var combatants = await Run(
+            ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
+            RefreshDebuff(14_000, 100, 1, EffectId, duration: 6_000));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.ExpectedEnd.ShouldBe(20_000);
+        window.End.ShouldBe(20_000);
+        window.RefreshHistory.ShouldBe([14_000]);
+    }
+
+    [Fact]
+    public async Task RefreshWithoutDuration_KeepsExpectedEnd()
+    {
+        var combatants = await Run(
+            ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
+            RefreshDebuff(14_000, 100, 1, EffectId));
+
+        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(16_000);
+    }
+
+    [Fact]
+    public async Task RefreshWithPermanentDuration_ClearsExpectedEnd()
+    {
+        var combatants = await Run(
+            ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
+            RefreshDebuff(14_000, 100, 1, EffectId, duration: BuffEvent.InfiniteDurationMs));
+
+        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
+        window.ExpectedEnd.ShouldBeNull();
+        window.End.ShouldBe(60_000);
+    }
+
     private static async Task<Combatants> Run(params Event[] events) =>
         (await RunParser(events)).Combatants;
 
@@ -129,10 +218,30 @@ public sealed class CombatantsAuraRegistryTests
         return (parser, parser.GetModule<Combatants>()!);
     }
 
-    private static ApplyDebuffEvent ApplyDebuff(int timestamp, int targetId, int? targetInstance, int effectId, int sourceId = PlayerId) => new()
+    private static ApplyDebuffEvent ApplyDebuff(int timestamp, int targetId, int? targetInstance, int effectId, int sourceId = PlayerId, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = sourceId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+        Duration = duration,
+    };
+
+    private static RefreshDebuffEvent RefreshDebuff(int timestamp, int targetId, int? targetInstance, int effectId, int? duration = null) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+        Duration = duration,
+    };
+
+    private static RemoveDebuffEvent RemoveDebuff(int timestamp, int targetId, int? targetInstance, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
         TargetId = targetId,
         TargetInstance = targetInstance,
         Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
@@ -150,6 +259,11 @@ public sealed class CombatantsAuraRegistryTests
     {
         protected override Type[] GetModuleTypes() => [typeof(Combatants)];
 
-        protected override Type[] GetNormalizerTypes() => [];
+        protected override Type[] GetNormalizerTypes() => [typeof(DungeonBookendNormalizer)];
+
+        protected override object? CreateInstance(Type type) =>
+            type == typeof(DungeonBookendNormalizer)
+                ? new DungeonBookendNormalizer(CurrentParseContext)
+                : base.CreateInstance(type);
     }
 }

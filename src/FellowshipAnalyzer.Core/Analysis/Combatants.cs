@@ -123,6 +123,7 @@ public sealed partial class Combatants : Analyzer
             Stacks = 1,
             Timestamp = e.Timestamp,
         });
+        buff.ExpectFrom(e);
 
         entity.ApplyBuff(buff);
     }
@@ -171,17 +172,18 @@ public sealed partial class Combatants : Analyzer
     }
 
     [On<RefreshBuffEvent>]
-    private void OnRefreshBuff(RefreshBuffEvent e)
-    {
-        var entity = GetOrCreateEntity(e.TargetId, e.TargetInstance);
-        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
-    }
+    private void OnRefreshBuff(RefreshBuffEvent e) => Refresh(e);
 
     [On<RefreshDebuffEvent>]
-    private void OnRefreshDebuff(RefreshDebuffEvent e)
+    private void OnRefreshDebuff(RefreshDebuffEvent e) => Refresh(e);
+
+    private void Refresh(BuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId, e.TargetInstance);
-        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
+        if (GetExistingBuff(entity, e.Ability.Id, e.SourceId) is not { } existing) return;
+
+        existing.RefreshHistory.Add(e.Timestamp);
+        existing.ExpectFrom(e);
     }
 
     [On<ApplyBuffStackEvent>]
@@ -237,11 +239,12 @@ public sealed partial class Combatants : Analyzer
         {
             foreach (var buff in entity.Buffs.Where(b => b.End is null))
             {
-                buff.End = e.Timestamp;
+                buff.End = Math.Min(buff.ExpectedEnd ?? e.Timestamp, e.Timestamp);
+                buff.EndedByDungeonEnd = true;
                 buff.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
                 {
                     Stacks = 0,
-                    Timestamp = e.Timestamp,
+                    Timestamp = buff.End.Value,
                 });
             }
         }

@@ -25,7 +25,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private const int SequenceWindowMs = 6000;
 
-    private readonly Dictionary<int, int> _buffExpectedEnds = [];
     private readonly List<CastEvent> _casts = [];
     private readonly List<WildfireAnchor> _anchors = [];
 
@@ -40,13 +39,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     public int WindowsWithIncinerate => Evaluated.Count(w => w.HasIncinerate);
     public double AverageDetonateCasts => Evaluated.Count == 0 ? 0d : Evaluated.Average(w => w.DetonateCasts);
     public double AverageDistinctDots => Evaluated.Count == 0 ? 0d : Evaluated.Average(w => w.DistinctDots);
-
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.WildfireDotBonusBuff))]
-    private void OnWildfireBuffApplied(ApplyBuffEvent e)
-    {
-        if (e.ExpectedEnd is { } expectedEnd)
-            _buffExpectedEnds[e.Timestamp] = expectedEnd;
-    }
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -131,8 +123,10 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 
-        var expectedEnd = _buffExpectedEnds.TryGetValue(buff.Start, out var logged) ? logged : buff.Start + WildfireBuffDurationMs;
-        return (buff.Start, buff.End ?? expectedEnd);
+        if (buff.EndedByDungeonEnd && buff.Duration is null)
+            return (buff.Start, buff.Start + WildfireBuffDurationMs);
+
+        return (buff.Start, buff.End ?? buff.Start + WildfireBuffDurationMs);
     }
 
     private (bool HasPyromania, bool HasIncinerate, List<CastEvent> Casts) CollectSequence(int anchor)
