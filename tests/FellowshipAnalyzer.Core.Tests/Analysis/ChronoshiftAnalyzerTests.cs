@@ -50,6 +50,32 @@ public sealed partial class ChronoshiftAnalyzerTests
     }
 
     [Fact]
+    public async Task Channel_AddsTheExportCooldownRecoveryOfEightToThePool()
+    {
+        var parser = await AnalyzeParser(
+        [
+            BeginChannel(5000),
+            Filler(6000),
+        ]);
+
+        var added = Assert.Single(parser.Events.OfType<ChangeCooldownModifierEvent>(), e => e.Added && e.Pool == CooldownPool.CooldownRecovery);
+        Assert.Equal(8.0, added.Modifier.Value, precision: 6);
+    }
+
+    [Fact]
+    public async Task ThreeSecondWindow_RecoversTwentyOneThousandMilliseconds()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000, BigCdId),
+            BeginChannel(5000),
+            Filler(9000),
+        ]);
+
+        Assert.Equal(21_000, Assert.Single(analyzer.RecoveryByAbility).RecoveredMs);
+    }
+
+    [Fact]
     public async Task AbilityComingOffCooldownMidChannel_OnlyCreditsTimeSpentOnCooldown()
     {
         var analyzer = await Analyze(

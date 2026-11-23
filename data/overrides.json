@@ -213,6 +213,10 @@
     }
   },
   "items": {
+    "StrandOfEternity": {
+      "id": 3087,
+      "kind": "effect"
+    },
     "AdrenalineRush": {
       "id": 1939,
       "kind": "effect"

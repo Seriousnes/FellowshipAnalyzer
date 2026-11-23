@@ -10,7 +10,8 @@ public sealed partial class RepositoryOfFrozenLightAnalyzer(Lazy<SpellUsable> sp
 {
     private const int BuffDurationMs = 30_000;
 
-    private const int ReductionPerStackMs = 300;
+    private static readonly int ReductionPerStackMs =
+        (int)(SpellTuning.RepositoryOfFrozenLight.CooldownReductionInSecondsPerStack * 1000);
 
     private readonly Dictionary<int, FrozenLightApplication> _applications = [];
 

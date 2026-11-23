@@ -138,6 +138,15 @@ public sealed partial class GloriousPurposeAnalyzerTests
     }
 
     [Fact]
+    public async Task Buff_AddsTheExportCooldownRecoveryOfThreeToThePool()
+    {
+        var parser = await AnalyzeParser([ApplyBuff(10_000), Filler(11_000)]);
+
+        var added = Assert.Single(parser.Events.OfType<ChangeCooldownModifierEvent>(), e => e.Added && e.Pool == CooldownPool.CooldownRecovery);
+        Assert.Equal(3.0, added.Modifier.Value, precision: 6);
+    }
+
+    [Fact]
     public async Task NoLoggedDuration_EndsTheWindowAfterSixSeconds()
     {
         var analyzer = await Analyze([ApplyBuff(10_000), Filler(30_000)]);

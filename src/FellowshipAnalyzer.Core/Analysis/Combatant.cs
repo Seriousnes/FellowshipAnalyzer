@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 
+using GameItems = FellowshipAnalyzer.Core.Common.Items.Items;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -30,11 +32,6 @@ public sealed class FullCombatant : Combatant
 
     private const int EmptySlotItemId = 0;
     private const int LegendaryQuality = 6;
-    /// <summary>
-    /// Strand of Eternity's Cooldown Recovery modifier, which the equipped legendary grants: the export's
-    /// value of 1.1 raises the attribute by 10%.
-    /// </summary>
-    private const double StrandOfEternityRecovery = 1.10;
     private const int BlessingTiers = 4;
 
     /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> from the given combatantinfo.</summary>
@@ -209,7 +206,7 @@ public sealed class FullCombatant : Combatant
         AbilityCooldownReduction =
             [new CooldownModifier(PassiveBonusTracker.BlessingOfTheCommanderReduction(info.Emerald))],
         CooldownRecovery = Legendary is not null
-            ? [new CooldownModifier(StrandOfEternityRecovery)]
+            ? [new CooldownModifier(EffectModifierValue.Of(GameItems.StrandOfEternity.Id, StatAttribute.CooldownRecovery))]
             : [],
     };
 }

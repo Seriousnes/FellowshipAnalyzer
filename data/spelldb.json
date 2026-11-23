@@ -7042,6 +7042,12 @@
       "name": "Sentinel\u0027s Bastion - II",
       "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion"
     },
+    "StrandOfEternity": {
+      "kind": "effect",
+      "id": 3087,
+      "name": "Strand of Eternity",
+      "icon": ""
+    },
     "TacticiansAccumen": {
       "kind": "effect",
       "id": 1949,
@@ -18285,6 +18291,9 @@
             12,
             12
           ]
+        },
+        "StrandOfEternity": {
+          "CooldownReductionMultiplier": 1.1
         },
         "TacticiansAccumen": {
           "ExpertiseIncrease": 0.02

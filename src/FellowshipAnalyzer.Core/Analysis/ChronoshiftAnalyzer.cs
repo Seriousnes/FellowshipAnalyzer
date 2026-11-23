@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI.Components;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -29,9 +30,10 @@ public sealed partial class ChronoshiftAnalyzer(
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    private const double RecoveryMultiplier = 8.0;
+    private static readonly double RecoveryMultiplier =
+        EffectModifierValue.Of(Items.ChronoshiftBuff.Id, StatAttribute.CooldownRecovery);
 
-    private const double AddedRecovery = RecoveryMultiplier - 1.0;
+    private static readonly double AddedRecovery = RecoveryMultiplier - 1.0;
 
     private static readonly CooldownModifier AddedRecoveryModifier = new(RecoveryMultiplier);
 

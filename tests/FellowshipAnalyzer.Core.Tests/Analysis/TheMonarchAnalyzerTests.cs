@@ -46,6 +46,28 @@ public sealed class TheMonarchAnalyzerTests
         Assert.Equal(0.0, tracker.CurrentCooldownAcceleration(abilities.GetAbility(OtherSpell)), precision: 10);
     }
 
+    [Theory]
+    [InlineData(1, 0.03)]
+    [InlineData(2, 0.05)]
+    [InlineData(3, 0.08)]
+    [InlineData(4, 0.12)]
+    public async Task AccelerationAtNoHaste_IsTheExportValueOfTheTier(int tier, double expected)
+    {
+        var parser = await Parse([new() { Id = 4000177, Level = tier, Name = TheMonarchAnalyzer.Blessing }]);
+
+        Assert.Equal(expected, parser.GetModule<TheMonarchAnalyzer>()!.AccelerationAt(0), precision: 10);
+    }
+
+    [Theory]
+    [InlineData(0.3, 0.15)]
+    [InlineData(0.8, 0.17)]
+    public async Task AccelerationAtTierFour_AddsTheCappedHastePart(double haste, double expected)
+    {
+        var parser = await Parse([new() { Id = 4000177, Level = 4, Name = TheMonarchAnalyzer.Blessing }]);
+
+        Assert.Equal(expected, parser.GetModule<TheMonarchAnalyzer>()!.AccelerationAt(haste), precision: 10);
+    }
+
     [Fact]
     public async Task Haste_AddsATenthOfItselfToTheAcceleration()
     {
@@ -92,6 +114,13 @@ public sealed class TheMonarchAnalyzerTests
         List<ItemBlessing> blessings,
         List<Event>? events = null)
     {
+        var parser = await Parse(blessings, events);
+
+        return (parser.GetModule<StatTracker>()!, parser.GetModule<Abilities>()!);
+    }
+
+    private static async Task<CombatLogParser> Parse(List<ItemBlessing> blessings, List<Event>? events = null)
+    {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
@@ -119,7 +148,7 @@ public sealed class TheMonarchAnalyzerTests
         var parser = new TestParser(emitter, provider, moduleTypes);
         await parser.Analyze(stream, PlayerId, dungeon: TestDungeon);
 
-        return (parser.GetModule<StatTracker>()!, parser.GetModule<Abilities>()!);
+        return parser;
     }
 
     private sealed class TestParser(EventEmitter emitter, IServiceProvider provider, Type[] moduleTypes)

@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Core.UI.Components;
 
@@ -27,13 +28,15 @@ public sealed partial class GloriousPurposeAnalyzer(
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    private const double RecoveryMultiplier = 3.0;
+    private static readonly double RecoveryMultiplier =
+        EffectModifierValue.Of(Items.GloriousPurpose.Id, StatAttribute.CooldownRecovery);
 
-    private const double AddedRecovery = RecoveryMultiplier - 1.0;
+    private static readonly double AddedRecovery = RecoveryMultiplier - 1.0;
 
     private static readonly CooldownModifier AddedRecoveryModifier = new(RecoveryMultiplier);
 
-    private const int BuffDurationMs = 6000;
+    private static readonly int BuffDurationMs = (int)((EffectData.DurationOf(Items.GloriousPurpose.Id)
+        ?? throw new InvalidOperationException("The export gives Glorious Purpose no duration.")) * 1000);
 
     private readonly List<GloriousPurposeWindow> _windows = [];
     private readonly Dictionary<int, int> _recoveryBySpell = [];

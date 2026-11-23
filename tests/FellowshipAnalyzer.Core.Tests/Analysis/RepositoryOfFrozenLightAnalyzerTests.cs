@@ -91,6 +91,21 @@ public sealed class RepositoryOfFrozenLightAnalyzerTests
     }
 
     [Fact]
+    public async Task ExpiryWithFourStacks_ReducesCooldownByTheExportValuePerStack()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000),
+            ApplyBuff(2500, AllyId),
+            ApplyBuffStack(2500, AllyId, 15),
+            RemoveBuffStack(10_000, AllyId, 4),
+            RemoveBuff(32_500, AllyId),
+        ]);
+
+        Assert.Equal(new CooldownReductionResult(1200, 1200), analyzer.CooldownReduction);
+    }
+
+    [Fact]
     public async Task ExpiryWithThreeStacks_ReducesCooldownByNineTenthsOfASecond()
     {
         var analyzer = await Analyze(

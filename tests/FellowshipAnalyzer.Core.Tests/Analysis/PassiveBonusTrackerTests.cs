@@ -124,6 +124,26 @@ public sealed class PassiveBonusTrackerTests
         Assert.Equal(0.0, tracker.CurrentHastePercentage, precision: 10);
     }
 
+    [Theory]
+    [InlineData(450, 0.04)]
+    [InlineData(1500, 0.12)]
+    public async Task EmeraldPower_GivesBlessingOfTheCommanderItsExportCooldownReduction(int emerald, double expected)
+    {
+        var tracker = await Run(new CombatantInfoEvent { Emerald = emerald });
+
+        Assert.Equal(expected, tracker.CurrentAbilityCooldownReduction(null), precision: 10);
+    }
+
+    [Theory]
+    [InlineData(300, 0.02)]
+    [InlineData(1250, 0.06)]
+    public async Task TopazPower_GivesFelineGraceItsExportHaste(int topaz, double expected)
+    {
+        var tracker = await Run(new CombatantInfoEvent { Topaz = topaz });
+
+        Assert.Equal(expected, tracker.CurrentHastePercentage, precision: 10);
+    }
+
     [Fact]
     public async Task UltimatumModifier_ReducesEveryAbilityCooldown()
     {

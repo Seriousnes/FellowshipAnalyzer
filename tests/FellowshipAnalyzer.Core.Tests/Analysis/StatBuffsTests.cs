@@ -258,6 +258,142 @@ public sealed partial class StatBuffsTests
         Assert.Equal(0.0, tracker.CurrentHastePercentage, precision: 10);
     }
 
+    [Fact]
+    public async Task RuneRushWithShadowsDefeat_AddsBothMultiplierPartsToOneFactor()
+    {
+        var tracker = await Run(
+            [
+                ApplyBuff(1000, Spells.RuneRush.FSLID),
+                ApplyBuff(2000, Spells.ShadowsDefeat.FSLID),
+            ]);
+
+        Assert.Equal(0.35, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Theory]
+    [InlineData(1, 0.06)]
+    [InlineData(2, 0.10)]
+    [InlineData(3, 0.16)]
+    [InlineData(4, 0.25)]
+    public async Task TheWayfarer_GivesTheExportHasteForEachBlessingLevel(int level, double expected)
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.TheWayfarer.FSLID)],
+            blessings: [new ItemBlessing { Id = 4000043, Level = level, Name = "The Wayfarer" }]);
+
+        Assert.Equal(expected, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Theory]
+    [InlineData(1, 6)]
+    [InlineData(4, 17)]
+    public async Task InspiredAllegiance_GivesTheExportHasteRatingForEachTraitRank(int rank, double expected)
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.InspiredAllegianceBuff.FSLID)],
+            traits: [new ItemTrait { Id = Items.InspiredAllegianceTrait.FSLID, Rank = rank, Name = "Inspired Allegiance" }]);
+
+        Assert.Equal(expected, tracker.CurrentHasteRating, precision: 6);
+    }
+
+    [Theory]
+    [InlineData(1, 4)]
+    [InlineData(4, 16)]
+    public async Task FocusedHaste_GivesTheExportHasteRatingForEachTraitRank(int rank, double expected)
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.FocusedHasteBuff.FSLID)],
+            traits: [new ItemTrait { Id = Items.HuntersFocusTrait.FSLID, Rank = rank, Name = "Hunter's Focus" }]);
+
+        Assert.Equal(expected, tracker.CurrentHasteRating, precision: 6);
+    }
+
+    [Theory]
+    [InlineData(1, 28)]
+    [InlineData(4, 142)]
+    public async Task NavigatorsIntuition_GivesTheExportHasteRatingForEachTraitRank(int rank, double expected)
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.NavigatorsIntuitionHaste.FSLID)],
+            traits: [new ItemTrait { Id = Items.NavigatorsIntuitionTrait.FSLID, Rank = rank, Name = "Navigator's Intuition" }]);
+
+        Assert.Equal(expected, tracker.CurrentHasteRating, precision: 6);
+    }
+
+    [Fact]
+    public async Task FocusedHaste_AtRankTwoWithThreeStacks_GivesTwentyFourRating()
+    {
+        var tracker = await Run(
+            [
+                ApplyBuff(1000, Items.FocusedHasteBuff.FSLID),
+                ApplyBuffStack(2000, Items.FocusedHasteBuff.FSLID, stack: 3),
+            ],
+            traits: [new ItemTrait { Id = Items.HuntersFocusTrait.FSLID, Rank = 2, Name = "Hunter's Focus" }]);
+
+        Assert.Equal(24, tracker.CurrentHasteRating, precision: 6);
+    }
+
+    [Theory]
+    [InlineData(1001350, 0.30)]
+    [InlineData(1002253, 0.30)]
+    [InlineData(1002277, 0.30)]
+    [InlineData(1002662, 0.30)]
+    public async Task SpiritOfHeroism_GivesTheExportHaste(int fslid, double expected)
+    {
+        var tracker = await Run([ApplyBuff(1000, fslid)]);
+
+        Assert.Equal(expected, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task EmpoweredMinionVictoryRush_AddsTheExportHaste()
+    {
+        var tracker = await Run([ApplyBuff(1000, Spells.EmpoweredMinionVictoryRush.FSLID)]);
+
+        Assert.Equal(0.20, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task DarkProphecy_AddsTheExportHaste()
+    {
+        var tracker = await Run([ApplyBuff(1000, Items.DarkProphecy.FSLID)]);
+
+        Assert.Equal(0.25, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task HarmoniousSoul_TakesItsHastePerStackFromTheExport()
+    {
+        var tracker = await Run(
+            [
+                ApplyBuff(1000, Items.HarmoniousSoul.FSLID),
+                ApplyBuffStack(2000, Items.HarmoniousSoul.FSLID, stack: 3),
+            ]);
+
+        Assert.Equal(0.018, tracker.AdditionalHaste, precision: 10);
+    }
+
+    [Fact]
+    public void EveryHasteEntry_ReadsItsValueFromTheExport()
+    {
+        foreach (var (fslid, buff) in StatBuffs.Percentages)
+        {
+            if (buff.Haste is null && buff.HasteMultiplier is null && buff.HasteCompound is null && buff.HasteAddFinal is null)
+                continue;
+
+            var attributes = EffectData.ModifiersOf(new FSLID(fslid).NativeId).ToArray().Select(m => m.Attribute);
+            Assert.Contains(StatAttribute.Haste, attributes);
+        }
+
+        foreach (var (fslid, buff) in StatBuffs.Ratings)
+        {
+            if (buff.Haste is null) continue;
+
+            var attributes = EffectData.ModifiersOf(new FSLID(fslid).NativeId).ToArray().Select(m => m.Attribute);
+            Assert.Contains(StatAttribute.HasteRating, attributes);
+        }
+    }
+
     private static async Task<StatTracker> Run(
         List<Event> events,
         int mainStat = 0,
