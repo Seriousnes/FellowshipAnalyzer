@@ -19,6 +19,10 @@ public sealed class GlobalCooldownTests
     private const int EnemyId = 8;
     private const int TestSpellId = 42;
     private const int BrainFreezeSpellId = 1019;
+    private const int ExportSpellId = 60;
+    private const int AdditionalSpellId = 61;
+    private const int ThirtyPercentHasteBuffId = 100;
+    private const int OneAndAHalfHasteBuffId = 101;
 
     [Fact]
     public async Task Cast_WithGcdAbility_ShouldCreateGcdEvent()
@@ -285,12 +289,158 @@ public sealed class GlobalCooldownTests
         Assert.Equal(1000, cast.GlobalCooldown!.Duration);
     }
 
+    [Theory]
+    [InlineData(1.5, true, null, 1500)]
+    [InlineData(1.5, true, ThirtyPercentHasteBuffId, 1154)]
+    [InlineData(1.0, false, ThirtyPercentHasteBuffId, 1000)]
+    [InlineData(1.0, true, ThirtyPercentHasteBuffId, 769)]
+    [InlineData(1.5, true, OneAndAHalfHasteBuffId, 600)]
+    public async Task Cast_WithExportGlobalCooldown_ShouldScaleOnlyWhereHasteApplies(
+        double seconds, bool scalesWithHaste, int? hasteBuffId, int expectedMs)
+    {
+        List<Event> events = [];
+        if (hasteBuffId is { } buffId) events.Add(CreateApplyBuff(500, buffId));
+        events.Add(CreateCast(1000, ExportSpellId));
+
+        var (parser, _) = await RunWithGcd(events, configureAbilities: a => a.AddSpell(new SpellbookAbility
+        {
+            PrimarySpell = new Spell
+            {
+                Id = ExportSpellId,
+                Name = "Export Spell",
+                GlobalCooldown = seconds,
+                GlobalCooldownScalesWithHaste = scalesWithHaste,
+            },
+            Category = SpellCategory.Rotational,
+        }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(expectedMs, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task Cast_WithNoExportGlobalCooldownAndNoGcd_ShouldNotCreateGcdEvent()
+    {
+        var (parser, _) = await RunWithGcd([CreateCast(1000, ExportSpellId)], configureAbilities: a => a.AddSpell(new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = ExportSpellId, Name = "Export Spell" },
+            Category = SpellCategory.Rotational,
+        }));
+
+        Assert.Empty(parser.Events.OfType<GlobalCooldownEvent>());
+    }
+
+    [Fact]
+    public async Task Cast_WithGcdInfo_ShouldReplaceTheExportValues()
+    {
+        var (parser, _) = await RunWithGcd(
+            [CreateApplyBuff(500, ThirtyPercentHasteBuffId), CreateCast(1000, ExportSpellId)],
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = ExportSpellId,
+                    Name = "Export Spell",
+                    GlobalCooldown = 1.5,
+                    GlobalCooldownScalesWithHaste = true,
+                },
+                Category = SpellCategory.Rotational,
+                Gcd = new GcdInfo { Static = 1000.0 },
+            }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task Cast_WithStandardGcdAndNoExportGlobalCooldown_ShouldApplyTheMinimum()
+    {
+        var (parser, _) = await RunWithGcd(
+            [CreateApplyBuff(500, OneAndAHalfHasteBuffId), CreateCast(1000, ExportSpellId)],
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = ExportSpellId, Name = "Export Spell" },
+                Category = SpellCategory.Rotational,
+                Gcd = Abilities.StandardGcd,
+            }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(750, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task Cast_OfAnAdditionalSpell_ShouldUseThatSpellsGlobalCooldown()
+    {
+        var (parser, _) = await RunWithGcd(
+            [CreateApplyBuff(500, ThirtyPercentHasteBuffId), CreateCast(1000, AdditionalSpellId)],
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = ExportSpellId,
+                    Name = "Export Spell",
+                    GlobalCooldown = 1.5,
+                    GlobalCooldownScalesWithHaste = true,
+                },
+                AdditionalSpells =
+                [
+                    new Spell
+                    {
+                        Id = AdditionalSpellId,
+                        Name = "Additional Spell",
+                        GlobalCooldown = 1.0,
+                        GlobalCooldownScalesWithHaste = false,
+                    },
+                ],
+                Category = SpellCategory.Rotational,
+            }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Duration);
+    }
+
+    [Fact]
+    public async Task CompletedHardCast_ShouldReadHasteAtBeginCast()
+    {
+        var (parser, _) = await RunWithGcd(
+            [
+                CreateBeginCast(1000, ExportSpellId),
+                CreateApplyBuff(1200, ThirtyPercentHasteBuffId),
+                CreateCast(3000, ExportSpellId),
+            ],
+            includeNormalizer: true,
+            configureAbilities: a => a.AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = ExportSpellId,
+                    Name = "Export Spell",
+                    CastDuration = 2.0,
+                    GlobalCooldown = 1.5,
+                    GlobalCooldownScalesWithHaste = true,
+                },
+                Category = SpellCategory.Rotational,
+            }));
+
+        var gcd = Assert.Single(parser.Events.OfType<GlobalCooldownEvent>());
+        Assert.Equal(1000, gcd.Timestamp);
+        Assert.Equal(1500, gcd.Duration);
+    }
+
+    private static ApplyBuffEvent CreateApplyBuff(int timestamp, int spellId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = spellId, Name = $"Buff {spellId}" },
+    };
+
     private static async Task<(TestCombatLogParser parser, GlobalCooldown gcd)> RunWithGcd(
         List<Event>? events = null,
         bool includeNormalizer = false,
         Action<TestAbilities>? configureAbilities = null)
     {
-        Type[] moduleTypes = [typeof(TestAbilities), typeof(StatTracker), typeof(Haste), typeof(DebugAnnotations), typeof(GlobalCooldown)];
+        Type[] moduleTypes = [typeof(TestAbilities), typeof(StatTracker), typeof(HasteBuffRegistrar), typeof(Haste), typeof(DebugAnnotations), typeof(GlobalCooldown)];
         Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
         var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
@@ -326,7 +476,18 @@ public sealed class GlobalCooldownTests
         {
             if (type == typeof(TestAbilities))
                 return new TestAbilities((TestAbilityConfiguration)Provider.GetService(typeof(TestAbilityConfiguration))!);
+            if (type == typeof(HasteBuffRegistrar))
+                return new HasteBuffRegistrar((StatTracker)ResolveAnalysisModule(typeof(StatTracker)));
             return base.CreateInstance(type);
+        }
+    }
+
+    internal sealed class HasteBuffRegistrar : Module
+    {
+        public HasteBuffRegistrar(StatTracker statTracker)
+        {
+            statTracker.AddPercentageBuff(ThirtyPercentHasteBuffId, new StatPercentageBuff { Haste = 0.3 });
+            statTracker.AddPercentageBuff(OneAndAHalfHasteBuffId, new StatPercentageBuff { Haste = 1.5 });
         }
     }
 

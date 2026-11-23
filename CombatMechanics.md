@@ -133,7 +133,7 @@ As with other secondaries, DR applies only to rating-based Haste; flat Haste per
 With total Haste `h` as a fraction (0.30 for 30%), a hasted duration is `T_base ÷ (1 + h)`. [^23]
 
 - **Cast time**: `cast_base ÷ (1 + h)`, with `h` at the cast's start. `Haste.ScaleDuration` computes it.
-- **Global cooldown**: `1.5 s ÷ (1 + h)`, with `h` at the cast's start, and at least `GcdInfo.Minimum` (750 ms by default). `GlobalCooldown` computes it from the ability's `GcdInfo.Base` (1500 ms by default), and a `GcdInfo.Static` GCD takes no Haste.
+- **Global cooldown**: each ability's export states its global cooldown in seconds and whether Haste applies. An ability with a global cooldown of `g` seconds has `g ÷ (1 + h)` when Haste applies and `g` otherwise, with `h` at the cast's start. An ability with none has no global cooldown. A spellbook entry's `GcdInfo` replaces the export values: `Base` (1500 ms by default) is divided by `1 + h` to at least `Minimum` (750 ms by default), and `Static` takes no Haste.
 - **Channel ticks**: the tick period is `tick_base ÷ (1 + h)`, with `h` at the channel's start. The channel's duration is fixed and takes no Haste.
 - **Hasted periodic effects**: each tick comes after `tick_base` of hasted progress, where progress runs at `1 + h` per second. A Haste change re-times the tick in progress from that moment; the effect's duration is fixed. [^23]
 
@@ -231,7 +231,7 @@ Comparing these predicted "ready" timestamps with actual subsequent casts provid
 
 To analyze rotational tightness and APM, the analyzer should track GCD windows by:
 
-- At each on-GCD cast, computing the hasted global cooldown `1.5 s ÷ (1 + h)` and setting a GCD lock until it ends. The GCD starts when a hard cast begins. An off-GCD ability sets no GCD lock. A cancelled cast still has the GCD it started.
+- At each on-GCD cast, computing the global cooldown from the ability's export values (`g ÷ (1 + h)` when Haste applies to it, `g` otherwise) and setting a GCD lock until it ends. The GCD starts when a hard cast begins. An off-GCD ability sets no GCD lock. A cancelled cast still has the GCD it started.
 - Treating any cast that starts within the lock window as delayed relative to the earliest possible input.
 - Measuring the gaps between the end of one GCD and the start of the next action to quantify downtime not explained by mechanics.
 

@@ -102,9 +102,23 @@ public sealed record SpellbookAbility
     public double? ChannelTickInterval => PrimarySpell.ChannelTickInterval;
 
     /// <summary>
-    /// GCD information. Null means the spell is off the GCD.
+    /// GCD information that replaces the export values of <see cref="Spell.GlobalCooldown"/> and
+    /// <see cref="Spell.GlobalCooldownScalesWithHaste"/>. Null leaves the export values in force.
     /// </summary>
     public GcdInfo? Gcd { get; init; }
+
+    /// <summary>
+    /// True when <see cref="Gcd"/> is set or <see cref="PrimarySpell"/> has a <see cref="Spell.GlobalCooldown"/>.
+    /// </summary>
+    public bool OnGlobalCooldown => Gcd is not null || PrimarySpell.GlobalCooldown is not null;
+
+    /// <summary>
+    /// The entry of <see cref="AdditionalSpells"/> whose <see cref="Spell.FSLID"/> equals <paramref name="spellId"/>,
+    /// and <see cref="PrimarySpell"/> otherwise.
+    /// </summary>
+    /// <param name="spellId">Combat-log spell id.</param>
+    public Spell SpellFor(int spellId) =>
+        AdditionalSpells?.FirstOrDefault(spell => spell.FSLID == spellId) ?? PrimarySpell;
 
     /// <summary>
     /// Cast efficiency configuration for suggestions.

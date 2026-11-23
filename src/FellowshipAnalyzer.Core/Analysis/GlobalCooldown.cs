@@ -81,21 +81,32 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
     private int GetGcdDuration(int spellId)
     {
         var ability = _abilities.GetAbility(spellId);
-        if (ability?.Gcd is null) return 0;
+        if (ability is null) return 0;
 
-        var gcd = ability.Gcd;
-        var combatant = Owner.SelectedCombatant;
+        if (ability.Gcd is { } gcd)
+        {
+            var combatant = Owner.SelectedCombatant;
 
-        double Resolve(GcdValue v) => v.Match(value => value, func => func(combatant));
+            double Resolve(GcdValue v) => v.Match(value => value, func => func(combatant));
 
-        if (gcd.Static is not null)
-            return (int)Resolve(gcd.Static);
+            if (gcd.Static is not null)
+                return (int)Resolve(gcd.Static);
 
-        var baseGcd = gcd.Base is not null ? Resolve(gcd.Base) : 1500;
-        var minimumGcd = gcd.Minimum is not null ? Resolve(gcd.Minimum) : 750;
-        var hastePercent = _haste.Current * 100.0;
-        var hasteReduced = baseGcd * 100.0 / (100.0 + hastePercent);
-        return (int)Math.Max(minimumGcd, hasteReduced);
+            var baseGcd = gcd.Base is not null ? Resolve(gcd.Base) : 1500;
+            var minimumGcd = gcd.Minimum is not null ? Resolve(gcd.Minimum) : 750;
+            var hastePercent = _haste.Current * 100.0;
+            var hasteReduced = baseGcd * 100.0 / (100.0 + hastePercent);
+            return (int)Math.Max(minimumGcd, hasteReduced);
+        }
+
+        var spell = ability.SpellFor(spellId);
+        if (spell.GlobalCooldown is not { } seconds) return 0;
+
+        var milliseconds = seconds * 1000;
+        if (spell.GlobalCooldownScalesWithHaste == true)
+            milliseconds /= 1 + _haste.Current;
+
+        return (int)Math.Round(milliseconds, MidpointRounding.AwayFromZero);
     }
 
     private GlobalCooldownEvent FabricateGcdEvent(int spellId, int timestamp, int durationMs)
