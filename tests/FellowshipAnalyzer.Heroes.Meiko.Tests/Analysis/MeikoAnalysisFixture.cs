@@ -26,7 +26,10 @@ internal static class MeikoAnalysisFixture
     public static Task<MeikoCombatLogParser> Analyze(params Event[] events) =>
         AnalyzeWithTalents([], events);
 
-    public static async Task<MeikoCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events)
+    public static Task<MeikoCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events) =>
+        AnalyzeAs(Combatant(talents), events);
+
+    public static async Task<MeikoCombatLogParser> AnalyzeAs(CombatantInfoEvent combatant, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -37,7 +40,7 @@ internal static class MeikoAnalysisFixture
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MeikoCombatLogParser>();
-        await parser.Analyze([Combatant(talents), .. events], PlayerId, BossDungeon);
+        await parser.Analyze([combatant, .. events], PlayerId, BossDungeon);
         return parser;
     }
 

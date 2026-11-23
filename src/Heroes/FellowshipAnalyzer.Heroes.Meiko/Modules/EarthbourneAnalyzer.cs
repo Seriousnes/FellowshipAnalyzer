@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Meiko.Modules;
 [After<SpellUsable>]
 public sealed partial class EarthbourneAnalyzer : Analyzer
 {
-    public const double ReductionShare = 0.2;
+    public static readonly double ReductionShare = TalentTuning.Earthbourne.CooldownReductionInPercentage;
 
     public static int ReductionMs => (int)Math.Round((Spells.TwinSoulsBulwark.Cooldown ?? 0) * 1000 * ReductionShare);
 
