@@ -103,6 +103,54 @@ public sealed partial class SpellUsableTests
     }
 
     /// <summary>
+    /// An acceleration of 0.0009999999 added at t=1000 leaves 17999.0000001 ms of progress at t=2000. A
+    /// reduction of 17999 ms there leaves 0.0000001 ms, so the timer's own return is due at t=2000 and arrives
+    /// with no time since the state last advanced. The timer is complete and its charge returns once.
+    /// </summary>
+    [Fact]
+    public async Task IndependentCharges_TimerDueAtTheInstantItWasAdvanced_Completes()
+    {
+        var (_, spellUsable, probe) = await Run(
+            [CreateCast(0, SpellE), CreateTrigger(1000), CreateTrigger(2000, RemoveTriggerId), CreateTrigger(5000, 9999)],
+            onApplyBuff: (owner, e) =>
+            {
+                var module = owner.GetModule<SpellUsable>()!;
+                if (e.Ability?.FSLID.Value == TriggerId)
+                    owner.GetModule<StatTracker>()!.AddCooldownModifier(
+                        CooldownPool.CooldownAcceleration, new CooldownModifier(0.0009999999), e);
+                if (e.Ability?.FSLID.Value == RemoveTriggerId)
+                    module.ReduceCooldown(SpellE, 17_999);
+            });
+
+        Assert.False(spellUsable.IsOnCooldown(SpellE));
+        Assert.Equal(2, spellUsable.ChargesAvailable(SpellE));
+        Assert.Equal(1, probe.Updates.Count(e => e.Ability.FSLID == SpellE && e.UpdateType == UpdateSpellUsableType.EndCooldown));
+    }
+
+    /// <summary>
+    /// Timers ending at t=21000 and t=26000 are ended by force at t=10000. The EndCooldown for the ended
+    /// ability has nothing left to recharge, so its expected recharge is the event's own timestamp with a
+    /// duration of 0.
+    /// </summary>
+    [Fact]
+    public async Task IndependentCharges_EndCooldownOfEveryTimer_HasNoFutureExpectedRecharge()
+    {
+        var (_, _, probe) = await Run(
+            [CreateCast(1000, SpellE), CreateCast(6000, SpellE), CreateTrigger(10_000), CreateTrigger(30_000, 9999)],
+            onApplyBuff: (owner, e) =>
+            {
+                if (e.Ability?.FSLID.Value == TriggerId)
+                    owner.GetModule<SpellUsable>()!.EndCooldown(SpellE, restoreAllCharges: true);
+            });
+
+        var end = LastUpdate(probe, SpellE, UpdateSpellUsableType.EndCooldown);
+        Assert.Equal(10_000, end.Timestamp);
+        Assert.Equal(10_000, end.ExpectedRechargeTimestamp);
+        Assert.Equal(0, end.ExpectedRechargeDuration);
+        Assert.Equal(2, end.ChargesAvailable);
+    }
+
+    /// <summary>
     /// Timers from casts at t=1000 and t=6000 end at t=21000 and t=26000. A refund at t=10000 drops the second
     /// cast's timer, and the first cast's charge still returns at t=21000.
     /// </summary>

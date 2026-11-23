@@ -23,9 +23,9 @@ public abstract class BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEv
     public const int InfiniteDurationMs = 9_999_000;
     /// <summary>The length of this application in milliseconds, as the log states it on an apply or refresh. <c>null</c> on an event the log gives no duration.</summary>
     public virtual int? Duration { get; set; }
-    /// <summary>The timestamp at which this application ends when nothing removes or refreshes it. <c>null</c> when <see cref="Duration"/> is absent or <see cref="InfiniteDurationMs"/>.</summary>
+    /// <summary>The timestamp at which this application ends when nothing removes or refreshes it. <c>null</c> when <see cref="Duration"/> is absent, is 0 or below, or is <see cref="InfiniteDurationMs"/>.</summary>
     [JsonIgnore]
-    public virtual int? ExpectedEnd => Duration is { } duration && duration < InfiniteDurationMs ? Timestamp + duration : null;
+    public virtual int? ExpectedEnd => Duration is > 0 and < InfiniteDurationMs ? Timestamp + Duration : null;
 }
 
 /// <summary>A single continuous application window of a buff or debuff, fabricated by <see cref="Analysis.Combatants"/> from the underlying apply, refresh, remove, and stack events.</summary>
@@ -36,8 +36,8 @@ public class TrackedBuffEvent : BuffEvent
     public int Start { get; set; }
     /// <summary>The timestamp, in milliseconds, at which this window ended, or <c>null</c> while the buff or debuff is still active.</summary>
     public int? End { get; set; }
-    /// <summary><c>true</c> when <see cref="End"/> was set by the end of the dungeon, because the log states no removal of this window.</summary>
-    public bool EndedByDungeonEnd { get; set; }
+    /// <summary><c>true</c> when the log states no removal of this window, so <see cref="End"/> is its <see cref="ExpectedEnd"/> or, with none, the end of the dungeon.</summary>
+    public bool EndedWithoutRemoval { get; set; }
     private int? _expectedEnd;
     /// <summary>The timestamp at which this window ends when no removal arrives: the <see cref="BuffEvent.ExpectedEnd"/> of its latest apply or refresh that states a duration. <c>null</c> when that duration is absent or <see cref="BuffEvent.InfiniteDurationMs"/>.</summary>
     [JsonIgnore]

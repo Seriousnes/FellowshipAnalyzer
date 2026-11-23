@@ -207,6 +207,7 @@ public sealed partial class Combatants : Analyzer
         if (e is not IBuffStackEvent stackEvent) return;
         var oldStacks = Math.Max(existing.Stacks, 1);
         existing.Stacks = stackEvent.Stack;
+        existing.ExpectFrom(e);
         existing.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
         {
             Stacks = stackEvent.Stack,
@@ -239,8 +240,11 @@ public sealed partial class Combatants : Analyzer
         {
             foreach (var buff in entity.Buffs.Where(b => b.End is null))
             {
-                buff.End = Math.Min(buff.ExpectedEnd ?? e.Timestamp, e.Timestamp);
-                buff.EndedByDungeonEnd = true;
+                var lastActivity = Math.Max(buff.StackHistory[^1].Timestamp, buff.RefreshHistory.Count == 0 ? buff.Start : buff.RefreshHistory[^1]);
+                buff.End = buff.ExpectedEnd is { } expectedEnd && expectedEnd >= lastActivity
+                    ? Math.Min(expectedEnd, e.Timestamp)
+                    : e.Timestamp;
+                buff.EndedWithoutRemoval = true;
                 buff.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
                 {
                     Stacks = 0,

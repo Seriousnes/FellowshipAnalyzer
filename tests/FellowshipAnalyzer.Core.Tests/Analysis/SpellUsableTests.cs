@@ -637,6 +637,23 @@ public sealed partial class SpellUsableTests
             },
             new SpellbookAbility
             {
+                PrimarySpell = new Spell
+                {
+                    Id = GrantedChargesId,
+                    Name = "Granted Charges",
+                    Cooldown = 20,
+                    ChargeGrant = new ChargeGrant
+                    {
+                        Source = GrantSource.Talent,
+                        Id = GrantingTalentId,
+                        Charges = 2,
+                        CooldownScaling = new() { TimeRateCooldownRecovery = true },
+                    },
+                },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility
+            {
                 PrimarySpell = new Spell { Id = TwoChargeId, Name = "Two Charge", Cooldown = 20, Charges = 2 },
                 AdditionalSpells = [new Spell { Id = TwoChargeAdditionalId, Name = "Two Charge Additional" }],
                 Category = SpellCategory.Rotational,

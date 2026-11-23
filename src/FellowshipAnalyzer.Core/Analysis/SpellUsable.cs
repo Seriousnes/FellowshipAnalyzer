@@ -394,9 +394,8 @@ public partial class SpellUsable(
         {
             if (timers.Find(timer => ReferenceEquals(timer.Pending, e)) is { } returned)
             {
-                if (returned.State.Advance(e.Timestamp) > 0)
-                    timers.Remove(returned);
-
+                returned.State.Advance(e.Timestamp);
+                timers.Remove(returned);
                 SyncTimers(key);
             }
 
@@ -800,7 +799,11 @@ public partial class SpellUsable(
         var maxCharges = _abilities.GetMaxCharges(key);
         if (timers.Count == 0)
         {
-            FabricateUpdate(UpdateSpellUsableType.EndCooldown, key, eventTs, Describe(key, removed.State, eventTs, maxCharges, maxCharges));
+            FabricateUpdate(
+                UpdateSpellUsableType.EndCooldown,
+                key,
+                eventTs,
+                new Snapshot(maxCharges, maxCharges, removed.State.OverallStart, removed.State.ChargeStart, eventTs, 0));
             return;
         }
 

@@ -330,6 +330,54 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
+    public async Task WildfireBuff_WithNoLoggedDurationAndNoRemoval_ReadsEachAnchorFromItsOwnCast()
+    {
+        var events = new List<Event>
+        {
+            ApplyBuff(30000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(30000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 31000),
+            Cast(Spells.Detonate.FSLID, 32000),
+            ApplyBuff(150000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(150000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 151000),
+            Cast(Spells.Detonate.FSLID, 153000),
+            Cast(Spells.Detonate.FSLID, 158000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 200000));
+
+        var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
+        windows.Count.ShouldBe(2);
+        windows[0].BuffWindowStart.ShouldBe(30000);
+        windows[0].DetonateCasts.ShouldBe(2);
+        windows[1].BuffWindowStart.ShouldBe(150000);
+        windows[1].BuffWindowEnd.ShouldBe(150000 + WildfireComboAnalyzer.WildfireBuffDurationMs);
+        windows[1].DetonateCasts.ShouldBe(3);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_RefreshedWithNoLoggedDurationAndNoRemoval_ReadsEachAnchorFromItsOwnCast()
+    {
+        var events = new List<Event>
+        {
+            ApplyBuff(30000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(30000, TargetId, TargetInstance),
+            RefreshBuff(150000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(150000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 151000),
+            Cast(Spells.Detonate.FSLID, 153000),
+            Cast(Spells.Detonate.FSLID, 158000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 200000));
+
+        var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
+        windows[1].BuffWindowStart.ShouldBe(150000);
+        windows[1].DetonateCasts.ShouldBe(3);
+    }
+
+    [Fact]
     public async Task MultipleWildfireAnchors_AreEvaluatedIndependently()
     {
         var events = new List<Event> { CombatantWithExplosivo() };

@@ -123,8 +123,11 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 
-        if (buff.EndedByDungeonEnd && buff.Duration is null)
-            return (buff.Start, buff.Start + WildfireBuffDurationMs);
+        if (buff.EndedWithoutRemoval && buff.Duration is null)
+        {
+            var start = Math.Max(anchor, buff.Start);
+            return (start, start + WildfireBuffDurationMs);
+        }
 
         return (buff.Start, buff.End ?? buff.Start + WildfireBuffDurationMs);
     }
