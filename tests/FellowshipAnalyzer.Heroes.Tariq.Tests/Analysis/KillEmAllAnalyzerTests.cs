@@ -123,6 +123,19 @@ public sealed class KillEmAllAnalyzerTests
     }
 
     [Fact]
+    public async Task ASkullCrusherCastAtAboutAQuarterHaste_HasAGlobalCooldownOfOneSecondShortenedByHaste()
+    {
+        const int hasteRating = 200;
+        var haste = StatTracker.RatingToPercentage(hasteRating);
+
+        var parser = await AnalyzeAsync(talented: false, [InstantCast(1_000, TariqSpells.SkullCrusher.FSLID)], haste: hasteRating);
+
+        haste.ShouldBeInRange(0.2, 0.3);
+        parser.Events.OfType<GlobalCooldownEvent>().ShouldHaveSingleItem().Duration
+            .ShouldBe((int)Math.Round(1_000 / (1 + haste), MidpointRounding.AwayFromZero));
+    }
+
+    [Fact]
     public async Task ACullingStrikeCast_HasNoGlobalCooldown()
     {
         var parser = await AnalyzeAsync(talented: false, [InstantCast(1_000, TariqSpells.CullingStrike.FSLID)]);

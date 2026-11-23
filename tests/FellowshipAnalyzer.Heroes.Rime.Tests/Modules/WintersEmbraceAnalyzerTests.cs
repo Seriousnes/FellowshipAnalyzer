@@ -353,6 +353,28 @@ public sealed class WintersEmbraceAnalyzerTests
     }
 
     [Fact]
+    public async Task AoeWindowOpenedWithHaste_RecordsThatHaste()
+    {
+        const int secondStart = 6_000;
+
+        var analyzer = await AnalyzeMulti(
+            Combatant(),
+            BurstingIce(WindowStart, orbs: 5),
+            EmbraceApplied(WindowStart),
+            Cast(WindowStart + 100, Spells.IceComet),
+            EmbraceRemoved(WindowEnd),
+            BuffApplied(5_000, Core.Common.Spells.Spells.SpiritOfHeroism),
+            BurstingIce(secondStart, orbs: 5),
+            EmbraceApplied(secondStart),
+            Cast(secondStart + 100, Spells.IceComet),
+            EmbraceRemoved(secondStart + 3_000));
+
+        analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Windows[0].HasteAtOpen.ShouldBe(0);
+        analyzer.Windows[1].HasteAtOpen.ShouldBeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task AoeWindowWithOneSpender_ScoresPartial()
     {
         var analyzer = await AnalyzeMulti(
