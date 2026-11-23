@@ -209,6 +209,8 @@ public static class MergeEngine
             TexturesSharedAcrossRungs = inputs.Icons.TexturesSharedAcrossRungs,
             Dungeons = inputs.Export.Dungeons.ToDictionary(d => d.Id, d => d.Icon),
             Augmentations = inputs.Export.Augmentations,
+            EffectData = inputs.Export.EffectData,
+            RatingCurves = inputs.Export.RatingCurves,
             Talents = BuildTalents(inputs, gaps),
             Legendaries = BuildLegendaries(inputs, gaps),
         };

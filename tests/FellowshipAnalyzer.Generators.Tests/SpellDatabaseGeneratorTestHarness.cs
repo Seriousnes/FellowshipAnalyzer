@@ -19,6 +19,16 @@ internal static class SpellDatabaseGeneratorTestHarness
         namespace FellowshipAnalyzer.Core.Game
         {
             public enum ResourceTypes { Mana = 1, Primary = 2, Secondary = 3, Spirit = 4, Tertiary = 5, Stagger = 7 }
+
+            public enum StatAttribute { Haste, HasteRating, CooldownRecovery, CooldownReduction }
+
+            public enum ModifierOp { Additive, Multiplicitive, MultiplyCompound, AddFinal }
+
+            public sealed record AttributeModifier(StatAttribute Attribute, ModifierOp Op, double? Value, double[]? Ranks, double? Coefficient);
+
+            public readonly record struct CooldownAccelerationChange(int AbilityId, double Value);
+
+            public sealed record RatingCurve(double BaseStatMultiplier, (double MaxBracketValue, double PenaltyPercentage)[] Brackets, double FinalPenaltyPercentage);
         }
 
         namespace FellowshipAnalyzer.Core.Common.Spells

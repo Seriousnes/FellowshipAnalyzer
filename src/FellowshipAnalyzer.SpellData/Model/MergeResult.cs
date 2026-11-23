@@ -62,6 +62,15 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     public List<ExportAugmentation> Augmentations { get; init; } = [];
 
     /// <summary>
+    /// Each effect's Haste, Haste rating, Cooldown Recovery and Cooldown Reduction modifiers, duration,
+    /// maximum stacks and Cooldown Acceleration changes, keyed by the export's effect id and ordered by it.
+    /// </summary>
+    public List<ExportEffectData> EffectData { get; init; } = [];
+
+    /// <summary>The rating curves of Critical Strike, Haste, Expertise and Spirit, in that order.</summary>
+    public List<ExportRatingCurve> RatingCurves { get; init; } = [];
+
+    /// <summary>
     /// Every talent the export slots to a hero, scoped by that hero's key. Talents are held apart from
     /// <see cref="Spells"/> because a talent often repeats the name of an ability or effect in the same
     /// hero's scope.

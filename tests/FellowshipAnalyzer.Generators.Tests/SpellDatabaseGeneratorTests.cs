@@ -113,4 +113,69 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("public static class AeonaLegendaries");
         gen.ShouldContain("public const int MassEntropy = 5226;");
     }
+
+    private const string SpellDbWithEffects = """
+        {
+          "rime": {
+            "ColdSnap": { "id": 1020, "name": "Cold Snap", "icon": "x" }
+          },
+          "effects": {
+            "2253": { "duration": 20, "modifiers": [ { "attribute": "Haste", "op": "Additive", "value": 0.3 } ] },
+            "2141": { "duration": 8, "maxStacks": 5, "modifiers": [ { "attribute": "HasteRating", "op": "Additive", "value": 4, "ranks": [4, 8, 12, 16] } ] },
+            "2719": { "modifiers": [ { "attribute": "CooldownRecovery", "op": "AddFinal", "coefficient": 0.33334 } ] },
+            "3216": { "duration": 3, "cooldownAccelerations": [ { "ability": 2295, "value": 2 } ] }
+          },
+          "ratingCurves": {
+            "CritChance": { "baseStatMultiplier": 0.16, "brackets": [ { "maxBracketValue": 10, "penaltyPercentage": 1 } ], "finalPenaltyPercentage": 0.9 },
+            "Haste": { "baseStatMultiplier": 0.16, "brackets": [ { "maxBracketValue": 10, "penaltyPercentage": 1 }, { "maxBracketValue": 15, "penaltyPercentage": 0.98 }, { "maxBracketValue": 20, "penaltyPercentage": 0.96 }, { "maxBracketValue": 25, "penaltyPercentage": 0.94 } ], "finalPenaltyPercentage": 0.92 }
+          }
+        }
+        """;
+
+    [Fact]
+    public void Emits_EffectData_WithASwitchArmForEachEffect_AndCompiles()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithEffects);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        run.DriverDiagnostics.ShouldNotContain(d => d.Id == "FA0005");
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("public static class EffectData");
+        gen.ShouldContain("case 2253: return Modifiers2253;");
+        gen.ShouldContain("case 2141: return Modifiers2141;");
+        gen.ShouldContain("case 2719: return Modifiers2719;");
+        gen.ShouldContain("case 3216: return Accelerations3216;");
+        gen.ShouldContain("2253 => 20,");
+        gen.ShouldContain("2141 => 5,");
+        gen.ShouldContain("new AttributeModifier(StatAttribute.Haste, ModifierOp.Additive, 0.3, null, null)");
+        gen.ShouldContain("new double[] { 4, 8, 12, 16 }");
+        gen.ShouldContain("new AttributeModifier(StatAttribute.CooldownRecovery, ModifierOp.AddFinal, null, null, 0.33334)");
+        gen.ShouldContain("new CooldownAccelerationChange(2295, 2)");
+        gen.ShouldContain("private static readonly int[] Ids = [2141, 2253, 2719, 3216];");
+    }
+
+    [Fact]
+    public void Emits_RatingCurves_WithOneInstancePerStat()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithEffects);
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("public static class RatingCurves");
+        gen.ShouldContain("public static RatingCurve Haste { get; } = new(0.16, [(10, 1), (15, 0.98), (20, 0.96), (25, 0.94)], 0.92);");
+        gen.ShouldContain("public static RatingCurve CritChance { get; } = new(0.16, [(10, 1)], 0.9);");
+    }
+
+    [Fact]
+    public void Emits_BothClassesWithEmptyLookups_WhenTheSectionsAreAbsent()
+    {
+        var run = SpellDatabaseGeneratorTestHarness.Run(SpellDbOf("""{ "id": 1020, "name": "Cold Snap", "icon": "x" }"""));
+        run.CompilationDiagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ShouldBeEmpty();
+        var gen = run.ConcatenatedGenerated;
+
+        gen.ShouldContain("public static class EffectData");
+        gen.ShouldContain("private static readonly int[] Ids = [];");
+        gen.ShouldContain("public static class RatingCurves");
+        gen.ShouldContain("public static RatingCurve Haste { get; } = new(0, [], 0);");
+    }
 }

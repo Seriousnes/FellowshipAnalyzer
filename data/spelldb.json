@@ -10948,6 +10948,911 @@
       "modifier": "StatEnchant"
     }
   },
+  "effects": {
+    "6": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive"
+        }
+      ]
+    },
+    "20": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 0
+        }
+      ]
+    },
+    "26": {
+      "modifiers": [
+        {
+          "attribute": "CooldownReduction",
+          "op": "Additive",
+          "value": 0.1
+        }
+      ]
+    },
+    "38": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.2
+        }
+      ]
+    },
+    "44": {
+      "duration": 40,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.2
+        }
+      ]
+    },
+    "80": {
+      "duration": 6,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 3
+        }
+      ]
+    },
+    "102": {
+      "duration": 15,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 1.3,
+          "ranks": [
+            1.3,
+            1.36,
+            1.42,
+            1.48
+          ]
+        }
+      ]
+    },
+    "106": {
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 1.2
+        }
+      ]
+    },
+    "192": {
+      "maxStacks": 100,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.1
+        }
+      ]
+    },
+    "214": {
+      "maxStacks": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.4
+        }
+      ]
+    },
+    "230": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive"
+        }
+      ]
+    },
+    "271": {
+      "maxStacks": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.4
+        }
+      ]
+    },
+    "342": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.5
+        }
+      ]
+    },
+    "355": {
+      "duration": 1,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 2
+        }
+      ]
+    },
+    "424": {
+      "duration": 3,
+      "maxStacks": 15,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.02
+        }
+      ]
+    },
+    "523": {
+      "duration": 20,
+      "maxStacks": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.1
+        }
+      ]
+    },
+    "572": {
+      "duration": 5,
+      "maxStacks": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.02
+        }
+      ]
+    },
+    "587": {
+      "duration": 12,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "646": {
+      "duration": 20,
+      "maxStacks": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.04
+        }
+      ]
+    },
+    "671": {
+      "duration": 20,
+      "maxStacks": 50,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.006
+        }
+      ]
+    },
+    "719": {
+      "duration": 6,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": -0.5
+        }
+      ]
+    },
+    "781": {
+      "maxStacks": 20,
+      "modifiers": [
+        {
+          "attribute": "CooldownReduction",
+          "op": "Additive",
+          "value": 0.01
+        },
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.01
+        }
+      ]
+    },
+    "833": {
+      "duration": 1,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.2
+        }
+      ]
+    },
+    "894": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.35
+        }
+      ]
+    },
+    "939": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "962": {
+      "duration": 3,
+      "maxStacks": 15,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.02
+        }
+      ]
+    },
+    "1002": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "1350": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "1869": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "1905": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 8
+        }
+      ]
+    },
+    "1906": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 24
+        }
+      ]
+    },
+    "1937": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.02
+        }
+      ]
+    },
+    "1938": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.06
+        }
+      ]
+    },
+    "1939": {
+      "duration": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.03
+        }
+      ]
+    },
+    "1940": {
+      "duration": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.09
+        }
+      ]
+    },
+    "1941": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.02
+        }
+      ]
+    },
+    "1942": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.06
+        }
+      ]
+    },
+    "1959": {
+      "duration": 5,
+      "maxStacks": 4,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.006
+        }
+      ]
+    },
+    "1960": {
+      "duration": 5,
+      "maxStacks": 12,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.006
+        }
+      ]
+    },
+    "1963": {
+      "modifiers": [
+        {
+          "attribute": "CooldownReduction",
+          "op": "Additive",
+          "value": 0.04
+        }
+      ]
+    },
+    "1964": {
+      "modifiers": [
+        {
+          "attribute": "CooldownReduction",
+          "op": "Additive",
+          "value": 0.12
+        }
+      ]
+    },
+    "1994": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.25
+        }
+      ]
+    },
+    "1995": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.04
+        }
+      ]
+    },
+    "2112": {
+      "duration": 8,
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 6,
+          "ranks": [
+            6,
+            10,
+            13,
+            17
+          ]
+        }
+      ]
+    },
+    "2122": {
+      "duration": 12,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 1.3
+        }
+      ]
+    },
+    "2141": {
+      "duration": 8,
+      "maxStacks": 5,
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 4,
+          "ranks": [
+            4,
+            8,
+            12,
+            16
+          ]
+        }
+      ]
+    },
+    "2159": {
+      "duration": 30,
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive",
+          "value": 28,
+          "ranks": [
+            28,
+            66,
+            104,
+            142
+          ]
+        }
+      ]
+    },
+    "2221": {
+      "duration": 60,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.2
+        }
+      ]
+    },
+    "2253": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "2277": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "2279": {
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 8
+        }
+      ]
+    },
+    "2314": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "MultiplyCompound"
+        }
+      ]
+    },
+    "2315": {
+      "cooldownAccelerations": [
+        {
+          "ability": 1031,
+          "value": 1
+        }
+      ]
+    },
+    "2316": {
+      "cooldownAccelerations": [
+        {
+          "ability": 1304,
+          "value": 1.2
+        }
+      ]
+    },
+    "2322": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.2
+        }
+      ]
+    },
+    "2514": {
+      "duration": 7,
+      "maxStacks": 100,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.2
+        }
+      ]
+    },
+    "2612": {
+      "duration": 6,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "MultiplyCompound",
+          "value": 1
+        }
+      ]
+    },
+    "2662": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.3
+        }
+      ]
+    },
+    "2703": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive"
+        }
+      ]
+    },
+    "2719": {
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "AddFinal",
+          "coefficient": 0.33334
+        }
+      ]
+    },
+    "2744": {
+      "duration": 15,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 1.5
+        }
+      ]
+    },
+    "2753": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.05
+        }
+      ]
+    },
+    "2820": {
+      "duration": 0.5,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 3
+        }
+      ]
+    },
+    "2822": {
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.2
+        }
+      ]
+    },
+    "2905": {
+      "maxStacks": 3,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.1
+        }
+      ]
+    },
+    "2932": {
+      "duration": 15,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.1
+        }
+      ]
+    },
+    "2958": {
+      "duration": 10,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.15
+        }
+      ]
+    },
+    "3013": {
+      "duration": 15,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.15
+        }
+      ]
+    },
+    "3045": {
+      "maxStacks": 100,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Multiplicitive",
+          "value": 1.1
+        }
+      ]
+    },
+    "3087": {
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 1.1
+        }
+      ]
+    },
+    "3119": {
+      "duration": 15,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.5
+        }
+      ]
+    },
+    "3160": {
+      "duration": 8,
+      "maxStacks": 2,
+      "cooldownAccelerations": [
+        {
+          "ability": 1929,
+          "value": 1.6
+        }
+      ]
+    },
+    "3184": {
+      "duration": 14,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.06,
+          "ranks": [
+            0.06,
+            0.1,
+            0.16,
+            0.25
+          ]
+        }
+      ]
+    },
+    "3189": {
+      "duration": 8,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive"
+        }
+      ]
+    },
+    "3216": {
+      "duration": 3,
+      "cooldownAccelerations": [
+        {
+          "ability": 2295,
+          "value": 2
+        }
+      ]
+    },
+    "3266": {
+      "duration": 0.5,
+      "modifiers": [
+        {
+          "attribute": "CooldownRecovery",
+          "op": "Multiplicitive",
+          "value": 2
+        }
+      ]
+    },
+    "3270": {
+      "duration": 20,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "Additive",
+          "value": 0.25
+        }
+      ]
+    },
+    "3293": {
+      "duration": 22,
+      "modifiers": [
+        {
+          "attribute": "Haste",
+          "op": "MultiplyCompound",
+          "value": 1.05
+        }
+      ]
+    },
+    "3358": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive"
+        }
+      ]
+    },
+    "3360": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive"
+        }
+      ]
+    },
+    "3362": {
+      "modifiers": [
+        {
+          "attribute": "HasteRating",
+          "op": "Additive"
+        }
+      ]
+    }
+  },
+  "ratingCurves": {
+    "CritChance": {
+      "baseStatMultiplier": 0.16,
+      "brackets": [
+        {
+          "maxBracketValue": 10,
+          "penaltyPercentage": 1
+        },
+        {
+          "maxBracketValue": 15,
+          "penaltyPercentage": 0.98
+        },
+        {
+          "maxBracketValue": 20,
+          "penaltyPercentage": 0.96
+        },
+        {
+          "maxBracketValue": 25,
+          "penaltyPercentage": 0.94
+        }
+      ],
+      "finalPenaltyPercentage": 0.92
+    },
+    "Haste": {
+      "baseStatMultiplier": 0.16,
+      "brackets": [
+        {
+          "maxBracketValue": 10,
+          "penaltyPercentage": 1
+        },
+        {
+          "maxBracketValue": 15,
+          "penaltyPercentage": 0.98
+        },
+        {
+          "maxBracketValue": 20,
+          "penaltyPercentage": 0.96
+        },
+        {
+          "maxBracketValue": 25,
+          "penaltyPercentage": 0.94
+        }
+      ],
+      "finalPenaltyPercentage": 0.92
+    },
+    "Expertise": {
+      "baseStatMultiplier": 0.16,
+      "brackets": [
+        {
+          "maxBracketValue": 10,
+          "penaltyPercentage": 1
+        },
+        {
+          "maxBracketValue": 15,
+          "penaltyPercentage": 0.98
+        },
+        {
+          "maxBracketValue": 20,
+          "penaltyPercentage": 0.96
+        },
+        {
+          "maxBracketValue": 25,
+          "penaltyPercentage": 0.94
+        }
+      ],
+      "finalPenaltyPercentage": 0.92
+    },
+    "Spirit": {
+      "baseStatMultiplier": 0.16,
+      "brackets": [
+        {
+          "maxBracketValue": 10,
+          "penaltyPercentage": 1
+        },
+        {
+          "maxBracketValue": 15,
+          "penaltyPercentage": 0.98
+        },
+        {
+          "maxBracketValue": 20,
+          "penaltyPercentage": 0.96
+        },
+        {
+          "maxBracketValue": 25,
+          "penaltyPercentage": 0.94
+        }
+      ],
+      "finalPenaltyPercentage": 0.92
+    }
+  },
   "texturesSharedAcrossRungs": [
     "Hint_Generic_Talent_Star",
     "Rewards_TalentPoints",
