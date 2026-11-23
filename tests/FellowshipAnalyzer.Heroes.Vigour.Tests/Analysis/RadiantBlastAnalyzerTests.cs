@@ -48,6 +48,46 @@ public sealed class RadiantBlastAnalyzerTests
     }
 
     [Fact]
+    public async Task AvatarOfLightApplicationEndsTheCooldownOfARadiantBlastOnCooldown()
+    {
+        var parser = await Analyze(
+            Cast(2_000, Spells.RadiantBlast),
+            ApplyBuff(5_000, Spells.AvatarOfLightBuff, PlayerId));
+
+        var end = parser.Events.OfType<UpdateSpellUsableEvent>()
+            .Single(e => e.Ability.Id == Spells.RadiantBlast.FSLID && e.UpdateType == UpdateSpellUsableType.EndCooldown);
+
+        end.Timestamp.ShouldBe(5_000);
+        end.ChargesAvailable.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task RadiantBlastCastsDuringAvatarOfLightStartNoCooldown()
+    {
+        var parser = await Analyze(
+            ApplyBuff(5_000, Spells.AvatarOfLightBuff, PlayerId),
+            Cast(6_000, Spells.RadiantBlast),
+            Cast(7_000, Spells.RadiantBlast));
+
+        parser.Events.OfType<UpdateSpellUsableEvent>()
+            .ShouldNotContain(e => e.Ability.Id == Spells.RadiantBlast.FSLID);
+        parser.SpellUsable.ShouldNotBeNull().Drifts.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task RadiantBlastCastAfterAvatarOfLightRemovalRechargesOverItsBaseCooldown()
+    {
+        var parser = await Analyze(
+            ApplyBuff(5_000, Spells.AvatarOfLightBuff, PlayerId),
+            RemoveBuff(14_000, Spells.AvatarOfLightBuff, PlayerId),
+            Cast(15_000, Spells.RadiantBlast));
+
+        parser.Events.OfType<UpdateSpellUsableEvent>()
+            .Single(e => e.Ability.Id == Spells.RadiantBlast.FSLID && e.UpdateType == UpdateSpellUsableType.EndCooldown)
+            .Timestamp.ShouldBe(25_000);
+    }
+
+    [Fact]
     public async Task AvatarOfLightEndsTheCooldownsAndCastsDuringItStartNone()
     {
         var parser = await Analyze(

@@ -6,6 +6,7 @@ using Shouldly;
 using Xunit;
 
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Vigour.Spells;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 using VigourAbilities = FellowshipAnalyzer.Heroes.Vigour.Modules.Abilities;
 using VigourTalents = FellowshipAnalyzer.Core.Common.Spells.VigourTalents;
 
@@ -16,6 +17,7 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis;
 public sealed class VigourSpellbookTests
 {
     private const int HasteRating = 1000;
+    private const int EmeraldRankTen = 1_500;
 
     [Fact]
     public void EveryEntry_HasARealCategory()
@@ -35,7 +37,64 @@ public sealed class VigourSpellbookTests
 
         abilities.GetMaxCharges(Spells.LuminousBarrier.FSLID).ShouldBe(2);
         abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull());
-        abilities.GetAbility(Spells.LuminousBarrier.FSLID).ShouldNotBeNull().CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        abilities.GetAbility(Spells.LuminousBarrier.FSLID).ShouldNotBeNull().PrimarySpell.CooldownScaling
+            .ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
+    }
+
+    [Fact]
+    public void NoEntry_DeclaresAGlobalCooldown()
+    {
+        foreach (var entry in new VigourAbilities().Spellbook())
+            entry.Gcd.ShouldBeNull();
+    }
+
+    [Fact]
+    public void RemoveMagicAndRepositoryOfFrozenLightAreOnTheGlobalCooldownAndLevitateIsNot()
+    {
+        var spellbook = new VigourAbilities().Spellbook().ToList();
+
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == Spells.RemoveMagic.FSLID).OnGlobalCooldown.ShouldBeTrue();
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == CoreItems.RepositoryOfFrozenLight.FSLID).OnGlobalCooldown.ShouldBeTrue();
+        spellbook.Single(entry => entry.PrimarySpell.FSLID == Spells.Levitate.FSLID).OnGlobalCooldown.ShouldBeFalse();
+        CoreItems.RepositoryOfFrozenLight.GlobalCooldown.ShouldBe(1.5);
+        CoreItems.RepositoryOfFrozenLight.GlobalCooldownScalesWithHaste.ShouldBe(true);
+    }
+
+    [Fact]
+    public void RadiantBlastAndCircleOfLightScaleTheirCooldownByCooldownReductionHasteAndCooldownRecovery()
+    {
+        var scaling = new CooldownScaling { DurationCooldownReduction = true, DurationHaste = true, TimeRateCooldownRecovery = true };
+
+        Spells.RadiantBlast.Cooldown.ShouldBe(10);
+        Spells.RadiantBlast.CooldownScaling.ShouldBe(scaling);
+        Spells.CircleOfLight.Cooldown.ShouldBe(15);
+        Spells.CircleOfLight.CooldownScaling.ShouldBe(scaling);
+    }
+
+    [Fact]
+    public void LevitateTakesOnlyCooldownRecoveryAndRemoveMagicHasNoScaling()
+    {
+        Spells.Levitate.Charges.ShouldBe(2);
+        Spells.Levitate.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true });
+        Spells.RemoveMagic.Cooldown.ShouldBe(6);
+        Spells.RemoveMagic.CooldownScaling.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task EmeraldRankTenShortensRadiantBlastAndLeavesRemoveMagicAtItsBaseCooldown()
+    {
+        var combatant = Combatant();
+        combatant.Emerald = EmeraldRankTen;
+
+        var parser = await Analyze(
+            combatant,
+            Cast(PullStart + 1_000, Spells.RadiantBlast),
+            Cast(PullStart + 1_000, Spells.RemoveMagic));
+
+        var spellUsable = parser.GetModule<SpellUsable>().ShouldNotBeNull();
+
+        spellUsable.RechargeDuration(Spells.RadiantBlast.FSLID).ShouldBe(8_800);
+        spellUsable.RechargeDuration(Spells.RemoveMagic.FSLID).ShouldBe(6_000);
     }
 
     [Fact]

@@ -39,6 +39,16 @@ public sealed class RepositoryOfFrozenLightTests
     }
 
     [Fact]
+    public async Task ACastAtHasteZeroHasAFifteenHundredMillisecondGlobalCooldown()
+    {
+        var parser = await Run([new Item { Id = CoreItems.AncientIceshapersTome.Id }]);
+
+        parser.Events.OfType<GlobalCooldownEvent>()
+            .Single(e => e.Ability.Id == CoreItems.RepositoryOfFrozenLight.FSLID)
+            .Duration.ShouldBe(1_500);
+    }
+
+    [Fact]
     public async Task WithoutAncientIceshapersTome_LeavesRepositoryOfFrozenLightOutOfTheSpellbook()
     {
         var parser = await Run([]);
