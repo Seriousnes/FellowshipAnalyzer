@@ -15,12 +15,12 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="GloriousPurposeAnalyzer"/>: the +200% recovery window (3× for an ability with no
-/// haste contribution) is opened by the Glorious Purpose buff, bounded to 6 seconds (or an early
+/// Tests for <see cref="GloriousPurposeAnalyzer"/>: the Cooldown Recovery window (a modifier of 3, 3× for an
+/// ability whose time rate scales off Cooldown Recovery) is opened by the Glorious Purpose buff, bounded to 6 seconds (or an early
 /// <see cref="RemoveBuffEvent"/>), extended rather than reopened by a refresh, and the bonus cooldown
 /// recovery it grants is attributed per ability.
 /// </summary>
-public sealed class GloriousPurposeAnalyzerTests
+public sealed partial class GloriousPurposeAnalyzerTests
 {
     private const int PlayerId = 7;
     private const int BigCdId = 500;
@@ -223,6 +223,22 @@ public sealed class GloriousPurposeAnalyzerTests
     }
 
     [Fact]
+    public async Task DuringTheBuff_AnAbilityScalingOffCooldownRecoveryRecoversAtThreeTimes_AndFatedStrikeAtTheNormalRate()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(1000, Items.FatedStrike.FSLID),
+            ApplyBuff(5000),
+            Filler(6000),
+        ]);
+
+        var rates = parser.GetModule<RateProbe>()!.Rates;
+        Assert.Equal(3.0, rates[(6000, BigCdId)], precision: 6);
+        Assert.Equal(1.0, rates[(6000, Items.FatedStrike.FSLID)], precision: 6);
+        Assert.Empty(parser.GetModule<GloriousPurposeAnalyzer>()!.RecoveryByAbility);
+    }
+
+    [Fact]
     public async Task FatedStrikeCasts_AreCounted()
     {
         var analyzer = await Analyze(
@@ -292,6 +308,7 @@ public sealed class GloriousPurposeAnalyzerTests
             typeof(Haste),
             typeof(SpellUsable),
             typeof(GloriousPurposeAnalyzer),
+            typeof(RateProbe),
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
@@ -350,6 +367,7 @@ public sealed class GloriousPurposeAnalyzerTests
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(RateProbe)) return new RateProbe { RateOf = id => GetModule<SpellUsable>()!.EffectiveRate(id) };
             return base.CreateInstance(type);
         }
     }
@@ -360,9 +378,30 @@ public sealed class GloriousPurposeAnalyzerTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = BigCdId, Name = "Big Cooldown", Cooldown = (double)BigCdSeconds },
+                PrimarySpell = new Spell
+                {
+                    Id = BigCdId,
+                    Name = "Big Cooldown",
+                    Cooldown = (double)BigCdSeconds,
+                    CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true },
+                },
                 Category = SpellCategory.Cooldowns,
             },
+            new SpellbookAbility { PrimarySpell = Items.FatedStrike, Category = SpellCategory.Cooldowns },
         ];
+    }
+
+    private sealed partial class RateProbe : Analyzer
+    {
+        public required Func<int, double> RateOf { get; init; }
+
+        public Dictionary<(int Timestamp, int SpellId), double> Rates { get; } = [];
+
+        [On<ApplyBuffEvent>(By = Actor.Player)]
+        private void OnBuff(ApplyBuffEvent e)
+        {
+            Rates[(e.Timestamp, BigCdId)] = RateOf(BigCdId);
+            Rates[(e.Timestamp, Items.FatedStrike.FSLID)] = RateOf(Items.FatedStrike.FSLID);
+        }
     }
 }

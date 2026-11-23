@@ -15,10 +15,10 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for the legendary "Strand of Eternity" cooldown acceleration: the selected
-/// <see cref="Combatant"/> resolving the flat +10% from a legendary-quality item at construction, and
-/// <see cref="SpellUsable"/> reading it off the combatant as a constant term on the shared recovery pool
-/// that composes additively with Chronoshift and haste, and multiplicatively-independent of Ability
+/// Tests for the legendary "Strand of Eternity" Cooldown Recovery modifier: the selected
+/// <see cref="Combatant"/> resolving the modifier of 1.1 from a legendary-quality item at construction, and
+/// <see cref="SpellUsable"/> reading it through <see cref="StatTracker.CurrentCooldownRecovery"/>, where it
+/// shares one multiplicative factor with Chronoshift and adds outside it with haste, and is independent of Ability
 /// Cooldown Reduction.
 /// </summary>
 public sealed class GearCooldownAccelerationTests
@@ -43,21 +43,41 @@ public sealed class GearCooldownAccelerationTests
             FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
-    public void Legendary_ResolvesTenPercentAcceleration()
+    public void Legendary_ResolvesTheCooldownRecoverySeed()
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
         Assert.NotNull(combatant.Legendary);
-        Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
+        var seed = Assert.Single(combatant.Stats.CooldownRecovery);
+        Assert.Equal(1.10, seed.Value, precision: 6);
+        Assert.Empty(combatant.Stats.CooldownAcceleration);
     }
 
     [Fact]
-    public void NoLegendary_ResolvesNoAcceleration()
+    public void NoLegendary_ResolvesNoCooldownRecoverySeed()
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
         Assert.Null(combatant.Legendary);
-        Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
+        Assert.Empty(combatant.Stats.CooldownRecovery);
+    }
+
+    [Fact]
+    public async Task Legendary_GivesTheTrackerACooldownRecoveryOfOnePointOne()
+    {
+        var (_, statTracker) = await RunWithStatTracker(LegendaryQuality);
+
+        Assert.Equal(1.10, statTracker.CurrentCooldownRecovery, precision: 6);
+        Assert.Equal(1.10, statTracker.StartingCooldownRecovery, precision: 6);
+    }
+
+    [Fact]
+    public async Task NoLegendary_GivesTheTrackerACooldownRecoveryOfOne()
+    {
+        var (_, statTracker) = await RunWithStatTracker(EpicQuality);
+
+        Assert.Equal(1.0, statTracker.CurrentCooldownRecovery, precision: 6);
+        Assert.Equal(1.0, statTracker.StartingCooldownRecovery, precision: 6);
     }
 
     /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090ms.</summary>
@@ -82,15 +102,15 @@ public sealed class GearCooldownAccelerationTests
     }
 
     /// <summary>
-    /// One additive pool: the legendary's 0.10 adds to Chronoshift's 7.0 rather than multiplying, so a
-    /// non-hasted ability recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234ms.
+    /// One multiplicative factor: the legendary's 1.1 and Chronoshift's 8 add their parts above 1 rather
+    /// than multiplying, so an ability scaling off Cooldown Recovery recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234ms.
     /// </summary>
     [Fact]
     public async Task Legendary_ComposesAdditivelyWithChronoshift()
     {
         var (spellUsable, statTracker) = await RunWithStatTracker(LegendaryQuality);
 
-        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, new CooldownModifier(8.0), timestamp: 1000);
         Assert.Equal(8.10, spellUsable.EffectiveRate(SpellA), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
@@ -262,12 +282,12 @@ public sealed class GearCooldownAccelerationTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, AbilityCategory = AbilityCategory.Major },
+                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, AbilityCategory = AbilityCategory.Major, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB },
+                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
         ];

@@ -10,8 +10,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// percentage, which is added to the converted rating afterwards and never sees diminishing returns.
 /// Monitors buff/debuff apply, remove, and stack changes to keep both channels up to date and fabricates
 /// <see cref="ChangeStatsEvent"/> whenever either one moves.
-/// Also tracks the two cooldown stat pools, Ability Cooldown Reduction and Cooldown Acceleration:
-/// each starts from the gear-derived seed frozen on <see cref="CombatantStats"/> and accrues runtime
+/// Also tracks the three cooldown stat pools, Ability Cooldown Reduction, Cooldown Recovery and Cooldown
+/// Acceleration: each starts from the gear-derived seed frozen on <see cref="CombatantStats"/> and accrues runtime
 /// <see cref="CooldownModifier"/>s, fabricating <see cref="ChangeCooldownModifierEvent"/> on every change.
 /// </summary>
 /// <remarks>
@@ -41,6 +41,8 @@ public sealed partial class StatTracker : Analyzer
     private readonly Dictionary<int, StackedAmounts> _stackedAmounts = [];
 
     private readonly List<CooldownModifier> _abilityCooldownReduction = [];
+
+    private readonly List<CooldownModifier> _cooldownRecovery = [];
 
     private readonly List<CooldownModifier> _cooldownAcceleration = [];
 
@@ -174,16 +176,38 @@ public sealed partial class StatTracker : Analyzer
             + _abilityCooldownReduction.Where(modifier => modifier.Covers(ability)).Sum(modifier => modifier.Value));
 
     /// <summary>
-    /// Total Cooldown Acceleration for <paramref name="ability"/> as a fraction (0.10 = +10%), summing the
-    /// gear-derived seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier that
-    /// applies to it. Uncapped: each value is a term on the shared recovery pool
-    /// <see cref="SpellUsable.EffectiveRate"/> divides by. A <c>null</c> ability accrues only unscoped
-    /// modifiers. A Weapon ability accrues only the modifiers its own effects grant
-    /// (<see cref="CooldownModifier.Accelerates"/>).
+    /// The Cooldown Recovery attribute: it starts at 1, and the gear-derived seed frozen on
+    /// <see cref="CombatantStats"/> and every tracked runtime modifier join one <see cref="AttributeFold"/>,
+    /// each under its <see cref="CooldownModifier.Op"/>. <see cref="SpellUsable.EffectiveRate"/> reads it for
+    /// an ability whose time rate scales off Cooldown Recovery.
+    /// </summary>
+    public double CurrentCooldownRecovery => FoldCooldownRecovery(_cooldownRecovery);
+
+    /// <summary>
+    /// The Cooldown Recovery attribute from the gear-derived seed alone: the value in force at the pull
+    /// before any runtime modifier was tracked.
+    /// </summary>
+    public double StartingCooldownRecovery => FoldCooldownRecovery([]);
+
+    private double FoldCooldownRecovery(List<CooldownModifier> runtime)
+    {
+        var fold = new AttributeFold();
+        foreach (var modifier in Owner.SelectedCombatant.Stats.CooldownRecovery)
+            fold.Add(modifier.Op, modifier.Value);
+        foreach (var modifier in runtime)
+            fold.Add(modifier.Op, modifier.Value);
+        return fold.Apply(1.0);
+    }
+
+    /// <summary>
+    /// Total Cooldown Acceleration for <paramref name="ability"/>: the sum of every term of the gear-derived
+    /// seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier whose scope covers it.
+    /// Uncapped: each value is a term added to the recovery rate <see cref="SpellUsable.EffectiveRate"/>
+    /// divides by. A <c>null</c> ability accrues only unscoped modifiers.
     /// </summary>
     public double CurrentCooldownAcceleration(SpellbookAbility? ability) =>
         Owner.SelectedCombatant.Stats.CooldownAcceleration.AccelerationTotal(ability)
-            + _cooldownAcceleration.Where(modifier => modifier.Accelerates(ability)).Sum(modifier => modifier.Value);
+            + _cooldownAcceleration.Where(modifier => modifier.Covers(ability)).Sum(modifier => modifier.Value);
 
     /// <summary>
     /// Ability Cooldown Reduction for <paramref name="ability"/> from the gear-derived seed alone, capped
@@ -201,20 +225,28 @@ public sealed partial class StatTracker : Analyzer
 
     /// <summary>
     /// Scales a cooldown duration by <paramref name="ability"/>'s current Ability Cooldown Reduction: at
-    /// 10% ACR a 30s cooldown becomes 27s. It applies to a cooldown's duration when the cooldown starts, and
-    /// never to a flat cooldown reduction.
+    /// 10% ACR a 30s cooldown becomes 27s. It applies only when the ability's
+    /// <see cref="SpellbookAbility.CooldownScaling"/> has <c>DurationCooldownReduction</c>,
+    /// to a cooldown's duration when the cooldown starts, and never to a flat cooldown reduction.
     /// </summary>
     public int ScaleByCooldownReduction(SpellbookAbility? ability, int milliseconds) =>
-        (int)(milliseconds * (1.0 - CurrentAbilityCooldownReduction(ability)));
+        ability?.CooldownScaling is { DurationCooldownReduction: true }
+            ? (int)(milliseconds * (1.0 - CurrentAbilityCooldownReduction(ability)))
+            : milliseconds;
 
     /// <summary>
     /// Adds a runtime modifier to the given cooldown stat pool and fabricates a
     /// <see cref="ChangeCooldownModifierEvent"/> describing the change. The pool is mutated before the
-    /// event is fabricated so subscribers read the new totals. Pools are additive: each modifier
-    /// contributes its value rather than multiplying with the others.
+    /// event is fabricated so subscribers read the new totals. Ability Cooldown Reduction and Cooldown
+    /// Acceleration are additive: each modifier contributes its value rather than multiplying with the
+    /// others. Cooldown Recovery folds each modifier under its <see cref="CooldownModifier.Op"/>.
     /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="pool"/> is <see cref="CooldownPool.CooldownRecovery"/> and <paramref name="modifier"/> has a scope.</exception>
     public void AddCooldownModifier(CooldownPool pool, CooldownModifier modifier, Event? trigger = null, int? timestamp = null)
     {
+        if (pool == CooldownPool.CooldownRecovery && modifier.Scope is not null)
+            throw new ArgumentException("A Cooldown Recovery modifier takes no scope.", nameof(modifier));
+
         PoolOf(pool).Add(modifier);
         FabricateChangeCooldownModifier(pool, modifier, added: true, trigger, timestamp);
     }
@@ -234,6 +266,7 @@ public sealed partial class StatTracker : Analyzer
     private List<CooldownModifier> PoolOf(CooldownPool pool) => pool switch
     {
         CooldownPool.AbilityCooldownReduction => _abilityCooldownReduction,
+        CooldownPool.CooldownRecovery => _cooldownRecovery,
         CooldownPool.CooldownAcceleration => _cooldownAcceleration,
         _ => throw new ArgumentOutOfRangeException(nameof(pool), pool, null),
     };
@@ -554,6 +587,8 @@ public sealed partial class StatTracker : Analyzer
         {
             if (cooldownBuff.AbilityCooldownReduction is { } acr)
                 AddCooldownModifier(CooldownPool.AbilityCooldownReduction, acr, trigger);
+            if (cooldownBuff.CooldownRecovery is { } cdr)
+                AddCooldownModifier(CooldownPool.CooldownRecovery, cdr, trigger);
             if (cooldownBuff.CooldownAcceleration is { } cda)
                 AddCooldownModifier(CooldownPool.CooldownAcceleration, cda, trigger);
         }
@@ -578,6 +613,8 @@ public sealed partial class StatTracker : Analyzer
         {
             if (cooldownBuff.AbilityCooldownReduction is { } acr)
                 RemoveCooldownModifier(CooldownPool.AbilityCooldownReduction, acr, trigger);
+            if (cooldownBuff.CooldownRecovery is { } cdr)
+                RemoveCooldownModifier(CooldownPool.CooldownRecovery, cdr, trigger);
             if (cooldownBuff.CooldownAcceleration is { } cda)
                 RemoveCooldownModifier(CooldownPool.CooldownAcceleration, cda, trigger);
         }
@@ -736,9 +773,11 @@ public sealed class StatBuff
 /// </summary>
 /// <param name="AbilityCooldownReduction">Modifier added to the Ability Cooldown Reduction pool.</param>
 /// <param name="CooldownAcceleration">Modifier added to the Cooldown Acceleration pool.</param>
+/// <param name="CooldownRecovery">Unscoped modifier added to the Cooldown Recovery pool.</param>
 public sealed record CooldownBuff(
     CooldownModifier? AbilityCooldownReduction = null,
-    CooldownModifier? CooldownAcceleration = null);
+    CooldownModifier? CooldownAcceleration = null,
+    CooldownModifier? CooldownRecovery = null);
 
 /// <summary>
 /// Describes a multiplicative stat buff (e.g., 1.05 = +5%).

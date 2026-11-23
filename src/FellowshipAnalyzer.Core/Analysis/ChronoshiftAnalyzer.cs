@@ -7,10 +7,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds a
-/// Cooldown Acceleration term of 7.0 to the pool <see cref="StatTracker"/> tracks: Asha's Arcane Embrace
-/// multiplies Cooldown Recovery by 8, a term of <c>8 - 1</c> in the additive pool, taking an ability with
-/// no haste contribution to 8× recovery. Chronoshift is a Weapon ability and takes the term for its own
-/// cooldown too, as the modifier's <see cref="CooldownModifier.GrantedBy"/>. The channel lasts a fixed 3 seconds
+/// Cooldown Recovery modifier of 8.0 to the pool <see cref="StatTracker"/> tracks: Asha's Arcane Embrace
+/// multiplies Cooldown Recovery by 8, taking an ability whose time rate scales off Cooldown Recovery to 8×
+/// recovery. Chronoshift's own cooldown scales off Ability Cooldown Reduction alone, so it recovers at the
+/// normal rate and takes no bonus recovery. The channel lasts a fixed 3 seconds
 /// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early.
 /// <para>
 /// The window is driven by channel events. <see cref="OnBeginChannel"/> adds the modifier; where
@@ -25,12 +25,15 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [ActiveWhen<HasChronoshiftGear>]
 [After<SpellUsable>]
 public sealed partial class ChronoshiftAnalyzer(
+    Lazy<Abilities> abilities,
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    private const double AddedRecovery = 7.0;
+    private const double RecoveryMultiplier = 8.0;
 
-    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Items.Chronoshift };
+    private const double AddedRecovery = RecoveryMultiplier - 1.0;
+
+    private static readonly CooldownModifier AddedRecoveryModifier = new(RecoveryMultiplier);
 
     private static readonly int ChannelDurationMs = (int)TimeSpan.FromSeconds(Items.Chronoshift.ChannelDuration ?? 0).TotalMilliseconds;
 
@@ -47,8 +50,9 @@ public sealed partial class ChronoshiftAnalyzer(
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
     /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 7.0
-    /// produced beyond what the spell would have made over the same window without it. Because the pool
-    /// is additive, that extra is 7× the time on cooldown whatever the ability's haste contribution.
+    /// produced beyond what the spell would have made over the same window without it. Only an ability
+    /// whose time rate scales off Cooldown Recovery is credited, and its extra is 7× the time on cooldown
+    /// whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
@@ -68,7 +72,7 @@ public sealed partial class ChronoshiftAnalyzer(
         _scheduledEnd = e.Timestamp + ChannelDurationMs;
         _windows.Add(new ChronoshiftWindow(e.Timestamp, _scheduledEnd.Value));
 
-        _statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, e);
+        _statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, e);
 
         if (e.EndChannel is null)
             FabricateChannelEnd(e);
@@ -93,7 +97,8 @@ public sealed partial class ChronoshiftAnalyzer(
         if (!e.Added || !ReferenceEquals(e.Modifier, AddedRecoveryModifier) || _scheduledEnd is null) return;
 
         foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
-            _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
+            if (_abilities.GetAbility(spellId)?.CooldownScaling is { TimeRateCooldownRecovery: true })
+                _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
     }
 
     [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Items.Chronoshift))]
@@ -103,7 +108,7 @@ public sealed partial class ChronoshiftAnalyzer(
     {
         if (_scheduledEnd is not int scheduledEnd) return;
         var closeAt = Math.Min(timestamp, scheduledEnd);
-        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, trigger);
+        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, trigger);
 
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)

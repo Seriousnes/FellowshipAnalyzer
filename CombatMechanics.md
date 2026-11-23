@@ -151,28 +151,27 @@ A cooldown has an amount of **cooldown progress** left, which decreases at a **r
 
 **Duration at the start.** When a charge starts recharging, its duration in cooldown progress is
 
-- `D = C_base × (1 − ACR)`, then divided by `1 + h` when Haste scales the cooldown's duration (`CooldownHasteScaling.Duration`). Haste scales the duration of every Haste-scaled cooldown on an ability with one charge.
+- `D = C_base × (1 − ACR)` when the ability's `CooldownScaling` has `DurationCooldownReduction`, and `D = C_base` otherwise. `D` is then divided by `1 + h` when Haste scales the cooldown's duration (`CooldownHasteScaling.Duration`). Haste scales the duration of every Haste-scaled cooldown on an ability with one charge.
 
-Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts.
+Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts. A charged ability, an interrupt, a dispel and a relic ability take no Ability Cooldown Reduction, because the export gives their cooldowns no `DurationCooldownReduction`.
+
+**Cooldown Recovery attribute.** The attribute starts at 1 and folds each modifier of `CooldownPool.CooldownRecovery` by its operation, as the Haste attribute does:
+
+- `CR = (1 + Σ additive) × (1 + Σ (multiplicitive − 1)) × Π compound + Σ addFinal`
+
+Strand of Eternity (equipped legendary) is a `Multiplicitive` modifier of 1.1, Asha's Arcane Embrace (Chronoshift channel) of 8, and Glorious Purpose (Fated Strike) of 3. A Cooldown Recovery modifier is never scoped to abilities.
 
 **Recovery rate.** The cooldown progress left decreases at
 
-- `rate = 1 + h_rate + Σ acceleration`
+- `rate = CR_ability + Σ acceleration + h_rate`
 
-where `h_rate` is the current Haste when Haste scales the cooldown's time rate on an ability with more than one charge (`CooldownHasteScaling.TimeRate`), and 0 otherwise. A talent or legendary `ChargeGrant` that raises an ability to 2 or more charges moves its Haste to `h_rate`. Every Cooldown Acceleration source is one additive term in the same pool:
+where `CR_ability` is the Cooldown Recovery attribute when the ability's `CooldownScaling` has `TimeRateCooldownRecovery`, and 1 otherwise. `h_rate` is the current Haste when Haste scales the cooldown's time rate (`CooldownHasteScaling.TimeRate`), and 0 otherwise. A talent or legendary `ChargeGrant` that raises an ability to 2 or more charges moves its Haste to `h_rate`. Haste adds outside the Cooldown Recovery attribute. `Σ acceleration` is the sum of every `CooldownPool.CooldownAcceleration` term whose scope covers the ability. The Monarch gives MAJOR abilities a term of 3% / 5% / 8% / 12% by tier, plus `min(0.1 × h, 0.05)`.
 
-| Source | Modifier | Term |
-| --- | --- | --- |
-| Strand of Eternity (equipped legendary) | `CooldownRecovery` × 1.1 | +0.10 |
-| Chronoshift channel (Asha's Arcane Embrace) | `CooldownRecovery` × 8 | +7.0 |
-| Glorious Purpose (Fated Strike) | `CooldownRecovery` × 3 | +2.0 |
-| The Monarch (MAJOR abilities) | 3% / 5% / 8% / 12% by tier | +tier + min(0.1 × h, 0.05) |
+With Strand of Eternity and a Chronoshift channel, an ability that scales off Cooldown Recovery has `CR = 1 + 0.1 + 7 = 8.1`, so it recovers at 8.1×. With 20% time-rate Haste the rate is 8.3×.
 
-A `CooldownRecovery` multiplier of `m` is a term of `m − 1`. Haste on a time-rate cooldown is a term of the same sum, so Chronoshift takes a cooldown with 20% time-rate Haste to `1 + 0.2 + 7 = 8.2×`.
+The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any recovery term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. `SpellUsable.EffectiveRate` computes the rate.
 
-The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any acceleration term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. `SpellUsable.EffectiveRate` computes the rate.
-
-**Weapon abilities.** Every Weapon ability's cooldown takes no Cooldown Acceleration from Strand of Eternity, The Monarch or another ability's effect. Its recovery rate has only the Cooldown Acceleration and Cooldown Recovery terms its own effects grant (`CooldownModifier.GrantedBy`) and its own Haste scaling. Chronoshift recovers at 8× while Chronoshift is channelled. Fated Strike takes Glorious Purpose's +2.0. Haste scales Twilight Skybolt's cooldown time rate. No other Weapon ability has an effect granting either term. Ability Cooldown Reduction applies to every Weapon ability. Repository of Frozen Light's Frozen Light buff lasts 30 s. A Frozen Light removal at or after 30 s from its application is a flat reduction of 0.3 s on Repository of Frozen Light's cooldown for each stack still on the buff. A removal before 30 s reduces nothing.
+**Weapon abilities.** A Weapon ability's cooldown takes the terms its own `CooldownScaling` names, as every other ability's does. Chronoshift and Fated Strike scale their duration off Cooldown Reduction only, so each recovers its own cooldown at 1× while Chronoshift is channelled or Glorious Purpose is active, and takes no Strand of Eternity. Haste scales Twilight Skybolt's cooldown time rate. Repository of Frozen Light's Frozen Light buff lasts 30 s. A Frozen Light removal at or after 30 s from its application is a flat reduction of 0.3 s on Repository of Frozen Light's cooldown for each stack still on the buff. A removal before 30 s reduces nothing.
 
 **Flat reductions.** A flat reduction ("reduces the cooldown by 1.5 seconds") removes that much cooldown progress. Ability Cooldown Reduction does not scale it. While the cooldown recovers at `rate`, a reduction of `X` shortens the time left by `X ÷ rate`: a 1 s reduction is worth 0.5 s at 2×. A reduction larger than the progress left completes that charge, and the remainder reduces the next one; a reduction past the last charge is wasted. `SpellUsable.ReduceCooldown` reports the requested and the applied progress.
 
@@ -182,7 +181,7 @@ The real time left on a charge is `progress_left ÷ rate`. A change to Haste or 
 
 ### Legendary items
 
-A player wears one legendary item at a time, whatever its slot. Each hero has a legendary for the chest, head and legs slots, but only one is equipped. The equipped legendary grants Strand of Eternity's +10% Cooldown Acceleration.
+A player wears one legendary item at a time, whatever its slot. Each hero has a legendary for the chest, head and legs slots, but only one is equipped. The equipped legendary grants Strand of Eternity's Cooldown Recovery modifier of 1.1, which raises the attribute by 10%.
 
 ## Implementation Formulas for a Log Analyzer
 

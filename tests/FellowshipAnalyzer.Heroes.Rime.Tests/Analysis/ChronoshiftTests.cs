@@ -18,20 +18,19 @@ namespace FellowshipAnalyzer.Heroes.Rime.Tests.Analysis;
 
 /// <summary>
 /// Chronoshift is in Rime's spellbook with Asha's Chronoshift Spire equipped, so its cooldown is tracked and
-/// recovers 8 times as fast while it is channelled.
+/// recovers at the normal rate while it is channelled, because its own cooldown scales off Ability Cooldown
+/// Reduction alone.
 /// </summary>
 public sealed class ChronoshiftTests
 {
     private const int PlayerId = 7;
     private const int CastAt = 1_000;
     private const int ChannelAt = 2_000;
-    private const int ChannelMs = 3_000;
     private const int ReadAt = 20_000;
     private const int DungeonEnd = 30_000;
-    private const int AddedRecoveryMs = 7 * ChannelMs;
 
     [Fact]
-    public async Task WithAshasChronoshiftSpire_TracksTheCooldownAndAcceleratesItDuringTheChannel()
+    public async Task WithAshasChronoshiftSpire_TracksTheCooldownAtTheNormalRateDuringTheChannel()
     {
         var parser = await Run([new Item { Id = CoreItems.AshasChronoshiftSpire_Rime.Id }]);
 
@@ -40,11 +39,9 @@ public sealed class ChronoshiftTests
         spellUsable.RechargeDuration(CoreItems.Chronoshift.FSLID).ShouldBe(cooldownMs);
         ShouldBeNear(
             spellUsable.CooldownRemaining(CoreItems.Chronoshift.FSLID, ReadAt),
-            CastAt + cooldownMs - AddedRecoveryMs - ReadAt);
-        ShouldBeNear(
-            parser.GetModule<ChronoshiftAnalyzer>().ShouldNotBeNull().RecoveryByAbility
-                .Single(r => r.SpellId == CoreItems.Chronoshift.FSLID).RecoveredMs,
-            AddedRecoveryMs);
+            CastAt + cooldownMs - ReadAt);
+        parser.GetModule<ChronoshiftAnalyzer>().ShouldNotBeNull().RecoveryByAbility
+            .ShouldNotContain(r => r.SpellId == CoreItems.Chronoshift.FSLID);
     }
 
     [Fact]

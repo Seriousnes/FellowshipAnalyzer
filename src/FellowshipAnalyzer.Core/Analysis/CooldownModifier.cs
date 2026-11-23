@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 
 using OneOf;
@@ -29,24 +30,36 @@ public partial class CooldownScope : OneOfBase<Spell[], AbilityCategory[], Func<
 }
 
 /// <summary>
-/// The two cooldown stat pools <see cref="StatTracker"/> tracks: Ability Cooldown Reduction
-/// (<c>effective = base * (1 - acr)</c>, fixed at cast time) and Cooldown Acceleration (terms on the
-/// shared recovery pool <see cref="SpellUsable.EffectiveRate"/> divides by, dynamic semantics).
+/// The three cooldown pools <see cref="StatTracker"/> tracks: Ability Cooldown Reduction
+/// (<c>effective = base * (1 - acr)</c>, fixed at cast time), the Cooldown Recovery attribute and Cooldown
+/// Acceleration terms (both parts of the recovery rate <see cref="SpellUsable.EffectiveRate"/> divides by,
+/// dynamic semantics).
 /// </summary>
 public enum CooldownPool
 {
     /// <summary>A fraction fixed at cast time, applied as <c>effective = base * (1 - acr)</c>.</summary>
     AbilityCooldownReduction,
 
-    /// <summary>A dynamic term folded into the shared recovery rate that <see cref="SpellUsable.EffectiveRate"/> divides by.</summary>
+    /// <summary>
+    /// A modifier of the Cooldown Recovery attribute, which starts at 1 and folds each modifier under its
+    /// <see cref="CooldownModifier.Op"/>. The modifier is never scoped.
+    /// </summary>
+    CooldownRecovery,
+
+    /// <summary>A term added to the recovery rate of each ability the modifier's scope covers.</summary>
     CooldownAcceleration,
 }
 
 /// <summary>
-/// A single cooldown modifier: a fractional <paramref name="Value"/> applied within an optional
+/// A single cooldown modifier: a <paramref name="Value"/> applied within an optional
 /// <paramref name="Scope"/>.
 /// </summary>
-/// <param name="Value">The modifier magnitude as a fraction, where 0.10 means 10%.</param>
+/// <param name="Value">
+/// The modifier magnitude. For <see cref="CooldownPool.AbilityCooldownReduction"/> and
+/// <see cref="CooldownPool.CooldownAcceleration"/> a fraction, where 0.10 means 10%. For
+/// <see cref="CooldownPool.CooldownRecovery"/> the export's modifier value, where 8 multiplies the attribute's
+/// multiplicative factor by 8.
+/// </param>
 /// <param name="Scope">
 /// The abilities the modifier applies to, or <c>null</c> for an unscoped modifier that applies to every
 /// ability.
@@ -54,29 +67,14 @@ public enum CooldownPool
 public sealed record CooldownModifier(double Value, CooldownScope? Scope = null)
 {
     /// <summary>
-    /// The ability whose own effect grants the modifier, or <c>null</c> for a modifier no ability grants.
-    /// A Weapon ability's Cooldown Acceleration takes only the modifiers its own effects grant
-    /// (Chronoshift's 8× while channelling Chronoshift).
+    /// How a <see cref="CooldownPool.CooldownRecovery"/> modifier combines with the attribute's other terms.
+    /// The other pools do not read it.
     /// </summary>
-    public Spell? GrantedBy { get; init; }
+    public ModifierOp Op { get; init; } = ModifierOp.Multiplicitive;
 
     /// <summary>Whether the modifier's <see cref="Scope"/> covers <paramref name="ability"/>. An unscoped modifier covers every ability.</summary>
     public bool Covers(SpellbookAbility? ability) =>
         Scope is null || (ability is not null && Scope.Matches(ability));
-
-    /// <summary>
-    /// Whether the modifier is a term of <paramref name="ability"/>'s Cooldown Acceleration. A Weapon ability takes
-    /// only a modifier its own effect grants; every other ability takes the modifiers that
-    /// <see cref="Covers"/> it.
-    /// </summary>
-    public bool Accelerates(SpellbookAbility? ability) =>
-        ability?.AbilityCategory == AbilityCategory.Weapon
-            ? GrantedBy is { } grantedBy && IsOwnSpell(ability, grantedBy)
-            : Covers(ability);
-
-    private static bool IsOwnSpell(SpellbookAbility ability, Spell spell) =>
-        spell.FSLID.Equals(ability.PrimarySpell.FSLID)
-        || (ability.AdditionalSpells?.Any(additional => additional.FSLID.Equals(spell.FSLID)) ?? false);
 }
 
 /// <summary>
@@ -98,8 +96,8 @@ public sealed class CooldownModifierSet : List<CooldownModifier>
     public double Total(SpellbookAbility? ability) => this.Where(entry => entry.Covers(ability)).Sum(entry => entry.Value);
 
     /// <summary>
-    /// The summed Cooldown Acceleration for <paramref name="ability"/>: every entry that
-    /// <see cref="CooldownModifier.Accelerates"/> it.
+    /// The summed Cooldown Acceleration for <paramref name="ability"/>: every entry whose
+    /// <see cref="CooldownModifier.Covers"/> the ability.
     /// </summary>
-    public double AccelerationTotal(SpellbookAbility? ability) => this.Where(entry => entry.Accelerates(ability)).Sum(entry => entry.Value);
+    public double AccelerationTotal(SpellbookAbility? ability) => Total(ability);
 }

@@ -8,9 +8,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Models the cooldown recovery Glorious Purpose grants. The Fated Strike weapon's active applies the
-/// buff for the duration the log states, 6 seconds when it states none, taking cooldown recovery to 3× for an ability with no haste contribution,
-/// so it joins the pool <see cref="StatTracker"/> tracks as an added term of 2.0. Fated Strike is a Weapon
-/// ability and takes the term for its own cooldown too, as the modifier's <see cref="CooldownModifier.GrantedBy"/>.
+/// buff for the duration the log states, 6 seconds when it states none, multiplying Cooldown Recovery by 3,
+/// so it joins the pool <see cref="StatTracker"/> tracks as a modifier of 3.0. Fated Strike's own cooldown
+/// scales off Ability Cooldown Reduction alone, so it recovers at the normal rate and takes no bonus recovery.
 /// <para>
 /// The window is driven by buff events. <see cref="OnApply"/> and <see cref="OnRefresh"/> open it and add
 /// the modifier, and both fabricate a <see cref="RemoveBuffEvent"/> at the scheduled 6-second expiry so
@@ -23,12 +23,15 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 [After<SpellUsable>]
 public sealed partial class GloriousPurposeAnalyzer(
+    Lazy<Abilities> abilities,
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    private const double AddedRecovery = 2.0;
+    private const double RecoveryMultiplier = 3.0;
 
-    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery) { GrantedBy = Items.FatedStrike };
+    private const double AddedRecovery = RecoveryMultiplier - 1.0;
+
+    private static readonly CooldownModifier AddedRecoveryModifier = new(RecoveryMultiplier);
 
     private const int BuffDurationMs = 6000;
 
@@ -49,8 +52,9 @@ public sealed partial class GloriousPurposeAnalyzer(
     /// <summary>
     /// Bonus cooldown recovery Glorious Purpose granted to each ability over the encounter, in
     /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 200%
-    /// produced beyond what the spell would have made over the same window without it. Because the pool is
-    /// additive, that extra is 2× the time on cooldown whatever the ability's haste contribution.
+    /// produced beyond what the spell would have made over the same window without it. Only an ability
+    /// whose time rate scales off Cooldown Recovery is credited, and its extra is 2× the time on cooldown
+    /// whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
@@ -130,7 +134,7 @@ public sealed partial class GloriousPurposeAnalyzer(
         _scheduledEnd = buffEvent.ExpectedEnd ?? buffEvent.Timestamp + BuffDurationMs;
         _windows.Add(new GloriousPurposeWindow(buffEvent.Timestamp, _scheduledEnd.Value));
 
-        _statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, buffEvent);
+        _statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, buffEvent);
 
         FabricateExpiry(buffEvent);
     }
@@ -151,14 +155,15 @@ public sealed partial class GloriousPurposeAnalyzer(
         if (!e.Added || !ReferenceEquals(e.Modifier, AddedRecoveryModifier) || _scheduledEnd is null) return;
 
         foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
-            _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
+            if (_abilities.GetAbility(spellId)?.CooldownScaling is { TimeRateCooldownRecovery: true })
+                _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
     }
 
     private void CloseWindow(int timestamp, Event? trigger)
     {
         if (_scheduledEnd is not int scheduledEnd) return;
         var closeAt = Math.Min(timestamp, scheduledEnd);
-        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, trigger);
+        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, trigger);
 
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)

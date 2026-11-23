@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,52 @@ public sealed partial class StatTrackerCooldownTests
 
     private const int SpellB = 102;
     private const int CdSecondsB = 20;
+
+    internal static readonly Spell StandardSpell = new()
+    {
+        Id = 201,
+        Name = "Standard",
+        Cooldown = 30,
+        CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true },
+    };
+
+    internal static readonly Spell HastedSpell = new()
+    {
+        Id = 202,
+        Name = "Hasted",
+        Cooldown = 30,
+        CooldownScaling = new() { DurationCooldownReduction = true, DurationHaste = true, TimeRateCooldownRecovery = true },
+    };
+
+    internal static readonly Spell ChargedSpell = new()
+    {
+        Id = 203,
+        Name = "Charged",
+        Cooldown = 12,
+        Charges = 2,
+        CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
+    };
+
+    internal static readonly Spell StaticSpell = new() { Id = 204, Name = "Static", Cooldown = 16 };
+
+    internal static readonly Spell WeaponHastedSpell = new()
+    {
+        Id = 205,
+        Name = "Weapon Hasted",
+        Cooldown = 20,
+        Charges = 2,
+        AbilityCategory = AbilityCategory.Weapon,
+        CooldownScaling = new() { TimeRateHaste = true },
+    };
+
+    internal static readonly Spell WeaponStandardSpell = new()
+    {
+        Id = 206,
+        Name = "Weapon Standard",
+        Cooldown = 180,
+        AbilityCategory = AbilityCategory.Weapon,
+        CooldownScaling = new() { DurationCooldownReduction = true },
+    };
 
     /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), which is also Gems.Economy.Cap.</summary>
     private const int Rank10Power = 1500;
@@ -389,26 +436,232 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>
-    /// The two are distinct mechanics: ACR multiplies the base, recovery divides it. Chronoshift's 7.0
-    /// added recovery takes a non-hasted spell to 8×, so 10000 × (1 - 0.12) / 8 = 1100ms.
+    /// The two are distinct mechanics: ACR multiplies the base, recovery divides it. Chronoshift's Cooldown
+    /// Recovery of 8 takes a spell that scales off it to 8×, so 10000 × (1 - 0.12) / 8 = 1100ms.
     /// </summary>
     [Fact]
     public async Task AbilityCooldownReduction_ComposesWithCooldownRecovery()
     {
         var (statTracker, spellUsable, _) = await Run(emerald: Rank10Power);
 
-        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, new CooldownModifier(8.0), timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
         Assert.Equal(8800 / 8, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
+    private static async Task<(StatTracker StatTracker, SpellUsable SpellUsable)> RunScaling(
+        CooldownModifierSet? seed = null,
+        double acr = 0.0,
+        double haste = 0.0,
+        params (CooldownPool Pool, CooldownModifier Modifier)[] runtime)
+    {
+        var (statTracker, spellUsable, _) = await Run(events: [new DungeonStartEvent { Timestamp = 0 }], cooldownRecoverySeed: seed);
+        foreach (var (pool, modifier) in runtime)
+            statTracker.AddCooldownModifier(pool, modifier);
+        if (acr > 0.0)
+            statTracker.AddCooldownModifier(CooldownPool.AbilityCooldownReduction, new CooldownModifier(acr));
+        if (haste > 0.0)
+            statTracker.SetPassiveBonus(statTracker, new PassiveStatBonus { Haste = haste });
+        return (statTracker, spellUsable);
+    }
 
-    private static async Task<(StatTracker statTracker, SpellUsable spellUsable, TestParser parser)> Run(
+    private static (CooldownPool, CooldownModifier) Recovery(double value, ModifierOp op = ModifierOp.Multiplicitive) =>
+        (CooldownPool.CooldownRecovery, new CooldownModifier(value) { Op = op });
+
+    private static (CooldownPool, CooldownModifier) Acceleration(double value, Spell scope) =>
+        (CooldownPool.CooldownAcceleration, new CooldownModifier(value, new Spell[] { scope }));
+
+    private static CooldownModifierSet Seed(params CooldownModifier[] modifiers) => [.. modifiers];
+
+    [Fact]
+    public async Task Rate_WithNoModifier_IsOneForEveryAbility()
+    {
+        var (_, spellUsable) = await RunScaling();
+
+        foreach (var spell in new[] { StandardSpell, HastedSpell, ChargedSpell, StaticSpell, WeaponHastedSpell, WeaponStandardSpell })
+            Assert.Equal(1.0, spellUsable.EffectiveRate(spell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_SeedRecovery_AppliesToAnAbilityThatScalesOffIt()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)));
+
+        Assert.Equal(1.1, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+        Assert.Equal(1.0, spellUsable.EffectiveRate(StaticSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_SeedAndRuntimeRecovery_ShareOneMultiplicativeFactor()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Recovery(8.0)]);
+
+        Assert.Equal(8.1, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_CompoundRecovery_MultipliesTheFoldedAttribute()
+    {
+        var (_, spellUsable) = await RunScaling(
+            runtime: [Recovery(8.0), Recovery(3.0), Recovery(1.3, ModifierOp.MultiplyCompound)]);
+
+        Assert.Equal(13.0, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_SeedAndCompoundRecovery_MultiplyTheSeed()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Recovery(1.3, ModifierOp.MultiplyCompound)]);
+
+        Assert.Equal(1.43, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_HasteAddsOutsideTheRecoveryAttribute()
+    {
+        var (_, withSeed) = await RunScaling(
+            Seed(new CooldownModifier(1.1)), haste: 0.3, runtime: [Recovery(1.3, ModifierOp.MultiplyCompound)]);
+        var (_, withoutSeed) = await RunScaling(haste: 0.3, runtime: [Recovery(1.3, ModifierOp.MultiplyCompound)]);
+
+        Assert.Equal(1.73, withSeed.EffectiveRate(ChargedSpell.Id), precision: 6);
+        Assert.Equal(1.6, withoutSeed.EffectiveRate(ChargedSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_AddFinalRecovery_AddsAfterTheMultiplication()
+    {
+        var (_, spellUsable) = await RunScaling(
+            Seed(new CooldownModifier(1.1)), runtime: [Recovery(0.100002, ModifierOp.AddFinal)]);
+
+        Assert.Equal(1.200002, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_WeaponAbility_TakesOnlyWhatItsScalingNames()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), haste: 0.3, runtime: [Recovery(8.0)]);
+
+        Assert.Equal(1.3, spellUsable.EffectiveRate(WeaponHastedSpell.Id), precision: 6);
+        Assert.Equal(1.0, spellUsable.EffectiveRate(WeaponStandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_ScopedAcceleration_AddsToAnAbilityTheScalingDoesNotNameRecoveryFor()
+    {
+        var (_, spellUsable) = await RunScaling(
+            Seed(new CooldownModifier(1.1)), runtime: [Recovery(8.0), Acceleration(0.05, StaticSpell)]);
+
+        Assert.Equal(1.05, spellUsable.EffectiveRate(StaticSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_ScopedAcceleration_AddsOnlyToItsScope()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Acceleration(2.0, StandardSpell)]);
+
+        Assert.Equal(3.1, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+        Assert.Equal(1.1, spellUsable.EffectiveRate(HastedSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task Rate_ScopedAcceleration_WithNoSeed_LeavesAnotherAbilityAtOne()
+    {
+        var (_, spellUsable) = await RunScaling(runtime: [Acceleration(2.0, StandardSpell)]);
+
+        Assert.Equal(1.0, spellUsable.EffectiveRate(HastedSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task AddCooldownModifier_ScopedRecovery_Throws()
+    {
+        var (statTracker, _, _) = await Run();
+
+        Assert.Throws<ArgumentException>(() => statTracker.AddCooldownModifier(
+            CooldownPool.CooldownRecovery, new CooldownModifier(8.0, new Spell[] { StandardSpell })));
+    }
+
+    [Fact]
+    public async Task CooldownBuff_Recovery_JoinsAndLeavesTheAttribute()
+    {
+        var (statTracker, spellUsable, _) = await Run(
+            events: [CreateApplyBuff(1000, CooldownBuffId), CreateRemoveBuff(2000, CooldownBuffId)],
+            cooldownBuff: (CooldownBuffId, new CooldownBuff(CooldownRecovery: new CooldownModifier(3.0))));
+
+        Assert.Equal(1.0, statTracker.CurrentCooldownRecovery, precision: 6);
+
+        var (_, during, _) = await Run(
+            events: [CreateApplyBuff(1000, CooldownBuffId)],
+            cooldownBuff: (CooldownBuffId, new CooldownBuff(CooldownRecovery: new CooldownModifier(3.0))));
+
+        Assert.Equal(3.0, during.EffectiveRate(StandardSpell.Id), precision: 6);
+        Assert.Equal(1.0, spellUsable.EffectiveRate(StandardSpell.Id), precision: 6);
+    }
+
+    [Fact]
+    public async Task RuntimeRecovery_LeavesTheStartingAttributeAtTheSeed()
+    {
+        var (statTracker, _) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Recovery(8.0)]);
+
+        Assert.Equal(8.1, statTracker.CurrentCooldownRecovery, precision: 6);
+        Assert.Equal(1.1, statTracker.StartingCooldownRecovery, precision: 6);
+    }
+
+    [Fact]
+    public async Task Duration_HastedAbility_TakesAcrAndDurationHasteThenRecovery()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), acr: 0.10, haste: 0.2);
+
+        Assert.Equal(20454, spellUsable.RechargeDuration(HastedSpell.Id));
+    }
+
+    [Fact]
+    public async Task Duration_ChargedAbility_TakesNoAcrAndAddsHasteToTheRate()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), acr: 0.12, haste: 0.3);
+
+        Assert.Equal(8571, spellUsable.RechargeDuration(ChargedSpell.Id));
+    }
+
+    [Fact]
+    public async Task Duration_StaticAbility_KeepsItsBaseCooldown()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), acr: 0.12);
+
+        Assert.Equal(16_000, spellUsable.RechargeDuration(StaticSpell.Id));
+    }
+
+    [Fact]
+    public async Task Duration_WeaponAbility_TakesAcrWhenItsDurationScalesOffIt()
+    {
+        var (_, spellUsable) = await RunScaling(acr: 0.12);
+
+        Assert.Equal(158_400, spellUsable.RechargeDuration(WeaponStandardSpell.Id));
+    }
+
+    [Fact]
+    public async Task Duration_StandardAbility_TakesAcr()
+    {
+        var (_, spellUsable) = await RunScaling(acr: 0.12);
+
+        Assert.Equal(26_400, spellUsable.RechargeDuration(StandardSpell.Id));
+    }
+
+    [Fact]
+    public async Task Duration_StandardAbility_DividesByTheFoldedRecovery()
+    {
+        var (_, spellUsable) = await RunScaling(Seed(new CooldownModifier(1.1)), runtime: [Recovery(8.0)]);
+
+        Assert.Equal(3703, spellUsable.RechargeDuration(StandardSpell.Id));
+    }
+
+
+    internal static async Task<(StatTracker statTracker, SpellUsable spellUsable, TestParser parser)> Run(
         int emerald = 0,
         List<Event>? events = null,
         Action<CombatLogParser, ApplyBuffEvent>? onApplyBuff = null,
-        (int SpellId, CooldownBuff Buff)? cooldownBuff = null)
+        (int SpellId, CooldownBuff Buff)? cooldownBuff = null,
+        CooldownModifierSet? cooldownRecoverySeed = null)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -437,6 +690,7 @@ public sealed partial class StatTrackerCooldownTests
         {
             OnApplyBuff = onApplyBuff,
             CooldownBuff = cooldownBuff,
+            CooldownRecoverySeed = cooldownRecoverySeed,
         };
         await parser.Analyze(allEvents, PlayerId, dungeon: TestDungeon);
 
@@ -470,14 +724,21 @@ public sealed partial class StatTrackerCooldownTests
         Ability = new Ability { FSLID = abilityId, Name = $"Buff {abilityId}" },
     };
 
-    private sealed class TestParser(EventEmitter emitter, IServiceProvider provider, Type[] moduleTypes)
+    internal sealed class TestParser(EventEmitter emitter, IServiceProvider provider, Type[] moduleTypes)
         : CombatLogParser(emitter, provider)
     {
         public Action<CombatLogParser, ApplyBuffEvent>? OnApplyBuff { get; init; }
 
         public (int SpellId, CooldownBuff Buff)? CooldownBuff { get; init; }
 
+        public CooldownModifierSet? CooldownRecoverySeed { get; init; }
+
         protected override Type[] GetModuleTypes() => moduleTypes;
+
+        protected override FullCombatant CreateSelectedCombatant(CombatantInfoEvent info) =>
+            CooldownRecoverySeed is null
+                ? base.CreateSelectedCombatant(info)
+                : new FullCombatant(info) { Stats = new CombatantStats { CooldownRecovery = CooldownRecoverySeed } };
 
         protected override object? CreateInstance(Type type)
         {
@@ -499,14 +760,20 @@ public sealed partial class StatTrackerCooldownTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA },
+                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB, Charges = 2 },
+                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB, Charges = 2, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
+            new SpellbookAbility { PrimarySpell = StandardSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = HastedSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = ChargedSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = StaticSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = WeaponHastedSpell, Category = SpellCategory.Cooldowns },
+            new SpellbookAbility { PrimarySpell = WeaponStandardSpell, Category = SpellCategory.Cooldowns },
         ];
     }
 

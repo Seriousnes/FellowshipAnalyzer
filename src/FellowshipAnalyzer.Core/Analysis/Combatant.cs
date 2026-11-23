@@ -31,9 +31,10 @@ public sealed class FullCombatant : Combatant
     private const int EmptySlotItemId = 0;
     private const int LegendaryQuality = 6;
     /// <summary>
-    /// Strand of Eternity's Cooldown Acceleration, which the equipped legendary grants.
+    /// Strand of Eternity's Cooldown Recovery modifier, which the equipped legendary grants: the export's
+    /// value of 1.1 raises the attribute by 10%.
     /// </summary>
-    private const double StrandOfEternityAcceleration = 0.10;
+    private const double StrandOfEternityRecovery = 1.10;
     private const int BlessingTiers = 4;
 
     /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> from the given combatantinfo.</summary>
@@ -207,8 +208,8 @@ public sealed class FullCombatant : Combatant
         Spirit = info.Spirit,
         AbilityCooldownReduction =
             [new CooldownModifier(PassiveBonusTracker.BlessingOfTheCommanderReduction(info.Emerald))],
-        CooldownAcceleration = Legendary is not null
-            ? [new CooldownModifier(StrandOfEternityAcceleration)]
+        CooldownRecovery = Legendary is not null
+            ? [new CooldownModifier(StrandOfEternityRecovery)]
             : [],
     };
 }
@@ -260,7 +261,13 @@ public sealed record CombatantStats
     public CooldownModifierSet AbilityCooldownReduction { get; init; } = [];
 
     /// <summary>
-    /// Cooldown Acceleration modifiers, each a fraction (0.10 = +10%): terms on the shared recovery pool
+    /// Cooldown Recovery modifiers of the gear, each the export's modifier value (1.1 = +10%), unscoped:
+    /// <see cref="StatTracker.StartingCooldownRecovery"/> folds them over a base of 1.
+    /// </summary>
+    public CooldownModifierSet CooldownRecovery { get; init; } = [];
+
+    /// <summary>
+    /// Cooldown Acceleration modifiers, each a term (0.10 = +10%) added to the recovery rate
     /// <see cref="SpellUsable.EffectiveRate"/> divides by.
     /// </summary>
     public CooldownModifierSet CooldownAcceleration { get; init; } = [];

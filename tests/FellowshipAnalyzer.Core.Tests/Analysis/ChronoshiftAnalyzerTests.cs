@@ -15,15 +15,18 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="ChronoshiftAnalyzer"/>: the 8× Cooldown Recovery window (a 7.0 term on the pool, 8× for an ability with no
-/// haste contribution) is opened on the Chronoshift channel, bounded to 3 seconds (or an early
-/// <see cref="EndChannelEvent"/>), and the bonus cooldown recovery it grants is attributed per ability.
+/// Tests for <see cref="ChronoshiftAnalyzer"/>: the 8× Cooldown Recovery window (a modifier of 8 on the
+/// Cooldown Recovery attribute, 8× for an ability whose time rate scales off it) is opened on the Chronoshift
+/// channel, bounded to 3 seconds (or an early <see cref="EndChannelEvent"/>), and the bonus cooldown recovery
+/// it grants is attributed per ability.
 /// </summary>
-public sealed class ChronoshiftAnalyzerTests
+public sealed partial class ChronoshiftAnalyzerTests
 {
     private const int PlayerId = 7;
     private const int BigCdId = 500;
     private const int BigCdSeconds = 30;
+    private const int StaticCdId = 501;
+    private const int StaticCdSeconds = 20;
 
     private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
@@ -149,6 +152,54 @@ public sealed class ChronoshiftAnalyzerTests
         Assert.InRange(endCooldown.ExpectedRechargeDuration, 25_000, 31_000);
     }
 
+    [Fact]
+    public async Task AbilityScalingOffCooldownRecovery_RecoversAtEightTimesDuringTheChannel()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(5000, BigCdId),
+            BeginChannel(5000),
+            Filler(6000),
+        ]);
+
+        var rateChange = parser.Events
+            .OfType<UpdateSpellUsableEvent>()
+            .First(e => e.Ability.FSLID.Value == BigCdId && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
+
+        Assert.Equal(5000, rateChange.Timestamp);
+        Assert.Equal(5000 + 30_000 / 8, rateChange.ExpectedRechargeTimestamp);
+        Assert.Equal(8.0, parser.GetModule<RateProbe>()!.Rates[(6000, BigCdId)], precision: 6);
+    }
+
+    [Fact]
+    public async Task ChronoshiftOwnCooldown_RecoversAtTheNormalRateDuringTheChannel()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(5000, Items.Chronoshift.FSLID),
+            BeginChannel(5000),
+            Filler(6000),
+        ]);
+
+        Assert.Equal(1.0, parser.GetModule<RateProbe>()!.Rates[(6000, Items.Chronoshift.FSLID)], precision: 6);
+        Assert.Empty(parser.GetModule<ChronoshiftAnalyzer>()!.RecoveryByAbility);
+    }
+
+    [Fact]
+    public async Task AbilityNotScalingOffCooldownRecovery_GetsNoCreditForTheChannel()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000, BigCdId),
+            Cast(1000, StaticCdId),
+            BeginChannel(5000),
+            Filler(9000),
+        ]);
+
+        var recovery = Assert.Single(analyzer.RecoveryByAbility);
+        Assert.Equal(BigCdId, recovery.SpellId);
+    }
+
     private static async Task<ChronoshiftAnalyzer> Analyze(List<Event> events) =>
         (await AnalyzeParser(events)).GetModule<ChronoshiftAnalyzer>()!;
 
@@ -167,6 +218,7 @@ public sealed class ChronoshiftAnalyzerTests
             typeof(Haste),
             typeof(SpellUsable),
             typeof(ChronoshiftAnalyzer),
+            typeof(RateProbe),
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
@@ -213,6 +265,7 @@ public sealed class ChronoshiftAnalyzerTests
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(RateProbe)) return new RateProbe { RateOf = id => GetModule<SpellUsable>()!.EffectiveRate(id) };
             return base.CreateInstance(type);
         }
     }
@@ -223,9 +276,35 @@ public sealed class ChronoshiftAnalyzerTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = BigCdId, Name = "Big Cooldown", Cooldown = (double)BigCdSeconds },
+                PrimarySpell = new Spell
+                {
+                    Id = BigCdId,
+                    Name = "Big Cooldown",
+                    Cooldown = (double)BigCdSeconds,
+                    CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true },
+                },
                 Category = SpellCategory.Cooldowns,
             },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = StaticCdId, Name = "Static Cooldown", Cooldown = (double)StaticCdSeconds },
+                Category = SpellCategory.Cooldowns,
+            },
+            new SpellbookAbility { PrimarySpell = Items.Chronoshift, Category = SpellCategory.Cooldowns },
         ];
+    }
+
+    private sealed partial class RateProbe : Analyzer
+    {
+        public required Func<int, double> RateOf { get; init; }
+
+        public Dictionary<(int Timestamp, int SpellId), double> Rates { get; } = [];
+
+        [On<ApplyBuffEvent>(By = Actor.Player)]
+        private void OnBuff(ApplyBuffEvent e)
+        {
+            Rates[(e.Timestamp, BigCdId)] = RateOf(BigCdId);
+            Rates[(e.Timestamp, Items.Chronoshift.FSLID)] = RateOf(Items.Chronoshift.FSLID);
+        }
     }
 }

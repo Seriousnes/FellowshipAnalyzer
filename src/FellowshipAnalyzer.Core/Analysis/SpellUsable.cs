@@ -482,28 +482,27 @@ public partial class SpellUsable(
     }
 
     /// <summary>
-    /// The cooldown-speed multiplier for <paramref name="spellId"/>: <c>1 + CDA</c>, where the Cooldown
-    /// Acceleration pool sums the haste term (the player's haste when Haste enters the ability's time
-    /// rate, else 0) and the pool <see cref="StatTracker"/> tracks for this ability:
-    /// the gear-derived seed (today a legendary's unscoped Strand of Eternity) plus tracked runtime modifiers
-    /// such as Chronoshift, with scoped entries contributing only to the abilities they match. A Weapon
-    /// ability takes only the terms its own effects grant. Recovery and acceleration are one mechanic fed by
-    /// a single additive pool, so each source contributes a term rather than an independent factor: a
-    /// Cooldown Recovery multiplier of <c>m</c> adds <c>m - 1</c>, and a value of 8.0 means the spell's
-    /// cooldown elapses 8× faster. Unlike
-    /// Ability Cooldown Reduction, which <see cref="ReduceCooldown"/> and <see cref="BeginCooldown"/>
-    /// fix at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
+    /// The recovery rate of <paramref name="spellId"/>'s cooldown, the progress it makes per millisecond:
+    /// the sum of three terms. The first is <see cref="StatTracker.CurrentCooldownRecovery"/> when the
+    /// ability's <see cref="SpellbookAbility.CooldownScaling"/> has
+    /// <see cref="CooldownScaling.TimeRateCooldownRecovery"/>, and 1 otherwise. The second is
+    /// <see cref="StatTracker.CurrentCooldownAcceleration"/> for the ability. The third is the player's Haste
+    /// when Haste enters the ability's time rate, else 0, so Haste adds outside the Cooldown Recovery
+    /// attribute. Unlike Ability Cooldown Reduction, which <see cref="BeginCooldown"/> fixes at cast, the rate
+    /// is dynamic: a change to any term rescales the affected in-flight cooldowns.
     /// </summary>
-    public virtual double EffectiveRate(int spellId) =>
-        1.0 + HasteRecovery(spellId)
-            + _statTracker.CurrentCooldownAcceleration(_abilities.GetAbility(spellId));
-
-    private double HasteRecovery(int spellId) =>
-        _abilities.GetAbility(spellId)?.CooldownHaste == CooldownHasteScaling.TimeRate ? _haste.Current : 0.0;
+    public virtual double EffectiveRate(int spellId)
+    {
+        var ability = _abilities.GetAbility(spellId);
+        var recovery = ability?.CooldownScaling is { TimeRateCooldownRecovery: true } ? _statTracker.CurrentCooldownRecovery : 1.0;
+        var haste = ability?.CooldownHaste == CooldownHasteScaling.TimeRate ? _haste.Current : 0.0;
+        return recovery + _statTracker.CurrentCooldownAcceleration(ability) + haste;
+    }
 
     /// <summary>
     /// The milliseconds a cooldown starting now runs at <paramref name="rate"/>: the base after Ability
-    /// Cooldown Reduction, divided by <c>1 + haste</c> when Haste scales the duration, then by the rate.
+    /// Cooldown Reduction, where the ability's duration scales off it, divided by <c>1 + haste</c> when Haste
+    /// scales the duration, then by the rate.
     /// </summary>
     private int StartDuration(SpellbookAbility? ability, int baseDurationMs, double rate) =>
         (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs)
