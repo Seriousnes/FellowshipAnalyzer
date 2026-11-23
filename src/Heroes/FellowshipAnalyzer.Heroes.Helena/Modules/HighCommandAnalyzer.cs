@@ -16,7 +16,8 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 public sealed partial class HighCommandAnalyzer : Analyzer
 {
     /// <summary>The Hold the Line cooldown one Shields Up cast removes.</summary>
-    public const int HoldTheLineReductionMs = 6_000;
+    public static readonly int HoldTheLineReductionMs =
+        (int)(TalentTuning.HighCommand.CooldownReductionInSeconds * 1000);
 
     /// <summary>Shields Up casts across the dungeon.</summary>
     public int ShieldsUpCasts { get; private set; }

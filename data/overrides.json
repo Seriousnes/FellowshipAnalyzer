@@ -200,6 +200,9 @@
       "id": 3095,
       "kind": "effect"
     },
+    "VeteranOfWar": {
+      "id": 1537
+    },
     "SwordAndBoardBuff": {
       "id": 1242,
       "kind": "effect",

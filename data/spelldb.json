@@ -2504,6 +2504,12 @@
       "id": 1591,
       "name": "Unscarred Soul",
       "icon": "T_Warmaster_ShieldSlam"
+    },
+    "VeteranOfWar": {
+      "kind": "ability",
+      "id": 1537,
+      "name": "",
+      "icon": ""
     }
   },
   "mara": {
@@ -14086,6 +14092,23 @@
         "UnscarredSoul": {
           "MeleeCleaveAbsorbBuff.ReducedDamageReflectDamage.IncomingDamageDivider": 1.25,
           "StrengthCoefficient": 1
+        },
+        "VeteranOfWar": {
+          "ActiveUltimate": 2,
+          "BlockToIncreasedPower.CooldownReducementMultiplier": 2,
+          "SpiritProc": 2,
+          "Warmaster.CooldownReductionCombo.BouncyProjectile.MeleeAoeSlow": 3,
+          "Warmaster.CooldownReductionCombo.HeavyMelee.BouncyProjectile": 2,
+          "Warmaster.CooldownReductionCombo.HeavyMelee.MeleeCleave": 2,
+          "Warmaster.CooldownReductionCombo.LightMelee.BouncyProjectile": 2,
+          "Warmaster.CooldownReductionCombo.LightMelee.MeleeCleave": 2,
+          "Warmaster.CooldownReductionCombo.MeleeAoeSlow.DefenceBuff": 6,
+          "Warmaster.CooldownReductionCombo.MeleeCleave.MeleeAoeSlow": 3,
+          "Warmaster.CooldownReductionCombo.MoveToTargetStun.BouncyProjectile": 10,
+          "Warmaster.CooldownReductionCombo.MoveToTargetStun.DefenceBuff": 10,
+          "Warmaster.CooldownReductionCombo.MoveToTargetStun.MeleeAoeSlow": 10,
+          "Warmaster.CooldownReductionCombo.MoveToTargetStun.MeleeCleave": 10,
+          "Warmaster.SpiritProc.ResourceRefund.FlatSpiritPointGain": 1.2
         }
       },
       "talents": {

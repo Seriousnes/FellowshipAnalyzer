@@ -17,7 +17,8 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
     private int _hitsTaken;
     private int _hitsWithoutToughness;
 
-    public const double ToughnessFactor = 0.1;
+    public static readonly double ToughnessFactor =
+        TalentTuning.ShieldMastery.Warmaster_Toughness_Talent_BouncyProjectileDefensiveBuffCooldownReduction_Factor;
 
     public static List<int> Targets { get; } = [Spells.ShieldThrow.FSLID, Spells.ShieldsUp.FSLID];
 

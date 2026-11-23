@@ -308,8 +308,9 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.GetModule<HighCommandAnalyzer>().ShouldNotBeNull();
 
         analyzer.ShieldsUpCasts.ShouldBe(1);
-        analyzer.CooldownReduction.Total.ShouldBe(HighCommandAnalyzer.HoldTheLineReductionMs);
-        analyzer.CooldownReduction.Effective.ShouldBe(HighCommandAnalyzer.HoldTheLineReductionMs);
+        HighCommandAnalyzer.HoldTheLineReductionMs.ShouldBe(6_000);
+        analyzer.CooldownReduction.Total.ShouldBe(6_000);
+        analyzer.CooldownReduction.Effective.ShouldBe(6_000);
         HoldTheLineReadyAt(parser).ShouldBe(PullStart + 1_000 + 30_000 - 6_000);
     }
 

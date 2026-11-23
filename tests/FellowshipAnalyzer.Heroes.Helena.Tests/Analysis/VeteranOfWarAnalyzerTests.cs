@@ -143,6 +143,50 @@ public sealed class VeteranOfWarAnalyzerTests
     }
 
     [Fact]
+    public void TheScalers_ComeFromTheExportRows()
+    {
+        VeteranOfWar.ActiveUltimateScaler.ShouldBe(2.0);
+        VeteranOfWar.PunishingStrikesScaler.ShouldBe(2.0);
+        VeteranOfWar.PunishingStrikesStacksAtProc.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task AMeasuredStrikeWithShieldSlamOnCooldown_TakesFourSecondsOffIt()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            Cast(PullStart + 2_000, Spells.MeasuredStrike));
+
+        Pairing(analyzer, Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID)
+            .CooldownReduction.Total.ShouldBe(4_000);
+    }
+
+    [Fact]
+    public async Task AMeasuredStrikeUnderSiegebreaker_TakesEightSecondsOffShieldSlam()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            ApplyBuff(PullStart + 1_500, Spells.SiegebreakerBuff),
+            Cast(PullStart + 2_000, Spells.MeasuredStrike));
+
+        Pairing(analyzer, Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID)
+            .CooldownReduction.Total.ShouldBe(8_000);
+    }
+
+    [Fact]
+    public async Task AMeasuredStrikeUnderSiegebreakerAndAPunishingStrikesStack_TakesSixteenSecondsOffShieldSlam()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            ApplyBuff(PullStart + 1_500, Spells.SiegebreakerBuff),
+            ApplyBuff(PullStart + 1_600, Spells.PunishingStrikesBuff),
+            Cast(PullStart + 2_000, Spells.MeasuredStrike));
+
+        Pairing(analyzer, Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID)
+            .CooldownReduction.Total.ShouldBe(16_000);
+    }
+
+    [Fact]
     public async Task AHoldTheLineCast_RecordsHowLongEachTargetHadBeenAvailable()
     {
         var analyzer = await Analyze(
