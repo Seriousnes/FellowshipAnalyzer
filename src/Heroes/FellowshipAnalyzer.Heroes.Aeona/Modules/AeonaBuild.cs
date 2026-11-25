@@ -9,21 +9,21 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// </summary>
 /// <remarks>
 /// The base figures are the codex records: Entropy's Claim (ability 1876) lasts 6 s and casts in 1.5 s;
-/// Unfolding Doom (ability 1890) lasts 20 s; Converging Timelines (effect 3266) grants +100% Cooldown
-/// Acceleration. The legendary powers state their changes as text: Mass Entropy (power 620) adds a
-/// charge and 2 s; Chrono Trigger (power 618) sets Unfolding Doom to 15 s. Lonesome Song (power 619) adds
-/// Converging Timelines effect 2820, and <see cref="ConvergingTimelinesTracker"/> grants its own term.
+/// Unfolding Doom (ability 1890) lasts 20 s. Mass Entropy (power 620) adds the charge and duration of the
+/// Entropy's Claim <c>Charged</c> tuning rows; Chrono Trigger (power 618) sets Unfolding Doom to 15 s.
+/// Lonesome Song (power 619) adds Converging Timelines effect 2820, which
+/// <see cref="ConvergingTimelinesTracker"/> joins to the Cooldown Recovery attribute.
 /// </remarks>
 public sealed class AeonaBuild : Module
 {
     private const int BaseEntropyClaimDurationMs = 6_000;
-    private const int MassEntropyDurationBonusMs = 2_000;
-    private const int BaseEntropyClaimCharges = 1;
-    private const int MassEntropyCharges = 2;
-    private const int EntropyClaimCastMs = 1_500;
     private const int BaseUnfoldingDoomDurationMs = 20_000;
     private const int ChronoTriggerUnfoldingDoomDurationMs = 15_000;
-    private const double ConvergingTimelinesAcceleration = 1.0;
+
+    private static readonly int MassEntropyDurationBonusMs = (int)(SpellTuning.EntropyClaim.Charged_AdditionalDuration * 1000);
+    private static readonly int BaseEntropyClaimCharges = Spells.EntropyClaim.Charges;
+    private static readonly int MassEntropyCharges = (int)SpellTuning.EntropyClaim.Charged_MaxCharges;
+    private static readonly int EntropyClaimCastMs = (int)((Spells.EntropyClaim.CastDuration ?? 0) * 1000);
 
     /// <summary>Whether Mass Entropy is equipped.</summary>
     public bool MassEntropy => Owner.SelectedCombatant.HasLegendary(Legendaries.MassEntropy.Id);
@@ -45,10 +45,4 @@ public sealed class AeonaBuild : Module
 
     /// <summary>Duration of one Unfolding Doom application.</summary>
     public int UnfoldingDoomDurationMs => ChronoTrigger ? ChronoTriggerUnfoldingDoomDurationMs : BaseUnfoldingDoomDurationMs;
-
-    /// <summary>The Cooldown Acceleration an Oblivion cast grants through Converging Timelines.</summary>
-    public double ConvergingTimelinesOnOblivion => ConvergingTimelinesAcceleration;
-
-    /// <summary>The Cooldown Acceleration an Amend Fate or Restore Continuity cast grants through Converging Timelines.</summary>
-    public double ConvergingTimelinesOnCleanse => ConvergingTimelinesAcceleration;
 }

@@ -110,7 +110,7 @@ public sealed class HealingEfficiencyFoldingTests
                 PrimarySpell = new Spell { Id = CastSpell, Name = "Fluttercall: Heal" },
                 AdditionalSpells = [new Spell { Id = TickEffect, Name = "Fluttercall: Heal" }],
                 Category = SpellCategory.Rotational,
-                Gcd = StandardGcd,
+                Gcd = new GcdInfo { Base = 1500.0 },
             },
         ];
     }

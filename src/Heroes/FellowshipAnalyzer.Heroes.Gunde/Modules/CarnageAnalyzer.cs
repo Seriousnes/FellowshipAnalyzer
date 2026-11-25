@@ -12,7 +12,8 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 public partial class CarnageAnalyzer : Analyzer
 {
     private const int debounceMs = 100;
-    public const int CooldownReductionMs = 1000;
+    public static readonly int CooldownReductionMs =
+        (int)(TalentTuning.Carnage.Gunde_TargetedAoeProjectile_Talent_DamageCooldownReduction_CooldownReductionInSecondsPerHit * 1000);
     private int _lastSpin = 0;
 
     private readonly List<Core.Common.Spells.Spell> affectedSpells = [

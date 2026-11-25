@@ -5,23 +5,26 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// Cooldown Acceleration granted by Converging Timelines on the player, added to <see cref="StatTracker"/>'s pool while the buff is active.
+/// Cooldown Recovery granted by Converging Timelines on the player, joined to <see cref="StatTracker"/>'s Cooldown Recovery pool while the buff is active.
 /// </summary>
 /// <remarks>
-/// Converging Timelines is two effects. Effect 3266 takes its magnitude from the cast that applied it: Oblivion grants
-/// <see cref="AeonaBuild.ConvergingTimelinesOnOblivion"/>, a cleanse grants
-/// <see cref="AeonaBuild.ConvergingTimelinesOnCleanse"/>. Effect 2820 is applied by Lonesome Song's ability 2018 and
-/// multiplies Cooldown Recovery by 3, a term of <c>3 - 1</c> in the additive pool; it counts as an Oblivion application.
+/// Converging Timelines is two effects. Effect 3266 multiplies Cooldown Recovery by 2. Effect 2820 is applied by
+/// Lonesome Song's ability 2018, multiplies Cooldown Recovery by 3 and counts as an Oblivion application. Each
+/// effect joins the pool with the value and operation of its export modifier, so the effects reach only the
+/// cooldowns that scale off Cooldown Recovery.
 /// One Oblivion cast counts once in <see cref="Applications"/> and <see cref="OblivionApplications"/>, even when it
-/// grants both effects. Each effect has its own modifier, so the two terms add while both are active. A refresh inside a running window
-/// replaces that effect's modifier and extends the window.
+/// grants both effects. A refresh inside a running window replaces that effect's modifier and extends the window.
 /// </remarks>
 [Dependency<StatTracker>]
 [Dependency<AeonaBuild>]
 [Before<SpellUsable>]
 public sealed partial class ConvergingTimelinesTracker : Analyzer
 {
-    private const double LonesomeSongAcceleration = 3 - 1;
+    private static readonly CooldownModifier ConvergingTimelinesRecovery =
+        EffectModifierValue.CooldownRecoveryOf(Spells.ConvergingTimelines.Id);
+
+    private static readonly CooldownModifier LonesomeSongRecovery =
+        EffectModifierValue.CooldownRecoveryOf(Spells.ConvergingTimelinesLonesomeSong.Id);
 
     private readonly List<AuraWindow> _windows = [];
     private readonly Aura _convergingTimelines = new();
@@ -84,14 +87,13 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
         if (_lastCastWasOblivion) CountOblivion();
         else CountCleanse();
 
-        var magnitude = _lastCastWasOblivion ? AeonaBuild.ConvergingTimelinesOnOblivion : AeonaBuild.ConvergingTimelinesOnCleanse;
-        Grant(_convergingTimelines, magnitude, trigger);
+        Grant(_convergingTimelines, ConvergingTimelinesRecovery, trigger);
     }
 
     private void GrantLonesomeSong(Event trigger)
     {
         CountOblivion();
-        Grant(_lonesomeSong, LonesomeSongAcceleration, trigger);
+        Grant(_lonesomeSong, LonesomeSongRecovery, trigger);
     }
 
     private void CountOblivion()
@@ -109,12 +111,12 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
         CleanseApplications++;
     }
 
-    private void Grant(Aura aura, double magnitude, Event trigger)
+    private void Grant(Aura aura, CooldownModifier modifier, Event trigger)
     {
         Revoke(aura, trigger);
 
-        aura.Modifier = new CooldownModifier(magnitude);
-        StatTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, aura.Modifier, trigger, trigger.Timestamp);
+        aura.Modifier = modifier;
+        StatTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, modifier, trigger, trigger.Timestamp);
         aura.OpenedAt ??= trigger.Timestamp;
     }
 
@@ -132,7 +134,7 @@ public sealed partial class ConvergingTimelinesTracker : Analyzer
     {
         if (aura.Modifier is not { } active) return;
 
-        StatTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, active, trigger, trigger.Timestamp);
+        StatTracker.RemoveCooldownModifier(CooldownPool.CooldownRecovery, active, trigger, trigger.Timestamp);
         aura.Modifier = null;
     }
 

@@ -1,9 +1,12 @@
 @using static FellowshipAnalyzer.Core.Analysis.Changelog
 @using static FellowshipAnalyzer.Core.Analysis.Contributors
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@using Talents = FellowshipAnalyzer.Core.Common.Spells.Tariq.Talents
 
 @code {
     public static readonly List<ChangelogEntry> Entries =
     [
+        Change(new(2026, 11, 23), @<text><SpellLink Spell="Talents.KillEmAll" /> gives <SpellLink Spell="Spells.HeavyStrike" /> +160% Cooldown Acceleration. <SpellLink Spell="Spells.SkullCrusher" /> has a 1 second global cooldown Haste shortens, and <SpellLink Spell="Spells.CullingStrike" /> has none.</text>, Seriousnes),
         Change(new(2026, 10, 23), @<text>With Ace of Spades, Chain Lightning has 2 charges, and Haste is a term of its Cooldown Acceleration. While Kill Em All is active, Heavy Strike has +60% Cooldown Acceleration.</text>, Seriousnes),
         Change(new(2026, 10, 23), @<text>Updated for patch 0.5.0. Executioner's Grin analysis reads <ItemLink Item="@FellowshipAnalyzer.Core.Common.Spells.Tariq.Legendaries.ExecutionersGrin" />.</text>, Seriousnes),
         Change(new(2026, 8, 5), @<text>Initial update for S3.</text>, Seriousnes),

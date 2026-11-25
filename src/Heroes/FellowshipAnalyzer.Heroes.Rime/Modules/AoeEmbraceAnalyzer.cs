@@ -4,11 +4,14 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
 [ForPull(PullKind.Multi)]
-public sealed class AoeEmbraceAnalyzer : WintersEmbraceAnalyzer
+[Dependency<Haste>]
+public sealed partial class AoeEmbraceAnalyzer : WintersEmbraceAnalyzer
 {
     public const int RequiredAoeSpenders = 2;
 
     public const int RequiredColdSnaps = 1;
+
+    protected override double HasteNow => Haste.Current;
 
     protected override EmbraceWindowEvaluation EvaluateWindow(
         WindowCapture window,

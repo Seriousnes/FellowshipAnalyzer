@@ -34,6 +34,10 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string TexturesSharedAcrossRungsSection = "texturesSharedAcrossRungs";
     private const string DungeonsSection = "dungeons";
     private const string AugmentationsSection = "augmentations";
+    private const string EffectsSection = "effects";
+    private const string RatingCurvesSection = "ratingCurves";
+    private const string TuningSection = "tuning";
+    private const string GlyphsScope = "glyphs";
     private const string EntityTypeName = "Fellowship.SDK.EntityType";
     private const string ModifierKindName = "Fellowship.SDK.ModifierKind";
     private const string EventsNamespace = "FellowshipAnalyzer.Core.Events";
@@ -52,7 +56,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private static readonly HashSet<string> Sections = new(StringComparer.Ordinal)
     {
         TexturesSharedAcrossRungsSection, SchoolsSection, RaritiesSection, TalentsSection,
-        LegendariesSection, DungeonsSection, AugmentationsSection,
+        LegendariesSection, DungeonsSection, AugmentationsSection, EffectsSection, RatingCurvesSection,
+        TuningSection,
     };
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
@@ -311,6 +316,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         Dictionary<string, JsonValue>? legendaryHeroes = null;
         Dictionary<string, JsonValue>? dungeonEntries = null;
         Dictionary<string, JsonValue>? augmentationEntries = null;
+        Dictionary<string, JsonValue>? effectEntries = null;
+        Dictionary<string, JsonValue>? ratingCurveEntries = null;
+        Dictionary<string, JsonValue>? tuningEntries = null;
 
         foreach (var scopeName in SortedKeys(scopes))
         {
@@ -356,6 +364,24 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             if (string.Equals(scopeName, AugmentationsSection, StringComparison.Ordinal))
             {
                 augmentationEntries = scopeObj;
+                continue;
+            }
+
+            if (string.Equals(scopeName, EffectsSection, StringComparison.Ordinal))
+            {
+                effectEntries = scopeObj;
+                continue;
+            }
+
+            if (string.Equals(scopeName, RatingCurvesSection, StringComparison.Ordinal))
+            {
+                ratingCurveEntries = scopeObj;
+                continue;
+            }
+
+            if (string.Equals(scopeName, TuningSection, StringComparison.Ordinal))
+            {
+                tuningEntries = scopeObj;
                 continue;
             }
 
@@ -436,11 +462,172 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             && compilation.GetTypeByMetadataName(ModifierKindName) is { } modifierKind)
             EmitAugmentations(spc, augmentationEntries, entityType, modifierKind);
 
+        EmitEffectData(spc, effectEntries ?? []);
+        EmitRatingCurves(spc, ratingCurveEntries ?? []);
+
+        if (tuningEntries is not null)
+            EmitTuning(spc, tuningEntries, centralNamespace);
+
         if (talentHeroes is not null)
             EmitTalents(spc, talentHeroes, kindTypes["talent"], schema, heroNames);
 
         if (legendaryHeroes is not null)
             EmitLegendaries(spc, legendaryHeroes, heroNames);
+    }
+
+    private static readonly (string Container, string ClassName, string Subject)[] TuningClasses =
+    [
+        ("spells", "SpellTuning", "spells"),
+        ("talents", "TalentTuning", "talents"),
+        ("legendaries", "LegendaryTuning", "legendary powers"),
+    ];
+
+    /// <summary>
+    /// Emits one <c>static</c> class per tuning container of each scope, with one nested <c>static</c> class per
+    /// member and one constant per numeric tuning row. A row whose generated identifier repeats within its
+    /// member, or equals the member name, is left out.
+    /// </summary>
+    private static void EmitTuning(
+        SourceProductionContext spc,
+        Dictionary<string, JsonValue> scopes,
+        string centralNamespace)
+    {
+        foreach (var scopeName in SortedKeys(scopes))
+        {
+            if (scopes[scopeName].Object is not { } containers)
+                continue;
+
+            if (string.Equals(scopeName, GlyphsScope, StringComparison.Ordinal))
+            {
+                if (containers.TryGetValue("glyphs", out var glyphs) && glyphs.Object is { } glyphMembers)
+                    EmitTuningClass(spc, GameNamespace, "GlyphTuning", "glyphs", glyphMembers);
+                continue;
+            }
+
+            string ns;
+            string subjectOwner;
+            var isHero = false;
+            if (string.Equals(scopeName, SharedScope, StringComparison.Ordinal))
+            {
+                ns = centralNamespace;
+                subjectOwner = "the shared scope";
+            }
+            else if (string.Equals(scopeName, ItemsScope, StringComparison.Ordinal))
+            {
+                ns = ItemsNamespace;
+                subjectOwner = "items";
+            }
+            else if (IsValidIdentifierSeed(scopeName))
+            {
+                ns = SpellsNamespace + "." + Pascal(scopeName);
+                subjectOwner = Pascal(scopeName);
+                isHero = true;
+            }
+            else
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(UnknownScopeDescriptor, Location.None, scopeName));
+                continue;
+            }
+
+            foreach (var (container, className, subject) in TuningClasses)
+            {
+                if (!isHero && container != "spells")
+                    continue;
+
+                if (containers.TryGetValue(container, out var members) && members.Object is { } memberRows)
+                    EmitTuningClass(spc, ns, className, subjectOwner + "'s " + subject, memberRows);
+            }
+        }
+    }
+
+    private static void EmitTuningClass(
+        SourceProductionContext spc,
+        string ns,
+        string className,
+        string description,
+        Dictionary<string, JsonValue> members)
+    {
+        var body = new StringBuilder();
+
+        foreach (var memberName in SortedKeys(members))
+        {
+            if (!IsValidIdentifierSeed(memberName) || members[memberName].Object is not { } rows)
+                continue;
+
+            var constants = new StringBuilder();
+            var identifiers = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var key in rows.Keys)
+            {
+                var identifier = TuningIdentifier(key);
+                identifiers[identifier] = identifiers.TryGetValue(identifier, out var count) ? count + 1 : 1;
+            }
+
+            foreach (var key in SortedKeys(rows))
+            {
+                var identifier = TuningIdentifier(key);
+                if (identifier.Length == 0 || identifiers[identifier] > 1 || identifier == memberName)
+                    continue;
+
+                var name = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None ? "@" + identifier : identifier;
+                var summary = "        /// <summary>Tuning row <c>" + XmlEscape(key) + "</c>.</summary>";
+
+                if (rows[key].Number is { } number)
+                {
+                    constants.AppendLine(summary);
+                    constants.AppendLine("        public const double " + name + " = " + Fmt(number) + ";");
+                }
+                else if (rows[key].Array is { Count: > 0 } array && array.TrueForAll(item => item.Number is not null))
+                {
+                    constants.AppendLine(summary);
+                    constants.AppendLine("        public static global::System.ReadOnlySpan<double> " + name + " => ["
+                        + string.Join(", ", array.Select(item => Fmt(item.Number!.Value))) + "];");
+                }
+            }
+
+            if (constants.Length == 0)
+                continue;
+
+            body.AppendLine("    /// <summary>Tuning values of <c>" + memberName + "</c>.</summary>");
+            body.AppendLine("    public static class " + (SyntaxFacts.GetKeywordKind(memberName) != SyntaxKind.None ? "@" + memberName : memberName));
+            body.AppendLine("    {");
+            body.Append(constants);
+            body.AppendLine("    }");
+            body.AppendLine();
+        }
+
+        if (body.Length == 0)
+            return;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("// <auto-generated />");
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + ns + ";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>Numeric tuning values of " + XmlEscape(description) + ", generated from <c>data/spelldb.json</c>.</summary>");
+        sb.AppendLine("public static class " + className);
+        sb.AppendLine("{");
+        sb.Append(body.ToString().TrimEnd('\r', '\n'));
+        sb.AppendLine();
+        sb.AppendLine("}");
+
+        spc.AddSource(HintName(ns, className), sb.ToString());
+    }
+
+    private static string TuningIdentifier(string key)
+    {
+        var sb = new StringBuilder(key.Length + 1);
+        foreach (var c in key)
+        {
+            if (c == '.')
+                sb.Append('_');
+            else if (c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_')
+                sb.Append(c);
+        }
+
+        if (sb.Length > 0 && sb[0] >= '0' && sb[0] <= '9')
+            sb.Insert(0, '_');
+        return sb.ToString();
     }
 
     /// <summary>
@@ -549,6 +736,207 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         spc.AddSource(HintName(GameNamespace, "Augmentations"), sb.ToString());
+    }
+
+    /// <summary>
+    /// Emits the effect id → Haste, Haste rating, Cooldown Recovery and Cooldown Reduction modifiers,
+    /// duration, maximum stacks and Cooldown Acceleration lookups, as switches over the native effect id.
+    /// </summary>
+    private static void EmitEffectData(SourceProductionContext spc, Dictionary<string, JsonValue> entries)
+    {
+        var effects = new List<(int Id, Dictionary<string, JsonValue> Entry)>();
+        foreach (var key in entries.Keys)
+            if (int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && entries[key].Object is { } entry)
+                effects.Add((id, entry));
+        effects.Sort((left, right) => left.Id.CompareTo(right.Id));
+
+        var members = new StringBuilder();
+        var modifierArms = new StringBuilder();
+        var durationArms = new StringBuilder();
+        var stackArms = new StringBuilder();
+        var accelerationArms = new StringBuilder();
+        var ids = new List<string>();
+
+        foreach (var (id, entry) in effects)
+        {
+            var number = id.ToString(CultureInfo.InvariantCulture);
+            ids.Add(number);
+
+            if (entry.TryGetValue("modifiers", out var modifiersValue) && modifiersValue.Array is { Count: > 0 } modifiers)
+            {
+                var items = new List<string>();
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.Object is not { } values
+                        || !values.TryGetValue("attribute", out var attribute) || attribute.String is not { } attributeName
+                        || !values.TryGetValue("op", out var op) || op.String is not { } opName
+                        || !IsValidIdentifierSeed(attributeName) || !IsValidIdentifierSeed(opName))
+                        continue;
+
+                    var value = values.TryGetValue("value", out var valueNode) && valueNode.Number is { } valueNumber ? Fmt(valueNumber) : "null";
+                    var coefficient = values.TryGetValue("coefficient", out var coefficientNode) && coefficientNode.Number is { } coefficientNumber ? Fmt(coefficientNumber) : "null";
+                    var ranks = "null";
+                    if (values.TryGetValue("ranks", out var ranksNode) && ranksNode.Array is { Count: > 0 } rankList)
+                        ranks = "new double[] { " + string.Join(", ", rankList.Where(rank => rank.Number is not null).Select(rank => Fmt(rank.Number!.Value))) + " }";
+
+                    items.Add("new AttributeModifier(StatAttribute." + attributeName + ", ModifierOp." + opName + ", " + value + ", " + ranks + ", " + coefficient + ")");
+                }
+
+                if (items.Count > 0)
+                {
+                    members.AppendLine("    private static readonly AttributeModifier[] Modifiers" + number + " = [" + string.Join(", ", items) + "];");
+                    modifierArms.AppendLine("            case " + number + ": return Modifiers" + number + ";");
+                }
+            }
+
+            if (entry.TryGetValue("duration", out var durationValue) && durationValue.Number is { } duration)
+                durationArms.AppendLine("        " + number + " => " + Fmt(duration) + ",");
+
+            if (entry.TryGetValue("maxStacks", out var stacksValue) && stacksValue.Number is { } stacks)
+                stackArms.AppendLine("        " + number + " => " + ((int)Math.Round(stacks)).ToString(CultureInfo.InvariantCulture) + ",");
+
+            if (entry.TryGetValue("cooldownAccelerations", out var accelerationsValue) && accelerationsValue.Array is { Count: > 0 } accelerations)
+            {
+                var items = new List<string>();
+                foreach (var acceleration in accelerations)
+                {
+                    if (acceleration.Object is { } change
+                        && change.TryGetValue("ability", out var ability) && ability.Number is { } abilityId
+                        && change.TryGetValue("value", out var changeValue) && changeValue.Number is { } changeNumber)
+                        items.Add("new CooldownAccelerationChange(" + ((int)Math.Round(abilityId)).ToString(CultureInfo.InvariantCulture) + ", " + Fmt(changeNumber) + ")");
+                }
+
+                if (items.Count > 0)
+                {
+                    members.AppendLine("    private static readonly CooldownAccelerationChange[] Accelerations" + number + " = [" + string.Join(", ", items) + "];");
+                    accelerationArms.AppendLine("            case " + number + ": return Accelerations" + number + ";");
+                }
+            }
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("// <auto-generated />");
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + GameNamespace + ";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine("/// Each effect's Haste, Haste rating, Cooldown Recovery and Cooldown Reduction modifiers, duration,");
+        sb.AppendLine("/// maximum stacks and Cooldown Acceleration changes, generated from <c>data/spelldb.json</c> and keyed by");
+        sb.AppendLine("/// the effect's native id, which has no million-range offset.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine("public static class EffectData");
+        sb.AppendLine("{");
+        sb.Append(members);
+        sb.AppendLine("    private static readonly int[] Ids = [" + string.Join(", ", ids) + "];");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>Every effect id the data covers, in ascending order.</summary>");
+        sb.AppendLine("    public static global::System.ReadOnlySpan<int> EffectIds => Ids;");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// The Haste, Haste rating, Cooldown Recovery and Cooldown Reduction modifiers of the effect at");
+        sb.AppendLine("    /// <paramref name=\"effectId\"/>; empty when the effect has none.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static global::System.ReadOnlySpan<AttributeModifier> ModifiersOf(int effectId)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        switch (effectId)");
+        sb.AppendLine("        {");
+        sb.Append(modifierArms);
+        sb.AppendLine("            default: return default;");
+        sb.AppendLine("        }");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// The duration in seconds of the effect at <paramref name=\"effectId\"/>, or <see langword=\"null\"/>");
+        sb.AppendLine("    /// when the effect has no duration.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static double? DurationOf(int effectId) => effectId switch");
+        sb.AppendLine("    {");
+        sb.Append(durationArms);
+        sb.AppendLine("        _ => null,");
+        sb.AppendLine("    };");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// The maximum stacks of the effect at <paramref name=\"effectId\"/>, or <see langword=\"null\"/> when");
+        sb.AppendLine("    /// the effect has one stack.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static int? MaxStacksOf(int effectId) => effectId switch");
+        sb.AppendLine("    {");
+        sb.Append(stackArms);
+        sb.AppendLine("        _ => null,");
+        sb.AppendLine("    };");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// The Cooldown Acceleration the effect at <paramref name=\"effectId\"/> gives named abilities; empty when");
+        sb.AppendLine("    /// the effect gives none.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static global::System.ReadOnlySpan<CooldownAccelerationChange> CooldownAccelerationsOf(int effectId)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        switch (effectId)");
+        sb.AppendLine("        {");
+        sb.Append(accelerationArms);
+        sb.AppendLine("            default: return default;");
+        sb.AppendLine("        }");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+
+        spc.AddSource(HintName(GameNamespace, "EffectData"), sb.ToString());
+    }
+
+    /// <summary>
+    /// Emits the rating curve of each secondary stat as one <see langword="static"/> <see langword="readonly"/>
+    /// instance. A stat the section does not state reads as a curve with no rating conversion.
+    /// </summary>
+    private static void EmitRatingCurves(SourceProductionContext spc, Dictionary<string, JsonValue> entries)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("// <auto-generated />");
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + GameNamespace + ";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine("/// The rating curve of each secondary stat, generated from <c>data/spelldb.json</c>.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine("public static class RatingCurves");
+        sb.AppendLine("{");
+
+        var stats = new[] { ("CritChance", "Critical Strike"), ("Haste", "Haste"), ("Expertise", "Expertise"), ("Spirit", "Spirit") };
+        for (var index = 0; index < stats.Length; index++)
+        {
+            var (stat, display) = stats[index];
+            var baseMultiplier = "0";
+            var finalPenalty = "0";
+            var brackets = new List<string>();
+
+            if (entries.TryGetValue(stat, out var curveValue) && curveValue.Object is { } curve)
+            {
+                if (curve.TryGetValue("baseStatMultiplier", out var multiplier) && multiplier.Number is { } multiplierNumber)
+                    baseMultiplier = Fmt(multiplierNumber);
+                if (curve.TryGetValue("finalPenaltyPercentage", out var penalty) && penalty.Number is { } penaltyNumber)
+                    finalPenalty = Fmt(penaltyNumber);
+                if (curve.TryGetValue("brackets", out var bracketsValue) && bracketsValue.Array is { } bracketList)
+                {
+                    foreach (var bracket in bracketList)
+                    {
+                        if (bracket.Object is { } fields
+                            && fields.TryGetValue("maxBracketValue", out var max) && max.Number is { } maxNumber
+                            && fields.TryGetValue("penaltyPercentage", out var bracketPenalty) && bracketPenalty.Number is { } bracketPenaltyNumber)
+                            brackets.Add("(" + Fmt(maxNumber) + ", " + Fmt(bracketPenaltyNumber) + ")");
+                    }
+                }
+            }
+
+            if (index > 0)
+                sb.AppendLine();
+            sb.AppendLine("    /// <summary>The rating curve of " + display + ".</summary>");
+            sb.AppendLine("    public static RatingCurve " + stat + " { get; } = new("
+                + baseMultiplier + ", [" + string.Join(", ", brackets) + "], " + finalPenalty + ");");
+        }
+
+        sb.AppendLine("}");
+
+        spc.AddSource(HintName(GameNamespace, "RatingCurves"), sb.ToString());
     }
 
     /// <summary>
@@ -868,8 +1256,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// The settable scalar and enum properties of a record in the spells namespace, so a spell entry can
-    /// state the record as a nested object. A record with a property of another shape is not one.
+    /// The settable scalar, enum and nested record properties of a record in the spells namespace, so a
+    /// spell entry can state the record as a nested object. A record with a property of another shape is not one.
     /// </summary>
     private static bool TryClassifyRecord(ITypeSymbol type, out string recordGlobalName, out List<ScalarProp> members)
     {
@@ -888,6 +1276,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 members.Add(new ScalarProp(p.Name, key, kind));
             else if (TryClassifyEnum(p.Type, out var enumGlobal, out var enumMembers))
                 members.Add(new ScalarProp(p.Name, key, ScalarKind.Enum, enumGlobal, enumMembers));
+            else if (TryClassifyRecord(p.Type, out var nestedGlobal, out var nestedMembers))
+                members.Add(new ScalarProp(p.Name, key, ScalarKind.Record, nestedGlobal, RecordMembers: nestedMembers));
             else
                 return false;
         }

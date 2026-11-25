@@ -15,9 +15,6 @@ public static class Costs
         if (ability.Cost is not { } cost || ability.Resource is not { } resource)
             return None;
 
-        if (ability.CostIsFraction)
-            return None;
-
         if (!ResourceTypesAliases.TryResolve(resource, out var slot))
         {
             gaps.Add(new Gap(scope, member, GapKind.UnknownResource));

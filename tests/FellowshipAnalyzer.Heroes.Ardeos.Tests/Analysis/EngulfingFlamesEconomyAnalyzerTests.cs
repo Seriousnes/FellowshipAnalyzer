@@ -195,6 +195,22 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     }
 
     [Fact]
+    public async Task EngulfingFlames_WithTwelvePercentAbilityCooldownReduction_RechargesInTwentySeconds()
+    {
+        var events = new List<Event>
+        {
+            CombatantWithEmerald(1500),
+            Cast(Spells.EngulfingFlames.FSLID, 0),
+            Cast(Spells.EngulfingFlames.FSLID, 100),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 100000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        parser.SpellUsable!.RechargeDurationDuring(Spells.EngulfingFlames.Id, analyzer.Pull).ShouldBe(20_000);
+    }
+
+    [Fact]
     public async Task NoWildfireWindows_EvaluatesNothing()
     {
         var (parser, _) = await AnalyzeAsync([], SpanningDungeon(0, 15000));

@@ -66,4 +66,11 @@ public sealed class CooldownReductionTests
         EarthbourneAnalyzer.ReductionMs.ShouldBe(36_000);
         analyzer.Reduction.Effective.ShouldBe(36_000);
     }
+
+    [Fact]
+    public void ReductionConstants_ReadTheGeneratedTuning()
+    {
+        GuardiansFluidityAnalyzer.ReductionMs.ShouldBe(1_000);
+        EarthbourneAnalyzer.ReductionShare.ShouldBe(0.2);
+    }
 }

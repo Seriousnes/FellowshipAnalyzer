@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -18,28 +19,23 @@ public sealed partial class TheMonarchAnalyzer : Analyzer
     /// <summary>The blessing's name, which identifies it across the gear slots it can be slotted into.</summary>
     public const string Blessing = "The Monarch";
 
-    private const double AccelerationPerHaste = 0.1;
-    private const double HasteAccelerationCap = 0.05;
-
     private CooldownModifier? _modifier;
 
     /// <summary>
     /// The Cooldown Acceleration the blessing gives MAJOR abilities at <paramref name="haste"/>, or 0 when the
     /// player has no tier of it.
     /// </summary>
-    public double AccelerationAt(double haste) =>
-        TierAcceleration is var tier and > 0
-            ? tier + Math.Min(Math.Max(haste, 0.0) * AccelerationPerHaste, HasteAccelerationCap)
-            : 0.0;
-
-    private double TierAcceleration => Owner.SelectedCombatant.BlessingLevel(Blessing) switch
+    public double AccelerationAt(double haste)
     {
-        1 => 0.03,
-        2 => 0.05,
-        3 => 0.08,
-        >= 4 => 0.12,
-        _ => 0.0,
-    };
+        var tier = Owner.SelectedCombatant.BlessingLevel(Blessing);
+        if (tier <= 0) return 0.0;
+
+        var perHaste = ByTier(GlyphTuning.TheMonarch.BonusIncreasePerHasteInPercentage, tier);
+        var cap = perHaste * ByTier(GlyphTuning.TheMonarch.HasteThreshold, tier);
+        return ByTier(GlyphTuning.TheMonarch.CooldownAcceleration, tier) + Math.Min(Math.Max(haste, 0.0) * perHaste, cap);
+    }
+
+    private static double ByTier(ReadOnlySpan<double> values, int tier) => values[Math.Min(tier, values.Length) - 1];
 
     [On<DungeonStartEvent>]
     private void OnDungeonStart(DungeonStartEvent e) => Refresh(Haste.Current, e);

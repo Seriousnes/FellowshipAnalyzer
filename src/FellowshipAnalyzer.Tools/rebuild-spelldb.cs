@@ -12,7 +12,7 @@ File.WriteAllText(SourcePaths.SpellDb, json);
 var writtenSpells = result.Spells.Count(s => MemberNaming.IsValidIdentifier(s.Member));
 var writtenTalents = result.Talents.Count(t => MemberNaming.IsValidIdentifier(t.Member));
 var skippedCount = result.Spells.Count + result.Talents.Count - writtenSpells - writtenTalents;
-Console.WriteLine($"Wrote {writtenSpells} spells and {writtenTalents} talents to {SourcePaths.SpellDb} ({result.Gaps.Count} gap(s); {skippedCount} skipped).");
+Console.WriteLine($"Wrote {writtenSpells} spells, {writtenTalents} talents, {result.EffectData.Count} effects, {result.RatingCurves.Count} rating curves and {result.Tuning.Count} tuning rows to {SourcePaths.SpellDb} ({result.Gaps.Count} gap(s); {skippedCount} skipped).");
 
 foreach (var (section, entries) in new (string Section, List<CuratedSpell> Entries)[]
          {

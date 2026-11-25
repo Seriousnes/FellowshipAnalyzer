@@ -39,6 +39,15 @@ public static class SpellDbWriter
     /// <summary>The top-level key holding the augmentation id → type and modifier slot map, which is not a spell scope.</summary>
     public const string AugmentationsSection = "augmentations";
 
+    /// <summary>The top-level key holding the effect id → modifiers, duration and Cooldown Acceleration map, which is not a spell scope.</summary>
+    public const string EffectsSection = "effects";
+
+    /// <summary>The top-level key holding the secondary stat → rating curve map, which is not a spell scope.</summary>
+    public const string RatingCurvesSection = "ratingCurves";
+
+    /// <summary>The top-level key holding the numeric tuning rows per scope, container and member, which is not a spell scope.</summary>
+    public const string TuningSection = "tuning";
+
     /// <summary>
     /// The top-level key listing item and gem textures drawn once for every rarity rung, which is not a
     /// spell scope. Named so it cannot collide with the <c>shared</c> spell scope.
@@ -56,7 +65,8 @@ public static class SpellDbWriter
         var heroScopes = byScope.Keys
             .Where(k => k != "shared" && k != "items" && k != SchoolsSection && k != RaritiesSection
                         && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != LegendariesSection
-                        && k != DungeonsSection && k != AugmentationsSection)
+                        && k != DungeonsSection && k != AugmentationsSection && k != EffectsSection
+                        && k != RatingCurvesSection && k != TuningSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -157,6 +167,45 @@ public static class SpellDbWriter
             root[AugmentationsSection] = augmentationsObj;
         }
 
+        if (result.EffectData.Count > 0)
+        {
+            var effectsObj = new JsonObject();
+            foreach (var effect in result.EffectData.OrderBy(e => e.Id))
+                effectsObj[effect.Id.ToString(CultureInfo.InvariantCulture)] = ToEffectNode(effect);
+            root[EffectsSection] = effectsObj;
+        }
+
+        if (result.RatingCurves.Count > 0)
+        {
+            var curvesObj = new JsonObject();
+            foreach (var curve in result.RatingCurves)
+                curvesObj[curve.Stat] = ToCurveNode(curve.Curve);
+            root[RatingCurvesSection] = curvesObj;
+        }
+
+        if (result.Tuning.Count > 0)
+        {
+            var tuningObj = new JsonObject();
+            foreach (var scope in result.Tuning.GroupBy(row => row.Scope))
+            {
+                var scopeObj = new JsonObject();
+                foreach (var container in scope.GroupBy(row => row.Container))
+                {
+                    var containerObj = new JsonObject();
+                    foreach (var member in container.GroupBy(row => row.Member))
+                    {
+                        var memberObj = new JsonObject();
+                        foreach (var row in member)
+                            memberObj[row.Key] = ToTuningNode(row.Value);
+                        containerObj[member.Key] = memberObj;
+                    }
+                    scopeObj[container.Key] = containerObj;
+                }
+                tuningObj[scope.Key] = scopeObj;
+            }
+            root[TuningSection] = tuningObj;
+        }
+
         if (result.TexturesSharedAcrossRungs.Count > 0)
         {
             var textureArray = new JsonArray();
@@ -179,6 +228,9 @@ public static class SpellDbWriter
         var legendaries = new List<CuratedLegendary>();
         var dungeons = new Dictionary<int, string>();
         var augmentations = new List<ExportAugmentation>();
+        var effectData = new List<ExportEffectData>();
+        var ratingCurves = new List<ExportRatingCurve>();
+        var tuning = new List<TuningRow>();
 
         foreach (var (scope, scopeNode) in root)
         {
@@ -222,6 +274,33 @@ public static class SpellDbWriter
                 foreach (var (idText, entryNode) in scopeObj)
                     if (int.TryParse(idText, out var id) && entryNode?["type"]?.GetValue<string>() is { } type)
                         augmentations.Add(new ExportAugmentation(id, type, entryNode["modifier"]?.GetValue<string>()));
+                continue;
+            }
+
+            if (scope == EffectsSection)
+            {
+                foreach (var (idText, entryNode) in scopeObj)
+                    if (int.TryParse(idText, out var id) && entryNode is JsonObject effectEntry)
+                        effectData.Add(FromEffectNode(id, effectEntry));
+                continue;
+            }
+
+            if (scope == RatingCurvesSection)
+            {
+                foreach (var (stat, curveNode) in scopeObj)
+                    if (curveNode is JsonObject curveEntry)
+                        ratingCurves.Add(new ExportRatingCurve(stat, FromCurveNode(curveEntry)));
+                continue;
+            }
+
+            if (scope == TuningSection)
+            {
+                foreach (var (tuningScope, tuningScopeNode) in scopeObj)
+                    foreach (var (container, containerNode) in tuningScopeNode?.AsObject() ?? [])
+                        foreach (var (member, memberNode) in containerNode?.AsObject() ?? [])
+                            foreach (var (key, valueNode) in memberNode?.AsObject() ?? [])
+                                if (FromTuningNode(valueNode) is { } value)
+                                    tuning.Add(new TuningRow(tuningScope, container, member, key, value));
                 continue;
             }
 
@@ -275,8 +354,26 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Augmentations = augmentations, Talents = talents, Legendaries = legendaries };
+        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Augmentations = augmentations, EffectData = effectData, RatingCurves = ratingCurves, Talents = talents, Legendaries = legendaries, Tuning = tuning };
     }
+
+    private static JsonNode ToTuningNode(ExportTuningValue value)
+    {
+        if (value.Numbers is not { } numbers)
+            return JsonValue.Create(value.Number!.Value);
+
+        var array = new JsonArray();
+        foreach (var number in numbers)
+            array.Add(JsonValue.Create(number));
+        return array;
+    }
+
+    private static ExportTuningValue? FromTuningNode(JsonNode? node) => node switch
+    {
+        JsonArray array => new ExportTuningValue(null, [.. array.Select(item => item!.GetValue<double>())]),
+        JsonValue number => new ExportTuningValue(number.GetValue<double>(), null),
+        _ => null,
+    };
 
     /// <summary>
     /// Renders a school the way the committed <c>spelldb.json</c> writes it, so a dual-school entry round-trips
@@ -284,6 +381,99 @@ public static class SpellDbWriter
     /// </summary>
     public static string FormatSchool(MagicSchool school) =>
         school == (MagicSchool.Magic | MagicSchool.Physical) ? "Magic/Physical" : school.ToString();
+
+    private static JsonObject ToEffectNode(ExportEffectData effect)
+    {
+        var node = new JsonObject();
+        if (effect.Duration is { } duration)
+            node["duration"] = duration;
+        if (effect.MaxStacks is { } maxStacks)
+            node["maxStacks"] = maxStacks;
+
+        if (effect.Modifiers.Length > 0)
+        {
+            var modifiers = new JsonArray();
+            foreach (var modifier in effect.Modifiers)
+            {
+                var entry = new JsonObject
+                {
+                    ["attribute"] = modifier.Attribute.ToString(),
+                    ["op"] = modifier.Op.ToString(),
+                };
+                if (modifier.Value is { } value)
+                    entry["value"] = value;
+                if (modifier.Ranks is { } ranks)
+                {
+                    var rankArray = new JsonArray();
+                    foreach (var rank in ranks)
+                        rankArray.Add(JsonValue.Create(rank));
+                    entry["ranks"] = rankArray;
+                }
+                if (modifier.Coefficient is { } coefficient)
+                    entry["coefficient"] = coefficient;
+                modifiers.Add(entry);
+            }
+            node["modifiers"] = modifiers;
+        }
+
+        if (effect.CooldownAccelerations.Length > 0)
+        {
+            var accelerations = new JsonArray();
+            foreach (var change in effect.CooldownAccelerations)
+                accelerations.Add(new JsonObject { ["ability"] = change.AbilityId, ["value"] = change.Value });
+            node["cooldownAccelerations"] = accelerations;
+        }
+
+        return node;
+    }
+
+    private static ExportEffectData FromEffectNode(int id, JsonObject node)
+    {
+        var modifiers = new List<AttributeModifier>();
+        foreach (var entry in node["modifiers"]?.AsArray() ?? [])
+        {
+            if (entry is not JsonObject modifier)
+                continue;
+            modifiers.Add(new AttributeModifier(
+                Enum.Parse<StatAttribute>(modifier["attribute"]!.GetValue<string>()),
+                Enum.Parse<ModifierOp>(modifier["op"]!.GetValue<string>()),
+                modifier["value"]?.GetValue<double>(),
+                modifier["ranks"]?.AsArray().Select(rank => rank!.GetValue<double>()).ToArray(),
+                modifier["coefficient"]?.GetValue<double>()));
+        }
+
+        var accelerations = (node["cooldownAccelerations"]?.AsArray() ?? [])
+            .OfType<JsonObject>()
+            .Select(change => new CooldownAccelerationChange(change["ability"]!.GetValue<int>(), change["value"]!.GetValue<double>()))
+            .ToArray();
+
+        return new ExportEffectData(
+            id,
+            node["duration"]?.GetValue<double>(),
+            node["maxStacks"]?.GetValue<int>(),
+            [.. modifiers],
+            accelerations);
+    }
+
+    private static JsonObject ToCurveNode(RatingCurve curve)
+    {
+        var brackets = new JsonArray();
+        foreach (var (maxBracketValue, penaltyPercentage) in curve.Brackets)
+            brackets.Add(new JsonObject { ["maxBracketValue"] = maxBracketValue, ["penaltyPercentage"] = penaltyPercentage });
+
+        return new JsonObject
+        {
+            ["baseStatMultiplier"] = curve.BaseStatMultiplier,
+            ["brackets"] = brackets,
+            ["finalPenaltyPercentage"] = curve.FinalPenaltyPercentage,
+        };
+    }
+
+    private static RatingCurve FromCurveNode(JsonObject node) => new(
+        node["baseStatMultiplier"]!.GetValue<double>(),
+        [.. (node["brackets"]?.AsArray() ?? []).OfType<JsonObject>()
+            .Select(bracket => (bracket["maxBracketValue"]!.GetValue<double>(), bracket["penaltyPercentage"]!.GetValue<double>()))],
+        node["finalPenaltyPercentage"]!.GetValue<double>());
 
     private static JsonObject ToEntryNode(Spell spell)
     {

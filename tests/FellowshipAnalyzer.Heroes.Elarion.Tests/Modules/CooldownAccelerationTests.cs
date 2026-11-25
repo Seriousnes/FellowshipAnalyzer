@@ -12,6 +12,7 @@ using Shouldly;
 
 using Xunit;
 
+using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
 using SpellAbility = FellowshipAnalyzer.Core.Events.Ability;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Tests.Modules;
@@ -71,7 +72,7 @@ public sealed class CooldownAccelerationTests
     }
 
     [Fact]
-    public async Task EventHorizon_AddsTheHasteItWasAppliedAtToEveryCooldown()
+    public async Task EventHorizon_RecoversStarfallVolleyFasterByTheHasteItWasAppliedAt()
     {
         var parser = await AnalyzeAsync(
             VolleyDungeonEnd,
@@ -108,7 +109,7 @@ public sealed class CooldownAccelerationTests
             RemoveBuff(2_000, EventHorizonBuff()),
             VolleyCast(3_000));
 
-        parser.GetModule<EventHorizonAccelerationAnalyzer>().ShouldNotBeNull().CurrentAcceleration.ShouldBe(0.0);
+        parser.GetModule<EventHorizonAccelerationAnalyzer>().ShouldNotBeNull().CurrentMultiplier.ShouldBe(1.0);
         ShouldBeNear(VolleyRemaining(parser, 13_000), VolleyCooldownMs - 10_000);
     }
 
@@ -128,6 +129,106 @@ public sealed class CooldownAccelerationTests
             + (int)(20_000 * SpiritOfHeroismHaste);
         ShouldBeNear(GraceRemaining(parser, 40_000), GraceCooldownMs - 39_000 - gained);
     }
+
+    [Fact]
+    public async Task EventHorizon_MultipliesCooldownRecoveryByOnePlusHaste()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(1_000, EventHorizonBuff()));
+
+        parser.GetModule<StatTracker>().ShouldNotBeNull().CurrentCooldownRecovery.ShouldBe(1.3, 0.0001);
+        parser.GetModule<EventHorizonAccelerationAnalyzer>().ShouldNotBeNull().CurrentMultiplier.ShouldBe(1.3, 0.0001);
+    }
+
+    [Fact]
+    public async Task EventHorizon_CompoundsOnTheLegendarysCooldownRecovery()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            Legendary(),
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(1_000, EventHorizonBuff()));
+
+        parser.GetModule<StatTracker>().ShouldNotBeNull().CurrentCooldownRecovery.ShouldBe(1.43, 0.0001);
+    }
+
+    [Fact]
+    public async Task EventHorizon_RecoversHighwindArrowAtTheCompoundedRatePlusHaste()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            Legendary(),
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(1_000, EventHorizonBuff()));
+
+        parser.SpellUsable.ShouldNotBeNull().EffectiveRate(Spells.HighwindArrow.FSLID).ShouldBe(1.73, 0.0001);
+    }
+
+    [Fact]
+    public async Task EventHorizon_LeavesACooldownWithNoScalingAtTheNormalRate()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            Legendary(),
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(1_000, EventHorizonBuff()));
+
+        parser.SpellUsable.ShouldNotBeNull().EffectiveRate(Spells.Disrupt.FSLID).ShouldBe(1.0, 0.0001);
+    }
+
+    [Fact]
+    public async Task EventHorizon_FollowsAHasteRiseInsideTheBuff()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(2_000, EventHorizonBuff()),
+            ApplyBuff(3_000, SpiritOfHeroismHealer()));
+
+        parser.GetModule<Haste>().ShouldNotBeNull().Current.ShouldBe(0.6, 0.0001);
+        parser.GetModule<StatTracker>().ShouldNotBeNull().CurrentCooldownRecovery.ShouldBe(1.6, 0.0001);
+    }
+
+    [Fact]
+    public async Task EventHorizonRemoval_RestoresCooldownRecoveryToOne()
+    {
+        var parser = await AnalyzeAsync(
+            VolleyDungeonEnd,
+            ApplyBuff(1_000, SpiritOfHeroism()),
+            ApplyBuff(1_000, EventHorizonBuff()),
+            RemoveBuff(5_000, EventHorizonBuff()));
+
+        parser.GetModule<StatTracker>().ShouldNotBeNull().CurrentCooldownRecovery.ShouldBe(1.0, 0.0001);
+    }
+
+    [Fact]
+    public async Task SkylitGraceWindow_AcceleratesSkystridersGraceOnly()
+    {
+        var parser = await AnalyzeAsync(
+            GraceDungeonEnd,
+            Talented(),
+            ApplyBuff(1_000, SkylitGraceBuff()));
+
+        var abilities = parser.GetModule<CoreAbilities>().ShouldNotBeNull();
+        var statTracker = parser.GetModule<StatTracker>().ShouldNotBeNull();
+        statTracker.CurrentCooldownAcceleration(abilities.GetAbility(Spells.SkystridersGrace.FSLID)).ShouldBe(1.2, 0.0001);
+        statTracker.CurrentCooldownAcceleration(abilities.GetAbility(Spells.HighwindArrow.FSLID)).ShouldBe(0.0, 0.0001);
+    }
+
+    private static CombatantInfoEvent Legendary() => new()
+    {
+        Timestamp = 0,
+        SourceId = PlayerId,
+        Gear = [new Item { Id = 999, Quality = 6 }],
+    };
+
+    private static SpellAbility SpiritOfHeroismHealer() => new()
+    {
+        FSLID = FellowshipAnalyzer.Core.Common.Spells.Spells.SpiritOfHeroismHealer.FSLID,
+        Name = FellowshipAnalyzer.Core.Common.Spells.Spells.SpiritOfHeroismHealer.Name,
+    };
 
     private static void ShouldBeNear(int actual, int expected) =>
         Math.Abs(actual - expected).ShouldBeLessThanOrEqualTo(2, $"{actual} vs {expected}");

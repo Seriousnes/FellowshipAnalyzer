@@ -32,6 +32,10 @@ public sealed partial class SpellUsableTests
     private const int SpellE = 105;
     private const int SpellF = 106;
     private const int SpellG = 107;
+    private const int ChargedDurationHasteId = 207;
+    private const int LongStandardId = 208;
+    private const int TwoChargeId = 301;
+    private const int TwoChargeAdditionalId = 302;
     private const int CdSecondsG = 10;
     private const int CdSecondsA = 10;
     private const int CdSecondsB = 20;
@@ -219,7 +223,7 @@ public sealed partial class SpellUsableTests
 
         spellUsable.BeginCooldown(SpellC, timestamp: 1000);
         Assert.Equal(
-            (int)(CdSecondsC * 1000 / (1.0 + haste + 7.0)),
+            (int)Math.Ceiling(CdSecondsC * 1000 / (1.0 + haste + 7.0)),
             spellUsable.CooldownRemaining(SpellC, atTimestamp: 1000));
     }
 
@@ -235,7 +239,7 @@ public sealed partial class SpellUsableTests
         var haste = parser.GetModule<Haste>()!.Current;
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
         Assert.Equal(
-            1000 + (int)(CdSecondsC * 1000 / (1 + haste)),
+            1000 + (int)Math.Ceiling(CdSecondsC * 1000 / (1 + haste)),
             LastUpdate(probe, SpellC, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
@@ -252,7 +256,7 @@ public sealed partial class SpellUsableTests
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellF), precision: 6);
         Assert.Equal(
-            1000 + (int)(CdSecondsF * 1000 / (1 + haste)),
+            1000 + (int)Math.Ceiling(CdSecondsF * 1000 / (1 + haste)),
             LastUpdate(probe, SpellF, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
@@ -278,11 +282,11 @@ public sealed partial class SpellUsableTests
     [Fact]
     public async Task RechargesDuring_DividesEachStretchByTheRechargeInForceAcrossIt()
     {
-        var (_, spellUsable, _) = await Run([new DungeonStartEvent { Timestamp = 0 }, CreateCast(0, SpellA), CreateHasteBuff(3000)]);
+        var (parser, spellUsable, _) = await Run([new DungeonStartEvent { Timestamp = 0 }, CreateCast(0, SpellA), CreateHasteBuff(3000)]);
+        var haste = parser.GetModule<Haste>()!.Current;
 
-        var hastedMs = spellUsable.RechargeDurationDuring(SpellC, 3000, 6000);
         Assert.Equal(
-            (2000.0 / (CdSecondsC * 1000)) + (3000.0 / hastedMs),
+            (2000.0 / (CdSecondsC * 1000)) + (3000.0 * (1 + haste) / (CdSecondsC * 1000)),
             spellUsable.RechargesDuring(SpellC, 1000, 6000),
             9);
     }
@@ -596,12 +600,62 @@ public sealed partial class SpellUsableTests
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownHaste = CooldownHasteScaling.Duration },
+                PrimarySpell = new Spell { Id = SpellF, Name = "Spell F", Cooldown = (double)CdSecondsF, CooldownScaling = new() { DurationHaste = true } },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownHaste = CooldownHasteScaling.Duration },
+                PrimarySpell = new Spell { Id = SpellG, Name = "Spell G", Cooldown = (double)CdSecondsG, Charges = 2, CooldownScaling = new() { DurationHaste = true } },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility { PrimarySpell = StatTrackerCooldownTests.StandardSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = StatTrackerCooldownTests.HastedSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = StatTrackerCooldownTests.ChargedSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility { PrimarySpell = StatTrackerCooldownTests.StaticSpell, Category = SpellCategory.Rotational },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = ChargedDurationHasteId,
+                    Name = "Charged Duration Haste",
+                    Cooldown = 20,
+                    Charges = 2,
+                    CooldownScaling = new() { DurationHaste = true },
+                },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = LongStandardId,
+                    Name = "Long Standard",
+                    Cooldown = 180,
+                    CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true },
+                },
+                Category = SpellCategory.Cooldowns,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell
+                {
+                    Id = GrantedChargesId,
+                    Name = "Granted Charges",
+                    Cooldown = 20,
+                    ChargeGrant = new ChargeGrant
+                    {
+                        Source = GrantSource.Talent,
+                        Id = GrantingTalentId,
+                        Charges = 2,
+                        CooldownScaling = new() { TimeRateCooldownRecovery = true },
+                    },
+                },
+                Category = SpellCategory.Rotational,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = TwoChargeId, Name = "Two Charge", Cooldown = 20, Charges = 2 },
+                AdditionalSpells = [new Spell { Id = TwoChargeAdditionalId, Name = "Two Charge Additional" }],
                 Category = SpellCategory.Rotational,
             },
         ];

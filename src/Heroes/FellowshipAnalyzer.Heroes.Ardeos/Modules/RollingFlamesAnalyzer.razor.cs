@@ -10,8 +10,10 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 [RequiresTalent(ArdeosTalents.RollingFlames)]
 public sealed partial class RollingFlamesAnalyzer : Analyzer
 {
-    private const int SEARING_BLAZE_CDR = 250;
-    private const int INFERNAL_WAVE_CDR = 1000;
+    private static readonly int SEARING_BLAZE_CDR =
+        (int)(TalentTuning.RollingFlames.Firemage_CastedSingleHeavyDot_Talent_InstantSingleDotReducesCooldown_ReductionInSeconds * 1000);
+    private static readonly int INFERNAL_WAVE_CDR =
+        (int)(TalentTuning.RollingFlames.Firemage_CastedSingleHeavyDot_Talent_CastedDotBoostProjectileReducesCooldown_ReductionInSeconds * 1000);
 
     private readonly Dictionary<int, CooldownReductionResult> spellCdr = new()
     {

@@ -37,10 +37,14 @@ public class Stats
     /// <summary>Flat critical strike power added to the base critical multiplier, as a fraction (0.20 = 20%).</summary>
     public double? AdditionalCritPower { get; set; }
     /// <summary>
-    /// Multiplier on overall speed, <c>1 + haste</c>, applied after the rating and flat haste are added
-    /// (1.15 = 15% faster); 1 when no multiplier is active.
+    /// Shared factor of every <c>Multiplicitive</c> Haste modifier, <c>1 + Σ (value − 1)</c>, applied after the
+    /// rating and flat haste are added (1.35 = Rune Rush and Shadow's Defeat together); 1 when none is active.
     /// </summary>
     public double? HasteMultiplier { get; set; }
+    /// <summary>Product of every <c>MultiplyCompound</c> Haste modifier; 1 when none is active.</summary>
+    public double? HasteCompound { get; set; }
+    /// <summary>Sum of every <c>AddFinal</c> Haste modifier, added after every multiplication; 0 when none is active.</summary>
+    public double? HasteAddFinal { get; set; }
 
     /// <summary>Computes the per-stat difference between two sets of stats, treating missing values as zero.</summary>
     public static Stats operator -(Stats a, Stats b) => new()
@@ -58,5 +62,7 @@ public class Stats
         AdditionalSpirit = (a.AdditionalSpirit ?? 0) - (b.AdditionalSpirit ?? 0),
         AdditionalCritPower = (a.AdditionalCritPower ?? 0) - (b.AdditionalCritPower ?? 0),
         HasteMultiplier = (a.HasteMultiplier ?? 1) - (b.HasteMultiplier ?? 1),
+        HasteCompound = (a.HasteCompound ?? 1) - (b.HasteCompound ?? 1),
+        HasteAddFinal = (a.HasteAddFinal ?? 0) - (b.HasteAddFinal ?? 0),
     };
 }

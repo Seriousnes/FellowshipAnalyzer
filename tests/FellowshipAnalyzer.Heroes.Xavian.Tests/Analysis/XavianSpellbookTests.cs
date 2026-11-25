@@ -24,17 +24,33 @@ public sealed class XavianSpellbookTests
     }
 
     [Fact]
-    public void BrilliantFlash_IsInTheSpellbookOnTheGcd() =>
-        Entry(Spells.BrilliantFlash).Gcd.ShouldNotBeNull();
+    public void NoEntry_DeclaresAGlobalCooldown() =>
+        Spellbook.ShouldAllBe(entry => entry.Gcd == null);
+
+    [Fact]
+    public void TheGlobalCooldownAbilities_TriggerItFromTheExport()
+    {
+        Spellbook.Where(entry => entry.OnGlobalCooldown)
+            .Select(entry => entry.PrimarySpell.FSLID)
+            .ShouldBe(
+                [
+                    Spells.BrilliantFlash.FSLID,
+                    Spells.SunStrike.FSLID,
+                    Spells.BrilliantFlare.FSLID,
+                    Spells.BlindingSlash.FSLID,
+                    Spells.Omnistrike.FSLID,
+                ],
+                ignoreOrder: true);
+    }
 
     [Fact]
     public void AbilitiesUsableDuringTheGcd_DoNotTriggerIt()
     {
-        Entry(Spells.SolarBlades).Gcd.ShouldBeNull();
-        Entry(Spells.ShiningHalo).Gcd.ShouldBeNull();
-        Entry(Spells.SkyCrash).Gcd.ShouldBeNull();
-        Entry(Spells.OmegaReprieval).Gcd.ShouldBeNull();
-        Entry(Spells.DecreeOfTheSun).Gcd.ShouldBeNull();
+        Entry(Spells.SolarBlades).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.ShiningHalo).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.SkyCrash).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.OmegaReprieval).OnGlobalCooldown.ShouldBeFalse();
+        Entry(Spells.DecreeOfTheSun).OnGlobalCooldown.ShouldBeFalse();
     }
 
     [Fact]

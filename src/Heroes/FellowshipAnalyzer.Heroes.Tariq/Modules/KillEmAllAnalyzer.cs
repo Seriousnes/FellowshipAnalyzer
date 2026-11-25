@@ -1,13 +1,14 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 /// <summary>
-/// Cooldown Acceleration Kill Em All gives Heavy Strike: <see cref="HeavyStrikeAcceleration"/> on
+/// Cooldown Acceleration Kill Em All gives Heavy Strike, read from the export's effect record: the term on
 /// <see cref="StatTracker"/>'s pool while the Kill Em All effect is on the player. The term is flat. A
 /// stack Heavy Strike consumes leaves it in place, and only the effect's removal revokes it.
 /// </summary>
@@ -16,14 +17,14 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 [Before<SpellUsable>]
 public sealed partial class KillEmAllAnalyzer : Analyzer
 {
-    /// <summary>Cooldown Acceleration on Heavy Strike while Kill Em All is active, as a fraction.</summary>
-    public const double HeavyStrikeAcceleration = 0.60;
-
-    /// <summary>The Kill Em All effect the talent applies to the player.</summary>
-    public static readonly Effect KillEmAll = new() { Id = 3160, Name = "Kill Em All", Icon = "Berserker6" };
+    private static readonly CooldownAccelerationChange Change =
+        EffectData.CooldownAccelerationsOf(Spells.KillEmAllBuff.Id) is [var change, ..]
+            ? change
+            : throw new InvalidOperationException(
+                $"The export gives effect {Spells.KillEmAllBuff.Id} no Cooldown Acceleration change.");
 
     private static readonly CooldownModifier Acceleration =
-        new(HeavyStrikeAcceleration, new Spell[] { Spells.HeavyStrike });
+        new(Change.Value, new Spell[] { new() { Id = Change.AbilityId } });
 
     private readonly List<AuraWindow> _windows = [];
 
@@ -60,5 +61,5 @@ public sealed partial class KillEmAllAnalyzer : Analyzer
         _openedAt = e.Timestamp;
     }
 
-    private static bool IsKillEmAll(BuffEvent e) => e.Ability.FSLID == KillEmAll.FSLID;
+    private static bool IsKillEmAll(BuffEvent e) => e.Ability.FSLID == Spells.KillEmAllBuff.FSLID;
 }

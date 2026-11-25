@@ -15,10 +15,10 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for the legendary "Strand of Eternity" cooldown acceleration: the selected
-/// <see cref="Combatant"/> resolving the flat +10% from a legendary-quality item at construction, and
-/// <see cref="SpellUsable"/> reading it off the combatant as a constant term on the shared recovery pool
-/// that composes additively with Chronoshift and haste, and multiplicatively-independent of Ability
+/// Tests for the legendary "Strand of Eternity" Cooldown Recovery modifier: the selected
+/// <see cref="Combatant"/> resolving the modifier of 1.1 from a legendary-quality item at construction, and
+/// <see cref="SpellUsable"/> reading it through <see cref="StatTracker.CurrentCooldownRecovery"/>, where it
+/// shares one multiplicative factor with Chronoshift and adds outside it with haste, and is independent of Ability
 /// Cooldown Reduction.
 /// </summary>
 public sealed class GearCooldownAccelerationTests
@@ -43,24 +43,44 @@ public sealed class GearCooldownAccelerationTests
             FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
-    public void Legendary_ResolvesTenPercentAcceleration()
+    public void Legendary_ResolvesTheCooldownRecoverySeed()
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
         Assert.NotNull(combatant.Legendary);
-        Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
+        var seed = Assert.Single(combatant.Stats.CooldownRecovery);
+        Assert.Equal(1.10, seed.Value, precision: 6);
+        Assert.Empty(combatant.Stats.CooldownAcceleration);
     }
 
     [Fact]
-    public void NoLegendary_ResolvesNoAcceleration()
+    public void NoLegendary_ResolvesNoCooldownRecoverySeed()
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
         Assert.Null(combatant.Legendary);
-        Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
+        Assert.Empty(combatant.Stats.CooldownRecovery);
     }
 
-    /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090ms.</summary>
+    [Fact]
+    public async Task Legendary_GivesTheTrackerACooldownRecoveryOfOnePointOne()
+    {
+        var (_, statTracker) = await RunWithStatTracker(LegendaryQuality);
+
+        Assert.Equal(1.10, statTracker.CurrentCooldownRecovery, precision: 6);
+        Assert.Equal(1.10, statTracker.StartingCooldownRecovery, precision: 6);
+    }
+
+    [Fact]
+    public async Task NoLegendary_GivesTheTrackerACooldownRecoveryOfOne()
+    {
+        var (_, statTracker) = await RunWithStatTracker(EpicQuality);
+
+        Assert.Equal(1.0, statTracker.CurrentCooldownRecovery, precision: 6);
+        Assert.Equal(1.0, statTracker.StartingCooldownRecovery, precision: 6);
+    }
+
+    /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090.9ms, which returns the charge at the first whole millisecond after it: 9091ms.</summary>
     [Fact]
     public async Task Legendary_ShortensBaseCooldownByTenPercent()
     {
@@ -68,7 +88,7 @@ public sealed class GearCooldownAccelerationTests
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
-        Assert.Equal((int)(BaseCdMsA / 1.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(9091, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
     [Fact]
@@ -82,28 +102,28 @@ public sealed class GearCooldownAccelerationTests
     }
 
     /// <summary>
-    /// One additive pool: the legendary's 0.10 adds to Chronoshift's 7.0 rather than multiplying, so a
-    /// non-hasted ability recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234ms.
+    /// One multiplicative factor: the legendary's 1.1 and Chronoshift's 8 add their parts above 1 rather
+    /// than multiplying, so an ability scaling off Cooldown Recovery recovers at 8.1×: 10000ms / (1 + 0.10 + 7.0) = 1234.6ms, which returns the charge at the first whole millisecond after it: 1235ms.
     /// </summary>
     [Fact]
     public async Task Legendary_ComposesAdditivelyWithChronoshift()
     {
         var (spellUsable, statTracker) = await RunWithStatTracker(LegendaryQuality);
 
-        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(7.0), timestamp: 1000);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, new CooldownModifier(8.0), timestamp: 1000);
         Assert.Equal(8.10, spellUsable.EffectiveRate(SpellA), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
-        Assert.Equal((int)(BaseCdMsA / 8.10), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(1235, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
-    /// <summary>RechargeDuration reports the effective (accelerated) period a fresh charge takes: 10000 / 1.10.</summary>
+    /// <summary>RechargeDuration reports the effective (accelerated) period a fresh charge takes, rounded to the nearest millisecond: 10000 / 1.10 = 9091.</summary>
     [Fact]
     public async Task Legendary_ShortensRechargeDuration()
     {
         var spellUsable = await Run(LegendaryQuality);
 
-        Assert.Equal((int)(BaseCdMsA / 1.10), spellUsable.RechargeDuration(SpellA));
+        Assert.Equal(9091, spellUsable.RechargeDuration(SpellA));
     }
 
     [Fact]
@@ -116,8 +136,7 @@ public sealed class GearCooldownAccelerationTests
 
     /// <summary>
     /// ACR shortens the base (SpellB: 20000 × 0.88 = 17600ms). Without a legendary that is the whole
-    /// recharge; with one the acceleration divides the pool: 17600 / (1 + 0.10) = 15999ms after the
-    /// truncation to whole milliseconds the recharge computation applies (16000 in exact arithmetic).
+    /// recharge; with one the acceleration divides the pool: 17600 / (1 + 0.10) = 16000ms.
     /// </summary>
     [Fact]
     public async Task AcrAndAcceleration_Compose_OnTheRechargeDuration()
@@ -126,7 +145,7 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal(17_600, acrOnly.RechargeDuration(SpellB));
 
         var acrAndAcceleration = await Run(LegendaryQuality, emerald: EmeraldCap);
-        Assert.Equal(15_999, acrAndAcceleration.RechargeDuration(SpellB));
+        Assert.Equal(16_000, acrAndAcceleration.RechargeDuration(SpellB));
     }
 
     /// <summary>
@@ -262,12 +281,12 @@ public sealed class GearCooldownAccelerationTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, AbilityCategory = AbilityCategory.Major },
+                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, AbilityCategory = AbilityCategory.Major, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB },
+                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB, CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true } },
                 Category = SpellCategory.Rotational,
             },
         ];

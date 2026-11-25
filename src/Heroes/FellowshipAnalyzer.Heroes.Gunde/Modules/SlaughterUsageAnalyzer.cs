@@ -6,8 +6,6 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 public abstract partial class SlaughterUsageAnalyzer : Analyzer
 {
-    private const int OpenWoundsDurationMs = 18_000;
-
     public const int RendConsumeGraceMs = 500;
 
     private readonly Dictionary<TargetKey, OpenWoundsWindow> _openWindows = [];
@@ -36,9 +34,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
     private void OnOpenWoundsApplied(ApplyDebuffEvent @event) => OpenWindow(Key(@event), @event.Timestamp);
-
-    [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
-    private void OnOpenWoundsRefreshed(RefreshDebuffEvent @event) => RefreshWindow(Key(@event), @event.Timestamp);
 
     [On<RemoveDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
     private void OnOpenWoundsRemoved(RemoveDebuffEvent @event)
@@ -103,23 +98,15 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private void OpenWindow(TargetKey target, int timestamp)
     {
         if (_openWindows.TryGetValue(target, out var stale))
-            stale.RemovedAt = Math.Min(stale.End, timestamp);
+            stale.RemovedAt = timestamp;
 
-        var window = new OpenWoundsWindow(timestamp);
+        var window = new OpenWoundsWindow(timestamp, Owner.DungeonEndTime);
         _windows.Add(window);
         _openWindows[target] = window;
     }
 
-    private void RefreshWindow(TargetKey target, int timestamp)
-    {
-        if (_openWindows.TryGetValue(target, out var window) && timestamp <= window.End)
-            window.LastRefresh = timestamp;
-        else
-            OpenWindow(target, timestamp);
-    }
-
     private List<OpenWoundsWindow> RatedWindows() =>
-        [.. _windows.Where(window => window.RemovedAt is not null || window.End <= Pull.EndTime || SawSlaughter(window))];
+        [.. _windows.Where(window => window.RemovedAt is not null || SawSlaughter(window))];
 
     private bool SawSlaughter(OpenWoundsWindow window) =>
         _casts.Any(cast => window.Covers(cast.Timestamp));
@@ -139,12 +126,11 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
 
     private readonly record struct TargetKey(int TargetId, int TargetInstance);
 
-    private sealed class OpenWoundsWindow(int start)
+    private sealed class OpenWoundsWindow(int start, int dungeonEnd)
     {
         public int Start { get; } = start;
-        public int LastRefresh { get; set; } = start;
         public int? RemovedAt { get; set; }
-        public int End => RemovedAt ?? LastRefresh + OpenWoundsDurationMs;
+        public int End => RemovedAt ?? dungeonEnd;
 
         public bool Covers(int timestamp) => timestamp >= Start && timestamp <= End;
     }

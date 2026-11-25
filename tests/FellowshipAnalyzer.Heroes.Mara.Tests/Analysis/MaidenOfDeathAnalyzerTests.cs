@@ -58,8 +58,8 @@ public sealed class MaidenOfDeathAnalyzerTests
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Buff<ApplyBuffEvent>(1200, Spells.MatriarchMacabreSelfBuff),
             Cast(1000, Spells.Backstab, comboPoints: 0),
-            Cast(2500, Spells.QueenFang, comboPoints: 6),
-            Buff<RemoveBuffEvent>(4000, Spells.MaidenOfDeathBuff),
+            Cast(2000, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(3000, Spells.MaidenOfDeathBuff),
             Buff<RemoveBuffEvent>(9000, Spells.MatriarchMacabreSelfBuff),
         };
 
@@ -67,7 +67,7 @@ public sealed class MaidenOfDeathAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.OpenedAt.ShouldBe(1000);
-        window.ClosedAt.ShouldBe(4000);
+        window.ClosedAt.ShouldBe(3000);
         window.GeneratorCasts.ShouldBe(1);
         window.SpenderCasts.ShouldBe(1);
         window.CleanCycle.ShouldBeTrue();
@@ -92,10 +92,10 @@ public sealed class MaidenOfDeathAnalyzerTests
         {
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Cast(1000, Spells.Backstab, comboPoints: 0),
-            Cast(2500, Spells.QueenFang, comboPoints: 6),
-            Cast(4000, Spells.WidowBite, comboPoints: 0),
-            Cast(5500, Spells.ArachnidAssault, comboPoints: 6),
-            Buff<RemoveBuffEvent>(7000, Spells.MaidenOfDeathBuff),
+            Cast(2000, Spells.QueenFang, comboPoints: 6),
+            Cast(3000, Spells.WidowBite, comboPoints: 0),
+            Cast(4000, Spells.ArachnidAssault, comboPoints: 6),
+            Buff<RemoveBuffEvent>(5000, Spells.MaidenOfDeathBuff),
         };
 
         var analyzer = await AnalyzeAsync(events);
@@ -195,8 +195,8 @@ public sealed class MaidenOfDeathAnalyzerTests
             Generate(600, comboPoints: MaidenOfDeathAnalyzer.OpeningComboPointLimit - 1),
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Cast(1000, Spells.WidowBite, comboPoints: 3),
-            Cast(2500, Spells.QueenFang, comboPoints: 6),
-            Buff<RemoveBuffEvent>(4000, Spells.MaidenOfDeathBuff),
+            Cast(2000, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(3000, Spells.MaidenOfDeathBuff),
         };
 
         var analyzer = await AnalyzeAsync(events);
@@ -216,8 +216,8 @@ public sealed class MaidenOfDeathAnalyzerTests
             Generate(600, comboPoints: MaidenOfDeathAnalyzer.OpeningComboPointLimit),
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Cast(1000, Spells.QueenFang, comboPoints: 4),
-            Cast(2500, Spells.WidowBite, comboPoints: 0),
-            Buff<RemoveBuffEvent>(4000, Spells.MaidenOfDeathBuff),
+            Cast(2000, Spells.WidowBite, comboPoints: 0),
+            Buff<RemoveBuffEvent>(3000, Spells.MaidenOfDeathBuff),
         };
 
         var analyzer = await AnalyzeAsync(events);
@@ -255,23 +255,47 @@ public sealed class MaidenOfDeathAnalyzerTests
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Cast(1000, Spells.Backstab, comboPoints: 0),
             Cast(7000, Spells.QueenFang, comboPoints: 6),
-            Buff<RemoveBuffEvent>(8500, Spells.MaidenOfDeathBuff),
+            Buff<RemoveBuffEvent>(8000, Spells.MaidenOfDeathBuff),
         };
 
         var analyzer = await AnalyzeAsync(events);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         var gap = window.Gaps.ShouldHaveSingleItem();
-        gap.StartTimestamp.ShouldBe(2500);
-        gap.DurationMs.ShouldBe(4500);
-        window.IdleMs.ShouldBe(4500);
-        window.LongestGapMs.ShouldBe(4500);
-        window.LostCasts.ShouldBe(3);
+        gap.StartTimestamp.ShouldBe(2000);
+        gap.DurationMs.ShouldBe(5000);
+        window.IdleMs.ShouldBe(5000);
+        window.LongestGapMs.ShouldBe(5000);
+        window.LostCasts.ShouldBe(5);
         window.CleanCycle.ShouldBeFalse();
 
-        analyzer.IdleMs.ShouldBe(4500);
+        analyzer.IdleMs.ShouldBe(5000);
         analyzer.GapCount.ShouldBe(1);
-        analyzer.LostCasts.ShouldBe(3);
+        analyzer.LostCasts.ShouldBe(5);
+    }
+
+    [Fact]
+    public void StandardGcdMs_IsTheBackstabGlobalCooldownFromTheSpellData()
+    {
+        MaidenOfDeathAnalyzer.StandardGcdMs.ShouldBe(1000);
+    }
+
+    [Fact]
+    public async Task Analyze_IdleGapOfThreeThousandMilliseconds_IsThreeLostCasts()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
+            Cast(1000, Spells.Backstab, comboPoints: 0),
+            Cast(5000, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(6000, Spells.MaidenOfDeathBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.IdleMs.ShouldBe(3000);
+        window.LostCasts.ShouldBe(3);
     }
 
     [Fact]
@@ -281,8 +305,8 @@ public sealed class MaidenOfDeathAnalyzerTests
         {
             Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff),
             Cast(1000, Spells.Backstab, comboPoints: 0),
-            Cast(2800, Spells.QueenFang, comboPoints: 6),
-            Buff<RemoveBuffEvent>(4300, Spells.MaidenOfDeathBuff),
+            Cast(2300, Spells.QueenFang, comboPoints: 6),
+            Buff<RemoveBuffEvent>(3300, Spells.MaidenOfDeathBuff),
         };
 
         var analyzer = await AnalyzeAsync(events);
@@ -356,9 +380,9 @@ public sealed class MaidenOfDeathAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         var gap = window.Gaps.ShouldHaveSingleItem();
-        gap.StartTimestamp.ShouldBe(2500);
-        gap.DurationMs.ShouldBe(castStart - 2500);
-        window.IdleMs.ShouldBe(castStart - 2500);
+        gap.StartTimestamp.ShouldBe(2000);
+        gap.DurationMs.ShouldBe(castStart - 2000);
+        window.IdleMs.ShouldBe(castStart - 2000);
     }
 
     [Fact]
@@ -375,8 +399,8 @@ public sealed class MaidenOfDeathAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         var gap = window.Gaps.ShouldHaveSingleItem();
-        gap.StartTimestamp.ShouldBe(2500);
-        gap.DurationMs.ShouldBe(3500);
+        gap.StartTimestamp.ShouldBe(2000);
+        gap.DurationMs.ShouldBe(4000);
         window.SpenderCasts.ShouldBe(0);
     }
 

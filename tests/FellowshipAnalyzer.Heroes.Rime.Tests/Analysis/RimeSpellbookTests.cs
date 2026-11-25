@@ -20,13 +20,30 @@ public sealed class RimeSpellbookTests
     }
 
     [Fact]
+    public void NoEntry_OverridesTheGlobalCooldownOfItsSpellData() =>
+        Assert.DoesNotContain(new RimeAbilities().Spellbook(), entry => entry.Gcd is not null);
+
+    [Fact]
+    public void WrathOfWinterAndFrostSwallows_HaveNoGlobalCooldown()
+    {
+        var spellbook = new RimeAbilities().Spellbook().ToList();
+
+        Assert.False(spellbook.Single(e => e.PrimarySpell.Id == RimeSpells.WrathOfWinter.Id).OnGlobalCooldown);
+        Assert.False(spellbook.Single(e => e.PrimarySpell.Id == RimeSpells.FrostSwallows.Id).OnGlobalCooldown);
+    }
+
+    [Fact]
+    public void ColdSnap_IsOnTheGlobalCooldown() =>
+        Assert.True(new RimeAbilities().Spellbook().Single(e => e.PrimarySpell.Id == RimeSpells.ColdSnap.Id).OnGlobalCooldown);
+
+    [Fact]
     public void FreezingTorrent_ComposesDataScalarsWithBehaviour()
     {
         var entry = new RimeAbilities().Spellbook()
             .Single(e => e.PrimarySpell.Id == RimeSpells.FreezingTorrent.Id);
 
         Assert.Equal(SpellCategory.Rotational, entry.Category);
-        Assert.NotNull(entry.Gcd);
+        Assert.True(entry.OnGlobalCooldown);
         Assert.Equal(15, entry.PrimarySpell.Cooldown);
         Assert.Equal(2.0, entry.ChannelDuration);
         Assert.Equal(0.4, entry.ChannelTickInterval);

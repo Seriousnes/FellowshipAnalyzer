@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 public class Abilities : CoreAbilities
 {
     /// <summary>Apocalypse charges with the Explosivo legendary (power 615) equipped.</summary>
-    public const int ExplosivoApocalypseCharges = 2;
+    public static readonly int ExplosivoApocalypseCharges = (int)SpellTuning.Apocalypse.AddedCharges_MaxCharges;
 
     /// <summary>
     /// True when the Explosivo legendary is equipped. Apocalypse then has <see cref="ExplosivoApocalypseCharges"/>
@@ -23,98 +23,83 @@ public class Abilities : CoreAbilities
         {
             PrimarySpell = Spells.FireBall,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.FireBallDot],
         },
         new()
         {
             PrimarySpell = Spells.FireFrogs,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.FireFrogsDot],
         },
         new()
         {
             PrimarySpell = Spells.EngulfingFlames,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.EngulfingFlamesDot],
         },
         new()
         {
             PrimarySpell = Spells.SearingBlaze,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.SearingBlazeDot],
         },
         new()
         {
             PrimarySpell = Spells.Incinerate,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.IncinerateDot],
         },
         new()
         {
             PrimarySpell = Spells.InfernalWave,
             Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.Wildfire,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Explosivo ? Spells.Apocalypse with { Charges = ExplosivoApocalypseCharges } : Spells.Apocalypse,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
             AdditionalSpells = [Spells.ApocalypseDot],
         },
         new()
         {
             PrimarySpell = Spells.Pyromania,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.Detonate,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = CoreItems.Chronoshift,
             Category = SpellCategory.Cooldowns,
-            Gcd = null,
             Enabled = Owner?.SelectedCombatant.HasItem(CoreItems.AshasChronoshiftSpire_Ardeos.Id) == true,
         },
         new()
         {
             PrimarySpell = Spells.FlameWard,
             Category = SpellCategory.Defensive,
-            Gcd = null,
         },
         new()
         {
             PrimarySpell = Spells.Scorch,
             Category = SpellCategory.Utility,
-            Gcd = null,
         },
         new()
         {
             PrimarySpell = Spells.Fireflash,
             Category = SpellCategory.Utility,
-            Gcd = null,
         },
         new()
         {
             PrimarySpell = Spells.Flickerstep,
             Category = SpellCategory.Utility,
-            Gcd = null,
         },
     ];
 }

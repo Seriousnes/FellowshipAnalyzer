@@ -57,7 +57,7 @@ public sealed class HelenaSpellbookTests
         grant.Source.ShouldBe(GrantSource.LegendaryItem);
         grant.Id.ShouldBe(Legendaries.IronSentinel.Id);
         grant.Charges.ShouldBe(2);
-        grant.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        grant.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
     }
 
     [Fact]
@@ -116,6 +116,36 @@ public sealed class HelenaSpellbookTests
 
         holdTheLine.Charges.ShouldBe(1);
         holdTheLine.CooldownReducedByHaste.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void NoEntry_DeclaresAGlobalCooldown()
+    {
+        foreach (var entry in new HelenaAbilities().Spellbook())
+            entry.Gcd.ShouldBeNull();
+    }
+
+    [Fact]
+    public void GrandMelee_IsOffTheGlobalCooldown()
+    {
+        Entry(new HelenaAbilities().Spellbook().ToList(), Spells.GrandMelee).OnGlobalCooldown.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task WithEmeraldAtRankTen_ShieldSlamAndShieldsUpRechargeInSevenAndAHalfAndThirtySeconds()
+    {
+        var combatant = Combatant();
+        combatant.Emerald = 1500;
+
+        var parser = await AnalyzeAs(
+            combatant,
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            Cast(PullStart + 1_000, Spells.ShieldsUp));
+
+        var spellUsable = parser.GetModule<SpellUsable>().ShouldNotBeNull();
+
+        spellUsable.RechargeDuration(Spells.ShieldSlam.FSLID).ShouldBe(7_500);
+        spellUsable.RechargeDuration(Spells.ShieldsUp.FSLID).ShouldBe(30_000);
     }
 
     [Fact]

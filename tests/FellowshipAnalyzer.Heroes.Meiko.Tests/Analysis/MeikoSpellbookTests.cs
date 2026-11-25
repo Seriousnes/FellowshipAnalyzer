@@ -50,21 +50,40 @@ public sealed class MeikoSpellbookTests
     {
         var entry = Entry(ByName[finisher]);
 
-        Assert.Null(entry.Gcd);
+        Assert.False(entry.OnGlobalCooldown);
         Assert.Equal(0, entry.GetCooldown());
     }
 
     [Fact]
-    public void Builders_UseAFixedOneSecondGlobalCooldown()
+    public void NoEntry_HasAGcdInitialiser()
     {
-        foreach (var builder in new Spell[] { Spells.EarthFist, Spells.SpiritPalm, Spells.WindKick })
+        Assert.All(new MeikoAbilities().Spellbook(), entry => Assert.Null(entry.Gcd));
+    }
+
+    [Fact]
+    public void BuildersAndShatterEarth_UseAFixedOneSecondGlobalCooldown()
+    {
+        foreach (var spell in new Spell[] { Spells.EarthFist, Spells.SpiritPalm, Spells.WindKick, Spells.ShatterEarth })
         {
-            var gcd = Entry(builder).Gcd;
-            Assert.NotNull(gcd);
-            Assert.Null(gcd.Base);
-            Assert.NotNull(gcd.Static);
-            Assert.Equal(1000.0, gcd.Static.AsT0);
+            var primary = Entry(spell).PrimarySpell;
+            Assert.Equal(1.0, primary.GlobalCooldown);
+            Assert.False(primary.GlobalCooldownScalesWithHaste);
         }
+    }
+
+    [Fact]
+    public void Stagger_HasItsBaseCooldownAndNoCooldownRecoveryScaling()
+    {
+        var entry = Entry(Spells.Stagger);
+
+        Assert.Equal(12, entry.GetCooldown());
+        Assert.False(entry.CooldownReducedByHaste);
+    }
+
+    [Fact]
+    public void StoneShield_TakesNoAbilityCooldownReduction()
+    {
+        Assert.False(Spells.StoneShieldAlt.CooldownScaling?.DurationCooldownReduction ?? false);
     }
 
     [Fact]

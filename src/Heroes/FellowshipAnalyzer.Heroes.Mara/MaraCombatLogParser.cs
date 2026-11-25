@@ -5,6 +5,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 
 [HeroAnalyzer(HeroName.Mara)]
 [AddAnalyzer<EnergyComboPointTracker>]
+[AddAnalyzer<MaraSpellUsable>]
 [AddModule<Modules.Abilities>]
 [AddModule<MaraAuras>]
 [AddAnalyzer<DeadlySchemeTracker>]

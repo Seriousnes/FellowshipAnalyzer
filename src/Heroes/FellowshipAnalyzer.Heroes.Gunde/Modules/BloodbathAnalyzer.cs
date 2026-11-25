@@ -1,29 +1,30 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 using GundeTalents = FellowshipAnalyzer.Core.Common.Spells.GundeTalents;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
-/// Bloodbath: each Grim Carve grants Bloodbath for 3 seconds, and Reign in Blood has +200% Cooldown
+/// Bloodbath: each Grim Carve grants Bloodbath for 3 seconds, and Reign in Blood has Cooldown
 /// Acceleration while it lasts. The logged Bloodbath <see cref="ApplyBuffEvent"/> on the player opens a window
-/// and adds the term to the pool <see cref="StatTracker"/> tracks. A <see cref="RefreshBuffEvent"/> extends the
-/// open window, and the logged <see cref="RemoveBuffEvent"/> closes it and removes the term.
+/// and adds the term to the pool <see cref="StatTracker"/> tracks. The logged <see cref="RemoveBuffEvent"/> closes
+/// it and removes the term. A window with no logged removal lasts to the end of the dungeon.
 /// </summary>
 [RequiresTalent(GundeTalents.Bloodbath)]
 [Dependency<StatTracker>]
 public sealed partial class BloodbathAnalyzer : Analyzer
 {
-    /// <summary>Reign in Blood's added Cooldown Acceleration while Bloodbath lasts, as a fraction.</summary>
-    public const double AddedAcceleration = 2.0;
-
-    /// <summary>Bloodbath's duration, in milliseconds. An open window ends this long after its last apply or refresh until the removal closes it.</summary>
-    public const int DurationMs = 3000;
+    private static readonly CooldownAccelerationChange Change =
+        EffectData.CooldownAccelerationsOf(Spells.Bloodbath.Id) is [var change, ..]
+            ? change
+            : throw new InvalidOperationException(
+                $"The export gives effect {Spells.Bloodbath.Id} no Cooldown Acceleration change.");
 
     private static readonly CooldownModifier ReignInBloodAcceleration =
-        new(AddedAcceleration, new Core.Common.Spells.Spell[] { Spells.ReignInBlood });
+        new(Change.Value, new Core.Common.Spells.Spell[] { new() { Id = Change.AbilityId } });
 
     private readonly List<BloodbathWindow> _windows = [];
     private bool _open;
@@ -32,10 +33,10 @@ public sealed partial class BloodbathAnalyzer : Analyzer
     public IReadOnlyList<BloodbathWindow> Windows => _windows;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Bloodbath))]
-    private void OnApply(ApplyBuffEvent e) => OpenOrExtend(e);
+    private void OnApply(ApplyBuffEvent e) => OpenIfClosed(e);
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Bloodbath))]
-    private void OnRefresh(RefreshBuffEvent e) => OpenOrExtend(e);
+    private void OnRefresh(RefreshBuffEvent e) => OpenIfClosed(e);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Bloodbath))]
     private void OnRemove(RemoveBuffEvent e)
@@ -47,16 +48,12 @@ public sealed partial class BloodbathAnalyzer : Analyzer
         _open = false;
     }
 
-    private void OpenOrExtend(BuffEvent e)
+    private void OpenIfClosed(BuffEvent e)
     {
-        if (_open)
-        {
-            _windows[^1] = _windows[^1] with { EndTimestamp = e.Timestamp + DurationMs };
-            return;
-        }
+        if (_open) return;
 
         StatTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, ReignInBloodAcceleration, e);
-        _windows.Add(new BloodbathWindow(e.Timestamp, e.Timestamp + DurationMs));
+        _windows.Add(new BloodbathWindow(e.Timestamp, Owner.DungeonEndTime));
         _open = true;
     }
 }

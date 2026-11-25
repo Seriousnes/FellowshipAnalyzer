@@ -26,7 +26,7 @@ public sealed class SylvieChargeGrantTests
         grant.Source.ShouldBe(GrantSource.Talent);
         grant.Id.ShouldBe(SylvieTalents.FlowerPower);
         grant.Charges.ShouldBe(2);
-        grant.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        grant.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class SylvieChargeGrantTests
         grant.Source.ShouldBe(GrantSource.LegendaryItem);
         grant.Id.ShouldBe(SylvieLegendaries.UnrelentingThicket);
         grant.Charges.ShouldBe(2);
-        grant.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        grant.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
     }
 
     [Fact]

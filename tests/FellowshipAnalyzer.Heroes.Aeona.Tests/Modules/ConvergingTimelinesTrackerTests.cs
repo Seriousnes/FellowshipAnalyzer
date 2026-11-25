@@ -28,7 +28,7 @@ public sealed class ConvergingTimelinesTrackerTests
         tracker.Applications.ShouldBe(1);
         tracker.OblivionApplications.ShouldBe(1);
         tracker.Windows.ShouldHaveSingleItem().ShouldBe(new AuraWindow(1_000, 1_500));
-        parser.GetModule<StatTracker>()!.CurrentCooldownAcceleration(null).ShouldBe(0.0, 0.0001);
+        parser.GetModule<StatTracker>()!.CurrentCooldownRecovery.ShouldBe(1.0, 0.0001);
     }
 
     [Fact]
@@ -63,11 +63,11 @@ public sealed class ConvergingTimelinesTrackerTests
         var tracker = parser.ConvergingTimelinesTracker.ShouldNotBeNull();
         tracker.Applications.ShouldBe(2);
         tracker.Windows.ShouldHaveSingleItem().ShouldBe(new AuraWindow(1_000, 1_700));
-        parser.GetModule<StatTracker>()!.CurrentCooldownAcceleration(null).ShouldBe(0.0, 0.0001);
+        parser.GetModule<StatTracker>()!.CurrentCooldownRecovery.ShouldBe(1.0, 0.0001);
     }
 
     [Fact]
-    public async Task ALonesomeSongApplication_AddsAnAccelerationTermOfTwo_WhileTheBuffIsActive()
+    public async Task ALonesomeSongApplication_MultipliesCooldownRecoveryByThree_WhileTheBuffIsActive()
     {
         var parser = await Analyze(BossPull(),
             Info([], AeonaLegendaries.LonesomeSong),
@@ -78,7 +78,7 @@ public sealed class ConvergingTimelinesTrackerTests
         tracker.Applications.ShouldBe(1);
         tracker.OblivionApplications.ShouldBe(1);
         tracker.Windows.ShouldHaveSingleItem().Start.ShouldBe(1_000);
-        ConvergingTimelinesAcceleration(parser).ShouldBe(2.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(3.0, 0.0001);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class ConvergingTimelinesTrackerTests
 
         var tracker = parser.ConvergingTimelinesTracker.ShouldNotBeNull();
         tracker.Windows.ShouldHaveSingleItem().ShouldBe(new AuraWindow(1_000, 1_500));
-        ConvergingTimelinesAcceleration(parser).ShouldBe(0.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(1.0, 0.0001);
     }
 
     [Fact]
@@ -111,11 +111,11 @@ public sealed class ConvergingTimelinesTrackerTests
         var tracker = parser.ConvergingTimelinesTracker.ShouldNotBeNull();
         tracker.Applications.ShouldBe(2);
         tracker.Windows.ShouldHaveSingleItem().ShouldBe(new AuraWindow(1_000, 1_700));
-        ConvergingTimelinesAcceleration(parser).ShouldBe(0.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(1.0, 0.0001);
     }
 
     [Fact]
-    public async Task ALonesomeSongRefresh_LeavesOneTermOfTwo()
+    public async Task ALonesomeSongRefresh_LeavesOneMultiplierOfThree()
     {
         var parser = await Analyze(BossPull(),
             Info([], AeonaLegendaries.LonesomeSong),
@@ -124,11 +124,11 @@ public sealed class ConvergingTimelinesTrackerTests
             Activation(1_200, Spells.Oblivion),
             RefreshBuff(1_200, Spells.ConvergingTimelinesLonesomeSong));
 
-        ConvergingTimelinesAcceleration(parser).ShouldBe(2.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(3.0, 0.0001);
     }
 
     [Fact]
-    public async Task BothEffectsActive_SumToAnAccelerationOfThree()
+    public async Task BothEffectsActive_AddTheirPartsAboveOne()
     {
         var parser = await Analyze(BossPull(),
             Info([], AeonaLegendaries.LonesomeSong),
@@ -137,11 +137,11 @@ public sealed class ConvergingTimelinesTrackerTests
             Activation(1_200, Spells.Oblivion),
             ApplyBuff(1_200, Spells.ConvergingTimelinesLonesomeSong));
 
-        ConvergingTimelinesAcceleration(parser).ShouldBe(3.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(4.0, 0.0001);
     }
 
     [Fact]
-    public async Task OneOblivionGrantingBothEffects_SumsToThree_AndCountsOneApplication()
+    public async Task OneOblivionGrantingBothEffects_AddsTheirPartsAboveOne_AndCountsOneApplication()
     {
         var parser = await Analyze(BossPull(),
             Info([], AeonaLegendaries.LonesomeSong),
@@ -153,7 +153,7 @@ public sealed class ConvergingTimelinesTrackerTests
         tracker.Applications.ShouldBe(1);
         tracker.OblivionApplications.ShouldBe(1);
         tracker.CleanseApplications.ShouldBe(0);
-        ConvergingTimelinesAcceleration(parser).ShouldBe(3.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(4.0, 0.0001);
     }
 
     [Fact]
@@ -173,9 +173,45 @@ public sealed class ConvergingTimelinesTrackerTests
         tracker.Windows.Count.ShouldBe(2);
         tracker.Windows[0].ShouldBe(new AuraWindow(1_000, 1_500));
         tracker.Windows[1].Start.ShouldBe(1_200);
-        ConvergingTimelinesAcceleration(parser).ShouldBe(2.0, 0.0001);
+        ConvergingTimelinesRecovery(parser).ShouldBe(3.0, 0.0001);
     }
 
-    private static double ConvergingTimelinesAcceleration(CombatLogParser parser) =>
-        parser.GetModule<StatTracker>()!.CurrentCooldownAcceleration(null) - parser.SelectedCombatant.Stats.CooldownAcceleration.Total(null);
+    [Fact]
+    public async Task ConvergingTimelines_MultipliesCooldownRecoveryByTwo_AndLeavesRevertMagicAtOne()
+    {
+        var parser = await Analyze(BossPull(),
+            Info([]),
+            Activation(1_000, Spells.Oblivion),
+            ApplyBuff(1_000, Spells.ConvergingTimelines));
+
+        parser.GetModule<StatTracker>()!.CurrentCooldownRecovery.ShouldBe(2.0, 0.0001);
+        parser.GetModule<SpellUsable>()!.EffectiveRate(Spells.RevertMagic.FSLID).ShouldBe(1.0, 0.0001);
+    }
+
+    [Fact]
+    public async Task LonesomeSongsEffect_MultipliesCooldownRecoveryByThree_AndLeavesRevertMagicAtOne()
+    {
+        var parser = await Analyze(BossPull(),
+            Info([]),
+            Activation(1_000, Spells.Oblivion),
+            ApplyBuff(1_000, Spells.ConvergingTimelinesLonesomeSong));
+
+        parser.GetModule<StatTracker>()!.CurrentCooldownRecovery.ShouldBe(3.0, 0.0001);
+        parser.GetModule<SpellUsable>()!.EffectiveRate(Spells.RevertMagic.FSLID).ShouldBe(1.0, 0.0001);
+    }
+
+    [Fact]
+    public async Task WithALegendaryItem_ConvergingTimelinesAddsItsPartToTheStrandOfEternityTerm()
+    {
+        var parser = await Analyze(BossPull(),
+            Info([], AeonaLegendaries.MassEntropy),
+            Activation(1_000, Spells.Oblivion),
+            ApplyBuff(1_000, Spells.ConvergingTimelines));
+
+        parser.GetModule<StatTracker>()!.CurrentCooldownRecovery.ShouldBe(2.1, 0.0001);
+        parser.GetModule<SpellUsable>()!.EffectiveRate(Spells.RevertMagic.FSLID).ShouldBe(1.0, 0.0001);
+    }
+
+    private static double ConvergingTimelinesRecovery(CombatLogParser parser) =>
+        1.0 + parser.GetModule<StatTracker>()!.CurrentCooldownRecovery - parser.GetModule<StatTracker>()!.StartingCooldownRecovery;
 }

@@ -39,12 +39,82 @@ public class MergeEngineTests
             Source = GrantSource.Talent,
             Id = 566,
             Charges = 2,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         });
 
     [Fact]
     public void Rime_FrostBolt_HasNoChargeGrant() =>
         Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FrostBolt").Spell.ChargeGrant.ShouldBeNull();
+
+    [Fact]
+    public void Rime_ColdSnap_ScalesItsTimeRateOffCooldownRecoveryAndHaste() =>
+        SpellOf("rime", "ColdSnap").CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
+
+    [Fact]
+    public void Gunde_HeartSplitter_ScalesItsDurationOffCooldownReductionAndHaste() =>
+        SpellOf("gunde", "HeartSplitter").CooldownScaling.ShouldBe(new CooldownScaling
+        {
+            DurationCooldownReduction = true,
+            DurationHaste = true,
+            TimeRateCooldownRecovery = true,
+        });
+
+    [Fact]
+    public void Mara_Kick_HasNoCooldownScaling()
+    {
+        var kick = SpellOf("mara", "Kick");
+        kick.CooldownScaling.ShouldBeNull();
+        kick.Cooldown.ShouldBe(16);
+    }
+
+    [Fact]
+    public void Items_TwilightSkybolt_ScalesItsTimeRateOffHasteAlone() =>
+        SpellOf("items", "TwilightSkybolt").CooldownScaling.ShouldBe(new CooldownScaling { TimeRateHaste = true });
+
+    [Fact]
+    public void Items_FatedStrike_ScalesItsDurationOffCooldownReductionAlone() =>
+        SpellOf("items", "FatedStrike").CooldownScaling.ShouldBe(new CooldownScaling { DurationCooldownReduction = true });
+
+    [Fact]
+    public void Mara_Backstab_HasAOneSecondGlobalCooldownWithoutHaste()
+    {
+        var backstab = SpellOf("mara", "Backstab");
+        backstab.GlobalCooldown.ShouldBe(1);
+        backstab.GlobalCooldownScalesWithHaste.ShouldBe(false);
+    }
+
+    [Fact]
+    public void Tariq_SkullCrusher_HasAOneSecondGlobalCooldownWithHaste()
+    {
+        var skullCrusher = SpellOf("tariq", "SkullCrusher");
+        skullCrusher.GlobalCooldown.ShouldBe(1);
+        skullCrusher.GlobalCooldownScalesWithHaste.ShouldBe(true);
+    }
+
+    [Fact]
+    public void Rime_ColdSnap_HasTheStandardGlobalCooldown()
+    {
+        var coldSnap = SpellOf("rime", "ColdSnap");
+        coldSnap.GlobalCooldown.ShouldBe(1.5);
+        coldSnap.GlobalCooldownScalesWithHaste.ShouldBe(true);
+    }
+
+    [Fact]
+    public void Mara_Kick_HasNoGlobalCooldown()
+    {
+        var kick = SpellOf("mara", "Kick");
+        kick.GlobalCooldown.ShouldBeNull();
+        kick.GlobalCooldownScalesWithHaste.ShouldBeNull();
+    }
+
+    [Fact]
+    public void EveryAbilityWithAGlobalCooldown_StatesItsHasteScaling() =>
+        Run().Spells
+            .Where(x => x.Spell.GlobalCooldown is not null)
+            .ShouldAllBe(x => x.Spell.GlobalCooldownScalesWithHaste != null);
+
+    private static Spell SpellOf(string scope, string member) =>
+        Run().Spells.Single(x => x.Scope == scope && x.Member == member).Spell;
     [Fact]
     public void Rime_FreezingTorrent_HasNormalizedScalars()
     {

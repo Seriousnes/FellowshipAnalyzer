@@ -106,13 +106,13 @@ public class SourceLoaderTests
         var stoneShield = Export().Abilities[1122];
 
         stoneShield.ChargeCount.ShouldBe(2);
-        stoneShield.CooldownHaste.ShouldBe(CooldownHasteScaling.TimeRate);
+        stoneShield.CooldownScaling.ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(null)]
-    public void Export_ReadsTimeRateHasteAsDurationOnASingleChargeAbility(int? charges)
+    public void Export_ReadsTheSameCooldownScalingWhateverTheChargeCount(int? charges)
     {
         var entities = Path.GetTempFileName();
         try
@@ -129,8 +129,8 @@ public class SourceLoaderTests
                 return record.ToJsonString();
             }));
 
-            ExportSource.Load(entities, SourcePaths.Settings).Abilities[1122].CooldownHaste
-                .ShouldBe(CooldownHasteScaling.Duration);
+            ExportSource.Load(entities, SourcePaths.Settings).Abilities[1122].CooldownScaling
+                .ShouldBe(new CooldownScaling { TimeRateCooldownRecovery = true, TimeRateHaste = true });
         }
         finally
         {

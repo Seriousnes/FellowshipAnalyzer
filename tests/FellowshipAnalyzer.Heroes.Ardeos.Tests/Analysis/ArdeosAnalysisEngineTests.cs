@@ -280,6 +280,117 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
+    public async Task WildfireBuff_WithLoggedDurationAndNoRemoval_EndsAtDungeonEnd()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
+            Cast(Spells.Detonate.FSLID, 14000),
+            Cast(Spells.Detonate.FSLID, 16000));
+
+        window.BuffWindowStart.ShouldBe(10000);
+        window.BuffWindowEnd.ShouldBe(40000);
+        window.DetonateCasts.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithLoggedRemovalBeforeLoggedDurationEnds_EndsAtRemoval()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
+            RemoveBuff(12000, Spells.WildfireDotBonusBuff.FSLID));
+
+        window.BuffWindowEnd.ShouldBe(12000);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithLoggedRemovalAfterLoggedDurationEnds_EndsAtRemoval()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
+            Cast(Spells.Detonate.FSLID, 18000),
+            RemoveBuff(20000, Spells.WildfireDotBonusBuff.FSLID));
+
+        window.BuffWindowEnd.ShouldBe(20000);
+        window.DetonateCasts.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithPermanentDuration_EndsAtDungeonEnd()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: BuffEvent.InfiniteDurationMs));
+
+        window.BuffWindowEnd.ShouldBe(40000);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_RefreshedWithNewDurationAndNoRemoval_EndsAtDungeonEnd()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
+            RefreshBuff(13000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000));
+
+        window.BuffWindowEnd.ShouldBe(40000);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithNoLoggedDurationAndNoRemoval_EndsAtDungeonEnd()
+    {
+        var window = await WildfireWindow(ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID));
+
+        window.BuffWindowEnd.ShouldBe(40000);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithNoLoggedDurationAndNoRemoval_ReadsEachAnchorFromItsOwnCast()
+    {
+        var events = new List<Event>
+        {
+            ApplyBuff(30000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(30000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 31000),
+            Cast(Spells.Detonate.FSLID, 32000),
+            ApplyBuff(150000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(150000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 151000),
+            Cast(Spells.Detonate.FSLID, 153000),
+            Cast(Spells.Detonate.FSLID, 158000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 200000));
+
+        var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
+        windows.Count.ShouldBe(2);
+        windows[0].BuffWindowStart.ShouldBe(30000);
+        windows[0].BuffWindowEnd.ShouldBe(200000);
+        windows[0].DetonateCasts.ShouldBe(5);
+        windows[1].BuffWindowStart.ShouldBe(150000);
+        windows[1].BuffWindowEnd.ShouldBe(200000);
+        windows[1].DetonateCasts.ShouldBe(3);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_RefreshedWithNoLoggedDurationAndNoRemoval_ReadsEachAnchorFromItsOwnCast()
+    {
+        var events = new List<Event>
+        {
+            ApplyBuff(30000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(30000, TargetId, TargetInstance),
+            RefreshBuff(150000, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(150000, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, 151000),
+            Cast(Spells.Detonate.FSLID, 153000),
+            Cast(Spells.Detonate.FSLID, 158000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 200000));
+
+        var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
+        windows[1].BuffWindowStart.ShouldBe(150000);
+        windows[1].DetonateCasts.ShouldBe(3);
+    }
+
+    [Fact]
     public async Task MultipleWildfireAnchors_AreEvaluatedIndependently()
     {
         var events = new List<Event> { CombatantWithExplosivo() };
@@ -370,6 +481,19 @@ public sealed class ArdeosAnalysisEngineTests
         Coverage(windows[1], ArdeosDots.Incinerate).Magnitude.ShouldBe(11);
     }
 
+    private static async Task<WildfireComboAnalyzer.WildfireWindowEvaluation> WildfireWindow(params Event[] buffAndCastEvents)
+    {
+        const int anchor = 10000;
+        var events = new List<Event> { WildfireCast(anchor, TargetId, TargetInstance) }
+            .Concat(buffAndCastEvents)
+            .OrderBy(e => e.Timestamp)
+            .ToList();
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 40000));
+
+        return parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+    }
+
     private static DotCoverage Coverage(
         WildfireComboAnalyzer.WildfireWindowEvaluation window,
         Dot dot) =>
@@ -428,12 +552,22 @@ public sealed class ArdeosAnalysisEngineTests
         Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
     };
 
-    private static ApplyBuffEvent ApplyBuff(int timestamp, int effectId) => new()
+    private static ApplyBuffEvent ApplyBuff(int timestamp, int effectId, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+        Duration = duration,
+    };
+
+    private static RefreshBuffEvent RefreshBuff(int timestamp, int effectId, int? duration = null) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+        Duration = duration,
     };
 
     private static RemoveBuffEvent RemoveBuff(int timestamp, int effectId) => new()

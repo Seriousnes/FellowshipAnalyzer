@@ -727,23 +727,23 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_ExpiredOpenWoundsWindow_DoesNotPairTheSlaughterWithRupture()
+    public async Task Analyze_OpenWoundsWithNoLoggedRemoval_PairsALateSlaughterWithRupture()
     {
         var events = new List<Event>
         {
             BuffApplied(1_000),
             StackApplied(2_000, 60),
             OpenWoundsApplied(5_000),
-            Cast(Spells.OwedInBlood.FSLID, 5_001 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
-            BuffRemoved(5_100 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
-            Cast(Spells.Slaughter.FSLID, 6_000 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
+            Cast(Spells.OwedInBlood.FSLID, 40_000),
+            BuffRemoved(40_100),
+            Cast(Spells.Slaughter.FSLID, 41_000),
         };
 
         var analyzer = await AnalyzeAsync(events);
 
         var conversion = analyzer.Conversions.ShouldHaveSingleItem();
         conversion.FollowedBySlaughter.ShouldBeTrue();
-        conversion.PairedWithRupture.ShouldBeFalse();
+        conversion.PairedWithRupture.ShouldBeTrue();
     }
 
     [Fact]

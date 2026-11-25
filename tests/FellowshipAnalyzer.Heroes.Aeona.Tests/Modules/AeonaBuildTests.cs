@@ -39,13 +39,18 @@ public sealed class AeonaBuildTests
     }
 
     [Fact]
-    public async Task WithLonesomeSong_OblivionKeepsTheBaseConvergingTimelinesAcceleration()
+    public async Task WithLonesomeSong_TheBuildReportsTheLegendary()
     {
         var parser = await Analyze(BossPull(), Info([], AeonaLegendaries.LonesomeSong));
 
-        var build = parser.AeonaBuild.ShouldNotBeNull();
-        build.LonesomeSong.ShouldBeTrue();
-        build.ConvergingTimelinesOnOblivion.ShouldBe(1.0);
+        parser.AeonaBuild.ShouldNotBeNull().LonesomeSong.ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task EntropyClaimCastTime_IsOneAndAHalfSeconds()
+    {
+        var parser = await Analyze(BossPull(), Info([]));
+
+        parser.AeonaBuild.ShouldNotBeNull().EntropyClaimCastTimeMs.ShouldBe(1_500);
+    }
 }

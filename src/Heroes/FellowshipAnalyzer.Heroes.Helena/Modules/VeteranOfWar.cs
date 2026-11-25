@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 /// on <see cref="LastCast"/> for <see cref="VeteranOfWarAnalyzer"/> to report per pull.
 /// </summary>
 /// <remarks>
-/// Every reduction in <see cref="Combos"/> is twice the figure the ability tooltips state. Across 26 Season 3
+/// Every reduction in <see cref="Combos"/> is twice the figure the export rows state. Across 26 Season 3
 /// logs the tooltip figures leave 29% of Shockwave casts and 11% of Shield Throw casts before the model's
 /// recharge, while doubling every figure puts both abilities' earliest casts at the recharge, as Power
 /// Strike's already are, for every player, outside Siegebreaker as well as inside it, and before a run's
@@ -24,26 +24,32 @@ public sealed partial class VeteranOfWar : Analyzer
     private bool _ultimateActive;
     private int _punishingStrikesStacks;
 
+    /// <summary>The logged reduction of every combo, as a multiple of its export row: twice the row.</summary>
+    private const double ComboScaler = 2.0;
+
     public static List<CooldownCombo> Combos { get; } =
     [
-        new(Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID, 4000),
-        new(Spells.MeasuredStrike.FSLID, Spells.ShieldThrow.FSLID, 4000),
-        new(Spells.PowerStrike.FSLID, Spells.ShieldSlam.FSLID, 4000),
-        new(Spells.PowerStrike.FSLID, Spells.ShieldThrow.FSLID, 4000),
-        new(Spells.ShieldSlam.FSLID, Spells.Shockwave.FSLID, 6000),
-        new(Spells.ShieldThrow.FSLID, Spells.Shockwave.FSLID, 6000),
-        new(Spells.Shockwave.FSLID, Spells.ShieldsUp.FSLID, 12000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldSlam.FSLID, 20000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldThrow.FSLID, 20000),
-        new(Spells.HoldTheLine.FSLID, Spells.Shockwave.FSLID, 20000),
-        new(Spells.HoldTheLine.FSLID, Spells.ShieldsUp.FSLID, 20000),
+        new(Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_LightMelee_MeleeCleave)),
+        new(Spells.MeasuredStrike.FSLID, Spells.ShieldThrow.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_LightMelee_BouncyProjectile)),
+        new(Spells.PowerStrike.FSLID, Spells.ShieldSlam.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_HeavyMelee_MeleeCleave)),
+        new(Spells.PowerStrike.FSLID, Spells.ShieldThrow.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_HeavyMelee_BouncyProjectile)),
+        new(Spells.ShieldSlam.FSLID, Spells.Shockwave.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MeleeCleave_MeleeAoeSlow)),
+        new(Spells.ShieldThrow.FSLID, Spells.Shockwave.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_BouncyProjectile_MeleeAoeSlow)),
+        new(Spells.Shockwave.FSLID, Spells.ShieldsUp.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MeleeAoeSlow_DefenceBuff)),
+        new(Spells.HoldTheLine.FSLID, Spells.ShieldSlam.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MoveToTargetStun_MeleeCleave)),
+        new(Spells.HoldTheLine.FSLID, Spells.ShieldThrow.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MoveToTargetStun_BouncyProjectile)),
+        new(Spells.HoldTheLine.FSLID, Spells.Shockwave.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MoveToTargetStun_MeleeAoeSlow)),
+        new(Spells.HoldTheLine.FSLID, Spells.ShieldsUp.FSLID, Reduction(SpellTuning.VeteranOfWar.Warmaster_CooldownReductionCombo_MoveToTargetStun_DefenceBuff)),
     ];
 
-    public const double ActiveUltimateScaler = 2.0;
+    public static readonly double ActiveUltimateScaler = SpellTuning.VeteranOfWar.ActiveUltimate;
 
-    public const double PunishingStrikesScaler = 2.0;
+    public static readonly double PunishingStrikesScaler =
+        SpellTuning.VeteranOfWar.BlockToIncreasedPower_CooldownReducementMultiplier;
 
-    public const int PunishingStrikesStacksAtProc = 2;
+    public static readonly int PunishingStrikesStacksAtProc = (int)TalentTuning.PunishingStrikes.StacksAtProc;
+
+    private static int Reduction(double exportRowSeconds) => (int)(exportRowSeconds * ComboScaler * 1000);
 
     public static List<int> HoldTheLineTargets { get; } =
     [

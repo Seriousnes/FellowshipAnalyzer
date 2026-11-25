@@ -7,6 +7,10 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 [Dependency<Combatants>]
 public sealed partial class RekindlingFlamesAnalyzer : Analyzer
 {
+    /// <summary>Engulfing Flames cooldown removed per Engulfing Flames window on a dying target, in milliseconds.</summary>
+    public static readonly int PerWindowMs =
+        (int)(SpellTuning.EngulfingFlames.CooldownReductionInSecondsOnTargetDeath * 1000);
+
     public int QualifyingDeaths { get; private set; }
     /// <summary>Engulfing Flames cooldown progress from enemy deaths, in milliseconds.</summary>
     public CooldownReductionResult CooldownReduction { get; private set; } = new();
@@ -18,8 +22,7 @@ public sealed partial class RekindlingFlamesAnalyzer : Analyzer
         if (windows == 0)
             return;
 
-        var perWindowMs = (int)((Spells.EngulfingFlames.CooldownReductionOnTargetDeath ?? 0) * 1000);
-        var requestedMs = windows * perWindowMs;
+        var requestedMs = windows * PerWindowMs;
         var reduction = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, requestedMs, e.Timestamp);
 
         QualifyingDeaths++;

@@ -10,7 +10,8 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 [RequiresTalent(ArdeosTalents.CrashAndBurn)]
 public sealed partial class CrashAndBurnAnalyzer : Analyzer
 {
-    private const int SEARING_BLAZE_CDR = 50;
+    private static readonly int SEARING_BLAZE_CDR =
+        (int)(TalentTuning.CrashAndBurn.Firemage_InstantDoubleDotSelfBuff_Talent_CastedSingleDotDamageReducesCooldown_ReductionInSeconds * 1000);
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 

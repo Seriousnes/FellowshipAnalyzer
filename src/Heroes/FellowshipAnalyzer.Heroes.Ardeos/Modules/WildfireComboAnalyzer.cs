@@ -18,7 +18,11 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     public const int DetonateSpamThreshold = 3;
 
-    private const int WildfireBuffDurationMs = 9000;
+    /// <summary>
+    /// The Wildfire buff length in milliseconds, used when the log has no application of the buff to the player.
+    /// </summary>
+    public static readonly int WildfireBuffDurationMs = (int)(SpellTuning.Wildfire.DotBonus_Duration * 1000);
+
     private const int SequenceWindowMs = 6000;
 
     private readonly List<CastEvent> _casts = [];
@@ -119,7 +123,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 
-        return (buff.Start, buff.End ?? anchor + WildfireBuffDurationMs);
+        return (Math.Max(anchor, buff.Start), buff.End ?? Owner.DungeonEndTime);
     }
 
     private (bool HasPyromania, bool HasIncinerate, List<CastEvent> Casts) CollectSequence(int anchor)

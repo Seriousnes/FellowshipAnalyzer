@@ -1,4 +1,6 @@
-﻿using FellowshipAnalyzer.Core.Common.Spells;
+﻿using System.Text.Json.Serialization;
+
+using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.Core.Events;
 
@@ -17,6 +19,13 @@ public abstract class BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEv
     public virtual int? SourceInstance { get; set; }
     /// <summary>The unique id of the actor that applied, refreshed, or removed the buff or debuff.</summary>
     public virtual int SourceId { get; set; }
+    /// <summary>The <see cref="Duration"/> value, in milliseconds, the log states for an application with no end.</summary>
+    public const int InfiniteDurationMs = 9_999_000;
+    /// <summary>The length of this application in milliseconds, as the log states it on an apply or refresh. <c>null</c> on an event the log gives no duration.</summary>
+    public virtual int? Duration { get; set; }
+    /// <summary>The timestamp at which this application ends when nothing removes or refreshes it. <c>null</c> when <see cref="Duration"/> is absent, is 0 or below, or is <see cref="InfiniteDurationMs"/>.</summary>
+    [JsonIgnore]
+    public int? ExpectedEnd => Duration is > 0 and < InfiniteDurationMs ? Timestamp + Duration : null;
 }
 
 /// <summary>A single continuous application window of a buff or debuff, fabricated by <see cref="Analysis.Combatants"/> from the underlying apply, refresh, remove, and stack events.</summary>

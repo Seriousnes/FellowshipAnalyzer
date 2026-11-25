@@ -22,7 +22,15 @@ public enum GapKind
     UnclaimedGeneration,
     /// <summary>A charge grant names no holder for the scope, or its description states no charge count.</summary>
     UnresolvedChargeGrant,
+    /// <summary>Two tuning rows of one member share a generated identifier, or a row's identifier equals its member name.</summary>
+    TuningNameCollision,
 }
+
+/// <summary>
+/// One numeric tuning row of a member. <paramref name="Container"/> is <c>spells</c>, <c>talents</c>,
+/// <c>legendaries</c> or <c>glyphs</c>, and <paramref name="Key"/> is the row key as the export writes it.
+/// </summary>
+public record TuningRow(string Scope, string Container, string Member, string Key, ExportTuningValue Value);
 
 /// <summary>A detected gap in the merged spell data.</summary>
 public record Gap(string Scope, string Member, GapKind Kind);
@@ -62,6 +70,15 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     public List<ExportAugmentation> Augmentations { get; init; } = [];
 
     /// <summary>
+    /// Each effect's Haste, Haste rating, Cooldown Recovery and Cooldown Reduction modifiers, duration,
+    /// maximum stacks and Cooldown Acceleration changes, keyed by the export's effect id and ordered by it.
+    /// </summary>
+    public List<ExportEffectData> EffectData { get; init; } = [];
+
+    /// <summary>The rating curves of Critical Strike, Haste, Expertise and Spirit, in that order.</summary>
+    public List<ExportRatingCurve> RatingCurves { get; init; } = [];
+
+    /// <summary>
     /// Every talent the export slots to a hero, scoped by that hero's key. Talents are held apart from
     /// <see cref="Spells"/> because a talent often repeats the name of an ability or effect in the same
     /// hero's scope.
@@ -70,4 +87,10 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
 
     /// <summary>Every legendary item the export grants a power to, scoped by the hero that equips it.</summary>
     public List<CuratedLegendary> Legendaries { get; init; } = [];
+
+    /// <summary>
+    /// Every numeric tuning row of each selected spell, talent, legendary and glyph, ordered by scope
+    /// (hero scopes ordinally, then <c>shared</c>, <c>items</c> and <c>glyphs</c>), container, member and row key.
+    /// </summary>
+    public List<TuningRow> Tuning { get; init; } = [];
 }

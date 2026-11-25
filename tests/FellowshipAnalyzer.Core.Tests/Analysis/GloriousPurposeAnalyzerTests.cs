@@ -15,12 +15,12 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="GloriousPurposeAnalyzer"/>: the +200% recovery window (3× for an ability with no
-/// haste contribution) is opened by the Glorious Purpose buff, bounded to 6 seconds (or an early
-/// <see cref="RemoveBuffEvent"/>), extended rather than reopened by a refresh, and the bonus cooldown
-/// recovery it grants is attributed per ability.
+/// Tests for <see cref="GloriousPurposeAnalyzer"/>: the Cooldown Recovery window (a modifier of 3, 3× for an
+/// ability whose time rate scales off Cooldown Recovery) is opened by the Glorious Purpose buff, closed by
+/// the logged <see cref="RemoveBuffEvent"/> or ended by the dungeon, left unchanged by a refresh inside it,
+/// and the bonus cooldown recovery it grants is attributed per ability.
 /// </summary>
-public sealed class GloriousPurposeAnalyzerTests
+public sealed partial class GloriousPurposeAnalyzerTests
 {
     private const int PlayerId = 7;
     private const int BigCdId = 500;
@@ -38,6 +38,7 @@ public sealed class GloriousPurposeAnalyzerTests
         [
             Cast(1000, BigCdId),
             ApplyBuff(5000),
+            RemoveBuff(11_000),
             Filler(20_000),
         ]);
 
@@ -54,6 +55,7 @@ public sealed class GloriousPurposeAnalyzerTests
         [
             Cast(1000, BigCdId),
             ApplyBuff(27_000),
+            RemoveBuff(33_000),
             Filler(40_000),
         ]);
 
@@ -76,18 +78,15 @@ public sealed class GloriousPurposeAnalyzerTests
         Assert.InRange(recovery.RecoveredMs, 1_800, 2_200);
     }
 
-    /// <summary>
-    /// A refresh inside a live window resets its clock rather than opening a second one, and the expiry
-    /// fabricated by the original application must not close the extended window at the earlier instant.
-    /// </summary>
     [Fact]
-    public async Task RefreshInLiveWindow_ExtendsWindowRatherThanOpeningAnother()
+    public async Task RefreshInOpenWindow_ChangesNothing()
     {
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
             ApplyBuff(5000),
             RefreshBuff(8000),
+            RemoveBuff(14_000),
             Filler(30_000),
         ]);
 
@@ -99,17 +98,15 @@ public sealed class GloriousPurposeAnalyzerTests
         Assert.InRange(recovery.RecoveredMs, 17_000, 17_600);
     }
 
-    /// <summary>
-    /// Once the fabricated expiry has closed a window, a later refresh has no window to extend, so it
-    /// opens a second one.
-    /// </summary>
     [Fact]
-    public async Task RefreshAfterWindowExpired_OpensAnotherWindow()
+    public async Task RefreshAfterLoggedRemoval_OpensAnotherWindow()
     {
         var analyzer = await Analyze(
         [
             ApplyBuff(5000),
+            RemoveBuff(11_000),
             RefreshBuff(30_000),
+            RemoveBuff(36_000),
             Filler(50_000),
         ]);
 
@@ -128,6 +125,76 @@ public sealed class GloriousPurposeAnalyzerTests
     }
 
     [Fact]
+    public async Task LoggedDuration_DoesNotEndTheWindow()
+    {
+        var analyzer = await Analyze([ApplyBuff(10_000, duration: 9000), Filler(30_000)]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(TestDungeon.EndTime, window.EndTimestamp);
+    }
+
+    [Fact]
+    public async Task Buff_AddsTheExportCooldownRecoveryOfThreeToThePool()
+    {
+        var parser = await AnalyzeParser([ApplyBuff(10_000), Filler(11_000)]);
+
+        var added = Assert.Single(parser.Events.OfType<ChangeCooldownModifierEvent>(), e => e.Added && e.Pool == CooldownPool.CooldownRecovery);
+        Assert.Equal(3.0, added.Modifier.Value, precision: 6);
+    }
+
+    [Fact]
+    public async Task NoLoggedRemoval_EndsTheWindowAtTheDungeonEnd()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000, BigCdId),
+            ApplyBuff(5000),
+            Filler(20_000),
+        ]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(5000, window.BeginTimestamp);
+        Assert.Equal(TestDungeon.EndTime, window.EndTimestamp);
+        Assert.Equal(TestDungeon.EndTime - 5000, analyzer.TotalUptimeMs);
+
+        var recovery = Assert.Single(analyzer.RecoveryByAbility);
+        Assert.Equal(BigCdId, recovery.SpellId);
+        Assert.InRange(recovery.RecoveredMs, 17_000, 17_600);
+        Assert.Equal(recovery.RecoveredMs, analyzer.TotalRecoveredMs);
+    }
+
+    [Fact]
+    public async Task RefreshWithLoggedDuration_InOpenWindow_ChangesNothing()
+    {
+        var analyzer = await Analyze(
+        [
+            ApplyBuff(10_000, duration: 6000),
+            RefreshBuff(14_000, duration: 6000),
+            Filler(30_000),
+        ]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(TestDungeon.EndTime, window.EndTimestamp);
+    }
+
+    [Fact]
+    public async Task LoggedRemoval_ClosesTheWindowAtItsTimestamp()
+    {
+        var analyzer = await Analyze(
+        [
+            ApplyBuff(10_000, duration: 6000),
+            RemoveBuff(12_000),
+            Filler(30_000),
+        ]);
+
+        var window = Assert.Single(analyzer.Windows);
+        Assert.Equal(10_000, window.BeginTimestamp);
+        Assert.Equal(12_000, window.EndTimestamp);
+    }
+
+    [Fact]
     public async Task RepeatedApplies_DoNotCompound()
     {
         var analyzer = await Analyze(
@@ -135,6 +202,7 @@ public sealed class GloriousPurposeAnalyzerTests
             Cast(1000, BigCdId),
             ApplyBuff(5000),
             ApplyBuff(5000),
+            RemoveBuff(11_000),
             Filler(30_000),
         ]);
 
@@ -156,7 +224,22 @@ public sealed class GloriousPurposeAnalyzerTests
     }
 
     [Fact]
-    public async Task UnendedBuff_ClosesWindowAtScheduledExpiry_ViaFabricatedRemoveBuff()
+    public async Task LoggedRemoval_RemovesTheModifierAtItsTimestamp()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(1000, BigCdId),
+            ApplyBuff(5000),
+            RemoveBuff(11_000),
+            Filler(20_000),
+        ]);
+
+        var removal = parser.Events.OfType<ChangeCooldownModifierEvent>().Single(e => !e.Added);
+        Assert.Equal(11_000, removal.Timestamp);
+    }
+
+    [Fact]
+    public async Task NoLoggedRemoval_FabricatesNoRemoval()
     {
         var parser = await AnalyzeParser(
         [
@@ -165,11 +248,24 @@ public sealed class GloriousPurposeAnalyzerTests
             Filler(20_000),
         ]);
 
-        var fabricated = parser.Events.OfType<RemoveBuffEvent>().Single(e => e.Fabricated == true);
-        Assert.Equal(11_000, fabricated.Timestamp);
+        Assert.DoesNotContain(parser.Events.OfType<RemoveBuffEvent>(), e => e.Fabricated == true);
+        Assert.DoesNotContain(parser.Events.OfType<ChangeCooldownModifierEvent>(), e => !e.Added);
+    }
 
-        var removal = parser.Events.OfType<ChangeCooldownModifierEvent>().Single(e => !e.Added);
-        Assert.Equal(11_000, removal.Timestamp);
+    [Fact]
+    public async Task DuringTheBuff_AnAbilityScalingOffCooldownRecoveryRecoversAtThreeTimes_AndFatedStrikeAtTheNormalRate()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(1000, Items.FatedStrike.FSLID),
+            ApplyBuff(5000),
+            Filler(6000),
+        ]);
+
+        var rates = parser.GetModule<RateProbe>()!.Rates;
+        Assert.Equal(3.0, rates[(6000, BigCdId)], precision: 6);
+        Assert.Equal(1.0, rates[(6000, Items.FatedStrike.FSLID)], precision: 6);
+        Assert.Empty(parser.GetModule<GloriousPurposeAnalyzer>()!.RecoveryByAbility);
     }
 
     [Fact]
@@ -242,6 +338,7 @@ public sealed class GloriousPurposeAnalyzerTests
             typeof(Haste),
             typeof(SpellUsable),
             typeof(GloriousPurposeAnalyzer),
+            typeof(RateProbe),
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
@@ -258,20 +355,22 @@ public sealed class GloriousPurposeAnalyzerTests
         Channel = new EndChannelEvent(),
     };
 
-    private static ApplyBuffEvent ApplyBuff(int timestamp) => new()
+    private static ApplyBuffEvent ApplyBuff(int timestamp, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = Items.GloriousPurpose.FSLID, Name = "Glorious Purpose" },
+        Duration = duration,
     };
 
-    private static RefreshBuffEvent RefreshBuff(int timestamp) => new()
+    private static RefreshBuffEvent RefreshBuff(int timestamp, int? duration = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = Items.GloriousPurpose.FSLID, Name = "Glorious Purpose" },
+        Duration = duration,
     };
 
     private static RemoveBuffEvent RemoveBuff(int timestamp) => new()
@@ -298,6 +397,7 @@ public sealed class GloriousPurposeAnalyzerTests
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(RateProbe)) return new RateProbe { RateOf = id => GetModule<SpellUsable>()!.EffectiveRate(id) };
             return base.CreateInstance(type);
         }
     }
@@ -308,9 +408,30 @@ public sealed class GloriousPurposeAnalyzerTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = BigCdId, Name = "Big Cooldown", Cooldown = (double)BigCdSeconds },
+                PrimarySpell = new Spell
+                {
+                    Id = BigCdId,
+                    Name = "Big Cooldown",
+                    Cooldown = (double)BigCdSeconds,
+                    CooldownScaling = new() { DurationCooldownReduction = true, TimeRateCooldownRecovery = true },
+                },
                 Category = SpellCategory.Cooldowns,
             },
+            new SpellbookAbility { PrimarySpell = Items.FatedStrike, Category = SpellCategory.Cooldowns },
         ];
+    }
+
+    private sealed partial class RateProbe : Analyzer
+    {
+        public required Func<int, double> RateOf { get; init; }
+
+        public Dictionary<(int Timestamp, int SpellId), double> Rates { get; } = [];
+
+        [On<ApplyBuffEvent>(By = Actor.Player)]
+        private void OnBuff(ApplyBuffEvent e)
+        {
+            Rates[(e.Timestamp, BigCdId)] = RateOf(BigCdId);
+            Rates[(e.Timestamp, Items.FatedStrike.FSLID)] = RateOf(Items.FatedStrike.FSLID);
+        }
     }
 }

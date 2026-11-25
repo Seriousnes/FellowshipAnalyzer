@@ -2,7 +2,9 @@ using System.Collections.Frozen;
 
 using FellowshipAnalyzer.Core.Analysis.Gems;
 using FellowshipAnalyzer.Core.Common.Items;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -31,8 +33,11 @@ public sealed partial class PassiveBonusTracker : Analyzer
     /// <summary>The Ultimatum dungeon modifier, which reduces every ability's cooldown by 10%.</summary>
     public const int UltimatumModifier = 16;
 
-    private const double CommanderReduction = 0.04;
-    private const double CommanderReductionII = 0.12;
+    /// <summary>The effect an Ultimatum dungeon affix (<c>dungeon-affix</c> 16) applies.</summary>
+    private const int UltimatumEffectId = 26;
+
+    private static readonly double CommanderReduction = CooldownReductionOf(Items.BlessingOfTheCommander);
+    private static readonly double CommanderReductionII = CooldownReductionOf(Items.BlessingOfTheCommanderII);
 
     /// <summary>Blessing of the Commander: Ability Cooldown Reduction at rank 5, replaced by a larger one at rank 10.</summary>
     public static readonly GemTrait BlessingOfTheCommander = new(
@@ -49,10 +54,10 @@ public sealed partial class PassiveBonusTracker : Analyzer
             new() { CritRating = 8 }, new() { CritRating = 24 }, AlreadyCounted: true),
         new(GemType.Topaz,
             new(Items.FelineGrace, GemRankPower.Rank4, Items.FelineGraceII, GemRankPower.Rank9),
-            new() { Haste = 0.02 }, new() { Haste = 0.06 }, AlreadyCounted: false),
+            new() { Haste = HasteOf(Items.FelineGrace) }, new() { Haste = HasteOf(Items.FelineGraceII) }, AlreadyCounted: false),
         new(GemType.Topaz,
             new(Items.ThiefsAlacrity, GemRankPower.Rank2, Items.ThiefsAlacrityII, GemRankPower.Rank7),
-            new() { HasteRating = 8 }, new() { HasteRating = 24 }, AlreadyCounted: true),
+            new() { HasteRating = HasteRatingOf(Items.ThiefsAlacrity) }, new() { HasteRating = HasteRatingOf(Items.ThiefsAlacrityII) }, AlreadyCounted: true),
         new(GemType.Emerald,
             new(Items.TacticiansAccumen, GemRankPower.Rank4, Items.TacticiansAccumenII, GemRankPower.Rank9),
             new() { Expertise = 0.02 }, new() { Expertise = 0.06 }, AlreadyCounted: false),
@@ -87,7 +92,10 @@ public sealed partial class PassiveBonusTracker : Analyzer
         new Dictionary<int, PassiveStatBonus>
         {
             [ChallengeModifier] = new() { Spirit = 0.10 },
-            [UltimatumModifier] = new() { AbilityCooldownReduction = 0.10 },
+            [UltimatumModifier] = new()
+            {
+                AbilityCooldownReduction = EffectModifierValue.Of(UltimatumEffectId, StatAttribute.CooldownReduction),
+            },
         }.ToFrozenDictionary();
 
     private static readonly FrozenDictionary<int, GemType> AnomalousResidues =
@@ -198,6 +206,13 @@ public sealed partial class PassiveBonusTracker : Analyzer
             _ => 0,
         };
     }
+
+    private static double CooldownReductionOf(Spell effect) =>
+        EffectModifierValue.Of(effect.Id, StatAttribute.CooldownReduction);
+
+    private static double HasteOf(Spell effect) => EffectModifierValue.Of(effect.Id, StatAttribute.Haste);
+
+    private static double HasteRatingOf(Spell effect) => EffectModifierValue.Of(effect.Id, StatAttribute.HasteRating);
 
     private sealed record PassiveGemTrait(
         GemType Gem,

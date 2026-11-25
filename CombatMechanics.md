@@ -125,15 +125,21 @@ Community discussion and class guides further emphasize that Haste reduces the g
 
 ### Haste percentage from rating
 
-The Haste percentage used for combat calculations is obtained by applying the same rating to percentage with DR formula described above to Haste rating, then adding any flat Haste percentage bonuses (for example from gems, set bonuses, or temporary buffs such as "heroism"-style effects). [^22][^4]
-As with other secondaries, DR applies only to rating-based Haste; flat Haste percentage bonuses are added on top after DR and are not diminished. [^1]
+Haste is the game's Haste attribute minus 1, floored at 0. The attribute starts at `1 + P(R)`, where `P(R)` is the rating to percentage with DR formula described above applied to Haste rating, and every active Haste modifier joins one fold by its operation: [^22][^4]
+
+- `Additive` values (flat bonuses from gems, set bonuses, or "heroism"-style buffs) add to the base and are not diminished. [^1]
+- `Multiplicitive` values add their part above 1 to one shared factor, so Rune Rush (1.15) and Shadow's Defeat (1.20) active together give `1 + 0.15 + 0.20 = 1.35`.
+- `MultiplyCompound` values each multiply the result.
+- `AddFinal` values add after every multiplication.
+
+`attribute = (1 + P(R) + Σ additive) × (1 + Σ (multiplicitive − 1)) × Π compound + Σ addFinal`, and `h = max(0, attribute − 1)`. The rating curve, `BaseStatMultiplier` and brackets, comes from the generated `RatingCurves`. A Haste rating buff adds to the rating before conversion.
 
 ### Haste time scaling
 
 With total Haste `h` as a fraction (0.30 for 30%), a hasted duration is `T_base ÷ (1 + h)`. [^23]
 
 - **Cast time**: `cast_base ÷ (1 + h)`, with `h` at the cast's start. `Haste.ScaleDuration` computes it.
-- **Global cooldown**: `1.5 s ÷ (1 + h)`, with `h` at the cast's start, and at least `GcdInfo.Minimum` (750 ms by default). `GlobalCooldown` computes it from the ability's `GcdInfo.Base` (1500 ms by default), and a `GcdInfo.Static` GCD takes no Haste.
+- **Global cooldown**: each ability's export states its global cooldown in seconds and whether Haste applies. An ability with a global cooldown of `g` seconds has `g ÷ (1 + h)` when Haste applies and `g` otherwise, with `h` at the cast's start. An ability with none has no global cooldown. No hero spellbook sets `SpellbookAbility.Gcd`. A `GcdInfo` on an entry replaces the export values: `Static` gives its value in milliseconds with no Haste, and `Base` is divided by `1 + h` to at least `Minimum` (no floor when `Minimum` is absent), rounded to the nearest millisecond with midpoints away from zero. A `GcdInfo` with neither `Static` nor `Base` throws `InvalidOperationException`.
 - **Channel ticks**: the tick period is `tick_base ÷ (1 + h)`, with `h` at the channel's start. The channel's duration is fixed and takes no Haste.
 - **Hasted periodic effects**: each tick comes after `tick_base` of hasted progress, where progress runs at `1 + h` per second. A Haste change re-times the tick in progress from that moment; the effect's duration is fixed. [^23]
 
@@ -145,38 +151,37 @@ A cooldown has an amount of **cooldown progress** left, which decreases at a **r
 
 **Duration at the start.** When a charge starts recharging, its duration in cooldown progress is
 
-- `D = C_base × (1 − ACR)`, then divided by `1 + h` when Haste scales the cooldown's duration (`CooldownHasteScaling.Duration`). Haste scales the duration of every Haste-scaled cooldown on an ability with one charge.
+- `D = C_base × (1 − ACR)` when the ability's `CooldownScaling` has `DurationCooldownReduction`, and `D = C_base` otherwise. `D` is then divided by `1 + h` when Haste scales the cooldown's duration (`CooldownHasteScaling.Duration`). Haste scales the duration of every Haste-scaled cooldown on an ability with one charge.
 
-Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the charge's start. Every later charge of a multi-charge ability takes `D` from the values current when that charge starts.
+Ability Cooldown Reduction (`CooldownPool.AbilityCooldownReduction`, capped at 1) and Duration-scaled Haste are read once, at the cast from full charges. Every later charge of the chain recharges over that same `D`. A charged ability, an interrupt, a dispel and a relic ability take no Ability Cooldown Reduction, because the export gives their cooldowns no `DurationCooldownReduction`.
+
+**Cooldown Recovery attribute.** The attribute starts at 1 and folds each modifier of `CooldownPool.CooldownRecovery` by its operation, as the Haste attribute does:
+
+- `CR = (1 + Σ additive) × (1 + Σ (multiplicitive − 1)) × Π compound + Σ addFinal`
+
+Strand of Eternity (equipped legendary) is a `Multiplicitive` modifier of 1.1, Asha's Arcane Embrace (Chronoshift channel) of 8, and Glorious Purpose (Fated Strike) of 3. A Cooldown Recovery modifier is never scoped to abilities.
 
 **Recovery rate.** The cooldown progress left decreases at
 
-- `rate = 1 + h_rate + Σ acceleration`
+- `rate = CR_ability + Σ acceleration + h_rate`
 
-where `h_rate` is the current Haste when Haste scales the cooldown's time rate on an ability with more than one charge (`CooldownHasteScaling.TimeRate`), and 0 otherwise. A talent or legendary `ChargeGrant` that raises an ability to 2 or more charges moves its Haste to `h_rate`. Every Cooldown Acceleration source is one additive term in the same pool:
+where `CR_ability` is the Cooldown Recovery attribute when the ability's `CooldownScaling` has `TimeRateCooldownRecovery`, and 1 otherwise. `h_rate` is the current Haste when Haste scales the cooldown's time rate (`CooldownHasteScaling.TimeRate`), and 0 otherwise. A talent or legendary `ChargeGrant` that raises an ability to 2 or more charges moves its Haste to `h_rate`. Haste adds outside the Cooldown Recovery attribute. `Σ acceleration` is the sum of every `CooldownPool.CooldownAcceleration` term whose scope covers the ability. The Monarch gives MAJOR abilities a term of 3% / 5% / 8% / 12% by tier, plus `min(0.1 × h, 0.05)`.
 
-| Source | Modifier | Term |
-| --- | --- | --- |
-| Strand of Eternity (equipped legendary) | `CooldownRecovery` × 1.1 | +0.10 |
-| Chronoshift channel (Asha's Arcane Embrace) | `CooldownRecovery` × 8 | +7.0 |
-| Glorious Purpose (Fated Strike) | `CooldownRecovery` × 3 | +2.0 |
-| The Monarch (MAJOR abilities) | 3% / 5% / 8% / 12% by tier | +tier + min(0.1 × h, 0.05) |
+With Strand of Eternity and a Chronoshift channel, an ability that scales off Cooldown Recovery has `CR = 1 + 0.1 + 7 = 8.1`, so it recovers at 8.1×. With 20% time-rate Haste the rate is 8.3×.
 
-A `CooldownRecovery` multiplier of `m` is a term of `m − 1`. Haste on a time-rate cooldown is a term of the same sum, so Chronoshift takes a cooldown with 20% time-rate Haste to `1 + 0.2 + 7 = 8.2×`.
+The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any recovery term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. Between two events the state decreases the progress by `span × rate` for the rate in force across the span, and keeps the progress as a fractional number of cooldown milliseconds, so a chain of rate changes adds no rounding. A charge returns at the first whole millisecond at or after its exact instant, and the span after that instant counts towards the next charge. `SpellUsable.EffectiveRate` computes the rate and `CooldownState` holds the progress.
 
-The real time left on a charge is `progress_left ÷ rate`. A change to Haste or to any acceleration term changes the rate from that moment: the progress already made is kept, and the time left becomes `time_left × rate_old ÷ rate_new`. `SpellUsable.EffectiveRate` computes the rate.
-
-**Weapon abilities.** Every Weapon ability's cooldown takes no Cooldown Acceleration from Strand of Eternity, The Monarch or another ability's effect. Its recovery rate has only the Cooldown Acceleration and Cooldown Recovery terms its own effects grant (`CooldownModifier.GrantedBy`) and its own Haste scaling. Chronoshift recovers at 8× while Chronoshift is channelled. Fated Strike takes Glorious Purpose's +2.0. Haste scales Twilight Skybolt's cooldown time rate. No other Weapon ability has an effect granting either term. Ability Cooldown Reduction applies to every Weapon ability. Repository of Frozen Light's Frozen Light buff lasts 30 s. A Frozen Light removal at or after 30 s from its application is a flat reduction of 0.3 s on Repository of Frozen Light's cooldown for each stack still on the buff. A removal before 30 s reduces nothing.
+**Weapon abilities.** A Weapon ability's cooldown takes the terms its own `CooldownScaling` names, as every other ability's does. Chronoshift and Fated Strike scale their duration off Cooldown Reduction only, so each recovers its own cooldown at 1× while Chronoshift is channelled or Glorious Purpose is active, and takes no Strand of Eternity. Haste scales Twilight Skybolt's cooldown time rate. Repository of Frozen Light's Frozen Light buff lasts 30 s. A Frozen Light removal at or after 30 s from its application is a flat reduction of 0.3 s on Repository of Frozen Light's cooldown for each stack still on the buff. A removal before 30 s reduces nothing.
 
 **Flat reductions.** A flat reduction ("reduces the cooldown by 1.5 seconds") removes that much cooldown progress. Ability Cooldown Reduction does not scale it. While the cooldown recovers at `rate`, a reduction of `X` shortens the time left by `X ÷ rate`: a 1 s reduction is worth 0.5 s at 2×. A reduction larger than the progress left completes that charge, and the remainder reduces the next one; a reduction past the last charge is wasted. `SpellUsable.ReduceCooldown` reports the requested and the applied progress.
 
-**Charges.** Charges recharge one at a time from the first cast, unless the ability declares `IndependentCharges`. Each charge's recharge starts from the state current at its start.
+**Charges.** Charges recharge one at a time from the first cast, unless the ability declares `IndependentCharges`. The first cast from full charges sets the recharge's length `D`, and every charge of the chain reuses it. A cast under an additional spell id of an ability spends a charge of the ability's primary spell. An ability declaring `IndependentCharges` has one single-charge timer per spent charge, and each timer takes its own `D` at its cast. A cooldown that starts when a buff ends holds its charge without progress until the buff leaves the player, and then starts a recharge of `D`. A state continues through the time between pulls at the rate in force.
 
 **Worked example.** A 30 s, single-charge, Duration-scaled cooldown at 20% Haste with 10% ACR and Strand of Eternity: `D = 30 × 0.9 ÷ 1.2 = 22.5 s` of progress, recovering at 1.1×, so the cooldown is ready after 20.45 s. A Chronoshift channel 10 s in, with 11.5 s of progress left, takes the rate to 8.1× for 3 s, which is 24.3 s of progress, so the cooldown is ready 1.42 s into the channel.
 
 ### Legendary items
 
-A player wears one legendary item at a time, whatever its slot. Each hero has a legendary for the chest, head and legs slots, but only one is equipped. The equipped legendary grants Strand of Eternity's +10% Cooldown Acceleration.
+A player wears one legendary item at a time, whatever its slot. Each hero has a legendary for the chest, head and legs slots, but only one is equipped. The equipped legendary grants Strand of Eternity's Cooldown Recovery modifier of 1.1, which raises the attribute by 10%.
 
 ## Implementation Formulas for a Log Analyzer
 
@@ -224,6 +229,7 @@ When a cast event is observed in the log, the analyzer can:
 2. Compute the charge's duration `D` and the recovery rate as the cooldown model above states.
 3. Set the ability’s next-available time to t + D ÷ rate, and move it whenever the rate changes.
 4. Apply flat reductions from procs (e.g., on-crit reductions) as those events appear in the log, taking that much cooldown progress off the charge recharging. [^9][^14][^23]
+5. Resync on a cast the log has while the state has no charge: the charge recharging returns at the cast, the recharge of the next charge starts at the cast with the same `D`, and `SpellUsable.Drifts` records the milliseconds the state was late. A cast logged inside 150 ms of the expected return adds a drift and no debug annotation.
 
 Comparing these predicted "ready" timestamps with actual subsequent casts provides direct metrics for wasted cooldown time, drift relative to optimal usage, and alignment with encounter mechanics.
 
@@ -231,7 +237,7 @@ Comparing these predicted "ready" timestamps with actual subsequent casts provid
 
 To analyze rotational tightness and APM, the analyzer should track GCD windows by:
 
-- At each on-GCD cast, computing the hasted global cooldown `1.5 s ÷ (1 + h)` and setting a GCD lock until it ends. The GCD starts when a hard cast begins. An off-GCD ability sets no GCD lock. A cancelled cast still has the GCD it started.
+- At each on-GCD cast, computing the global cooldown from the ability's export values (`g ÷ (1 + h)` when Haste applies to it, `g` otherwise) and setting a GCD lock until it ends. The GCD starts when a hard cast begins. An off-GCD ability sets no GCD lock. A cancelled cast still has the GCD it started.
 - Treating any cast that starts within the lock window as delayed relative to the earliest possible input.
 - Measuring the gaps between the end of one GCD and the start of the next action to quantify downtime not explained by mechanics.
 

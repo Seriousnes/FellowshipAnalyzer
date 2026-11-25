@@ -1,5 +1,8 @@
 {
   "aeona": {
+    "FlashRevision": {
+      "resourceGeneration": { "resource": "primary", "amount": 6, "criticalAmount": 9, "trigger": "PerCast" }
+    },
     "ConvergingTimelinesLonesomeSong": {
       "id": 2820,
       "kind": "effect"
@@ -71,7 +74,6 @@
   "ardeos": {
     "FireBallMonitor": { "id": 1565 },
     "FireBallAoeMonitor": { "id": 1581 },
-    "EngulfingFlames": { "cooldownReductionOnTargetDeath": 10 },
     "FireFrogsMonitor": { "id": 1532 },
     "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball", "icon": "T_Nhance_RPG_Fire_36" },
     "FireFrogsDot": { "id": 1826, "kind": "effect" },
@@ -83,11 +85,6 @@
   "rime": {
     "WintersBlessing": {
       "id": 1026
-    },
-    "WintersBlessingBuff": {
-      "id": 1026,
-      "kind": "effect",
-      "name": "Winter\u0027s Blessing"
     },
     "FlightOfTheNavirBuff": {
       "id": 2446
@@ -118,12 +115,7 @@
       "icon": "T_Rime_HealingBuff"
     },
     "IceCometAlt": {
-      "id": 2227,
-      "name": "Ice Comet",
-      "icon": "T_Rime_OnTargetPulsatingAOE",
-      "range": 3000,
-      "radius": 700,
-      "costs": { "tertiary": 2 }
+      "id": 2227
     }
   },
   "elarion": {
@@ -177,8 +169,7 @@
     },
     "RendManager": {
       "id": 2286,
-      "kind": "ability",
-      "name": "Rend"
+      "kind": "ability"
     },
     "Rend": {
       "id": 3231,
@@ -209,6 +200,9 @@
       "id": 3095,
       "kind": "effect"
     },
+    "VeteranOfWar": {
+      "id": 1537
+    },
     "SwordAndBoardBuff": {
       "id": 1242,
       "kind": "effect",
@@ -221,25 +215,25 @@
     }
   },
   "items": {
+    "StrandOfEternity": {
+      "id": 3087,
+      "kind": "effect"
+    },
     "AdrenalineRush": {
       "id": 1939,
-      "kind": "effect",
-      "name": "Adrenaline Rush"
+      "kind": "effect"
     },
     "AdrenalineRushII": {
       "id": 1940,
-      "kind": "effect",
-      "name": "Adrenaline Rush - II"
+      "kind": "effect"
     },
     "FirstStrike": {
       "id": 1943,
-      "kind": "effect",
-      "name": "First Strike"
+      "kind": "effect"
     },
     "FirstStrikeII": {
       "id": 1944,
-      "kind": "effect",
-      "name": "First Strike - II"
+      "kind": "effect"
     },
     "EssenceOfTheVirtuoso": {
       "id": 1937,
@@ -425,8 +419,7 @@
     "NavigatorsIntuitionTrait": {
       "id": 43,
       "kind": "weapon",
-      "name": "Navigator's Intuition",
-      "icon": "Tex_SpellBook03_42"
+      "name": "Navigator's Intuition"
     },
     "MartialInitiativeTrait": {
       "id": 51,
@@ -551,41 +544,10 @@
   },
   "mara": {
     "BackstabStealth": {
-      "id": 2308,
-      "name": "Backstab",
-      "icon": "Mara_backstab",
-      "abilityCategory": "Core",
-      "resourceGeneration": { "resource": "secondary", "amount": 2, "criticalAmount": 3, "trigger": "PerCast" }
+      "id": 2308
     },
     "SkitteringBladesStealth": {
-      "id": 2309,
-      "name": "Skittering Blades",
-      "icon": "Mara_AOEBuilder",
-      "abilityCategory": "Core",
-      "range": 800,
-      "radius": 800,
-      "costs": { "primary": 35 },
-      "resourceGeneration": { "resource": "secondary", "amount": 1, "criticalAmount": 2, "trigger": "PerHit" }
-    },
-    "KickAlt": {
-      "id": 1167,
-      "name": "Kick",
-      "icon": "Mara_Kick",
-      "abilityCategory": "Utility",
-      "cooldown": 16,
-      "range": 500
-    },
-    "KickLockoutAlt": {
-      "id": 1641,
-      "kind": "effect",
-      "name": "Tremble!",
-      "icon": "Tex_red_10"
-    },
-    "KickInterruptAlt": {
-      "id": 1642,
-      "kind": "effect",
-      "name": "Kick",
-      "icon": "Mara_Kick"
+      "id": 2309
     },
     "BroodingShadowsBuff": {
       "id": 1591,
@@ -620,9 +582,7 @@
       "id": 1122
     },
     "LashingStormkickAlt": {
-      "id": 2310,
-      "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08"
+      "id": 2310
     },
     "EarthfistBarrage": {
       "cooldown": null
@@ -687,6 +647,10 @@
       "id": 2731,
       "kind": "effect"
     },
+    "NettleboltCooldownReduction": {
+      "id": 1052,
+      "kind": "ability"
+    },
     "SafeHavenDamageReductionBuff": {
       "icon": "T_Mosse_LinkCD"
     },
@@ -718,6 +682,10 @@
     },
     "RisingSpirit": {
       "id": 3115,
+      "kind": "effect"
+    },
+    "KillEmAllBuff": {
+      "id": 3160,
       "kind": "effect"
     },
     "HeavyStrikeDamage": {
@@ -832,6 +800,10 @@
     },
     "MagicWard": {
       "id": 2650,
+      "kind": "effect"
+    },
+    "InvictusCooldownRecovery": {
+      "id": 2719,
       "kind": "effect"
     }
   }

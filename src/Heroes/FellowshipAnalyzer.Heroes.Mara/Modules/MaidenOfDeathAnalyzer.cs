@@ -74,13 +74,13 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 
     public const int MinimumGapMs = 500;
 
-    public const int StandardGcdMs = 1500;
-
     public const double DamageIncrease = 0.20;
 
     public const double LowHealthDamageIncrease = 0.40;
 
     public const double LowHealthThreshold = 0.30;
+
+    public static int StandardGcdMs { get; } = (int)(Spells.Backstab.GlobalCooldown!.Value * 1000);
 
     public static int RechargeMs { get; } = (int)Math.Round(Spells.MaidenOfDeath.Cooldown.GetValueOrDefault() * 1000);
 

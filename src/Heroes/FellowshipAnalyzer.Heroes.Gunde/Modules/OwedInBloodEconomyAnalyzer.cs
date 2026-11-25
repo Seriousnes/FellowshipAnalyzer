@@ -13,11 +13,9 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     public const int FollowUpWindowMs = 5_000;
 
-    public const int OpenWoundsDurationMs = 18_000;
-
     private readonly List<PendingConversion> _pending = [];
     private readonly List<SlaughterMark> _slaughters = [];
-    private readonly Dictionary<OpenWoundsTarget, int> _openWoundsUntil = [];
+    private readonly HashSet<OpenWoundsTarget> _openWounds = [];
 
     private int _stacks;
     private int _decayedStacks;
@@ -65,17 +63,14 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     private void OnSpiritRemoved() => _spiritActive = false;
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
-    private void OnOpenWoundsApplied(ApplyDebuffEvent debuffEvent) => OpenWindow(debuffEvent, debuffEvent.Timestamp);
-
-    [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
-    private void OnOpenWoundsRefreshed(RefreshDebuffEvent debuffEvent) => OpenWindow(debuffEvent, debuffEvent.Timestamp);
+    private void OnOpenWoundsApplied(ApplyDebuffEvent debuffEvent) => _openWounds.Add(Key(debuffEvent));
 
     [On<RemoveDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
-    private void OnOpenWoundsRemoved(RemoveDebuffEvent debuffEvent) => _openWoundsUntil.Remove(Key(debuffEvent));
+    private void OnOpenWoundsRemoved(RemoveDebuffEvent debuffEvent) => _openWounds.Remove(Key(debuffEvent));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Slaughter))]
     private void OnSlaughter(CastEvent castEvent) =>
-        _slaughters.Add(new SlaughterMark(castEvent.Timestamp, IsOpenWoundsLive(castEvent.Timestamp)));
+        _slaughters.Add(new SlaughterMark(castEvent.Timestamp, _openWounds.Count > 0));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.OwedInBlood))]
     private void OnConverted(CastEvent castEvent)
@@ -129,11 +124,6 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         _cappedMs += Math.Max(0, timestamp - since);
         _cappedSince = null;
     }
-
-    private void OpenWindow(IHasTargetWithInstanceEvent debuffEvent, int timestamp) =>
-        _openWoundsUntil[Key(debuffEvent)] = timestamp + OpenWoundsDurationMs;
-
-    private bool IsOpenWoundsLive(int timestamp) => _openWoundsUntil.Values.Any(until => until >= timestamp);
 
     private Computed Compute()
     {

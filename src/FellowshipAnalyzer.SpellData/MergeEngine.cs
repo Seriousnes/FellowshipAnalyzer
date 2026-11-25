@@ -76,7 +76,9 @@ public static class MergeEngine
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
                     .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
                     .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
-                    .SetIf("cooldownHaste", ability.CooldownHaste.HasValue, ProvenanceSource.Export)
+                    .SetIf("cooldownScaling", ability.CooldownScaling is not null, ProvenanceSource.Export)
+                    .SetIf("globalCooldown", ability.GlobalCooldown.HasValue, ProvenanceSource.Export)
+                    .SetIf("globalCooldownScalesWithHaste", ability.GlobalCooldownScalesWithHaste.HasValue, ProvenanceSource.Export)
                     .SetIf("chargeGrant", ability.HasteGrantedBy.Count > 0, ProvenanceSource.Export)
                     .SetIf("castTimeScalesWithHaste", ability.CastTimeScalesWithHaste, ProvenanceSource.Export)
                     .SetIf("range", ability.Range.HasValue, ProvenanceSource.Export)
@@ -91,7 +93,6 @@ public static class MergeEngine
 
                 var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon,
                     cooldown: ability.Cooldown,
-                    cooldownReductionOnTargetDeath: null,
                     range: ability.Range,
                     radius: ability.Radius,
                     charges: ability.ChargeCount,
@@ -101,7 +102,9 @@ public static class MergeEngine
                     costs: costs,
                     abilityCategory: abilityCategory,
                     resourceGeneration: generation,
-                    cooldownHaste: ability.CooldownHaste,
+                    cooldownScaling: ability.CooldownScaling,
+                    globalCooldown: ability.GlobalCooldown,
+                    globalCooldownScalesWithHaste: ability.GlobalCooldownScalesWithHaste,
                     chargeGrant: ChargeGrantFor(inputs, ability, scope, member, gaps),
                     castTimeScalesWithHaste: ability.CastTimeScalesWithHaste ? true : null);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
@@ -138,7 +141,6 @@ public static class MergeEngine
 
                     var effectSpell = BuildSpell(SpellKind.Effect, effect.Id, effect.Name ?? string.Empty, effectIcon,
                         cooldown: null,
-                        cooldownReductionOnTargetDeath: null,
                         range: null,
                         radius: null,
                         charges: 1,
@@ -198,6 +200,9 @@ public static class MergeEngine
             }
         }
 
+        var talents = BuildTalents(inputs, gaps);
+        var legendaries = BuildLegendaries(inputs, gaps);
+
         return new MergeResult(spells, gaps)
         {
             Schools = BuildSchools(inputs, spells),
@@ -205,10 +210,117 @@ public static class MergeEngine
             TexturesSharedAcrossRungs = inputs.Icons.TexturesSharedAcrossRungs,
             Dungeons = inputs.Export.Dungeons.ToDictionary(d => d.Id, d => d.Icon),
             Augmentations = inputs.Export.Augmentations,
-            Talents = BuildTalents(inputs, gaps),
-            Legendaries = BuildLegendaries(inputs, gaps),
+            EffectData = inputs.Export.EffectData,
+            RatingCurves = inputs.Export.RatingCurves,
+            Talents = talents,
+            Legendaries = legendaries,
+            Tuning = BuildTuning(inputs, spells, talents, legendaries, gaps),
         };
     }
+
+    private const string SpellsContainer = "spells";
+
+    private const string TalentsContainer = "talents";
+
+    private const string LegendariesContainer = "legendaries";
+
+    private const string GlyphsContainer = "glyphs";
+
+    private const string GlyphsScope = "glyphs";
+
+    private const string SharedScope = "shared";
+
+    private static readonly string[] ContainerOrder = [SpellsContainer, TalentsContainer, LegendariesContainer, GlyphsContainer];
+
+    /// <summary>
+    /// Selects the numeric tuning rows of every spell, talent, legendary and glyph the merge selected. A member's
+    /// rows that share a generated identifier, or whose identifier equals the member name, are left out and the
+    /// member is reported as a <see cref="GapKind.TuningNameCollision"/>.
+    /// </summary>
+    private static List<TuningRow> BuildTuning(
+        MergeInputs inputs,
+        List<CuratedSpell> spells,
+        List<CuratedSpell> talents,
+        List<CuratedLegendary> legendaries,
+        List<Gap> gaps)
+    {
+        var tuning = inputs.Export.Tuning;
+        var selected = new List<(string Scope, string Container, string Member, SortedDictionary<string, ExportTuningValue> Rows)>();
+
+        foreach (var curated in spells.Where(curated => MemberNaming.IsValidIdentifier(curated.Member)))
+        {
+            var type = curated.Kind switch
+            {
+                SpellKind.Ability => "ability",
+                SpellKind.Effect => "effect",
+                _ => null,
+            };
+
+            if (type is not null && tuning.TryGetValue((type, curated.Spell.FSLID.NativeId), out var rows))
+                selected.Add((curated.Scope, SpellsContainer, curated.Member, rows));
+        }
+
+        foreach (var curated in talents.Where(curated => MemberNaming.IsValidIdentifier(curated.Member)))
+        {
+            if (tuning.TryGetValue((TalentType, curated.Spell.FSLID.NativeId), out var rows))
+                selected.Add((curated.Scope, TalentsContainer, curated.Member, rows));
+        }
+
+        foreach (var legendary in legendaries.Where(legendary => MemberNaming.IsValidIdentifier(legendary.Member)))
+        {
+            if (tuning.TryGetValue((LegendaryPowerType, legendary.PowerId), out var rows))
+                selected.Add((legendary.Scope, LegendariesContainer, legendary.Member, rows));
+        }
+
+        foreach (var glyph in inputs.Export.Glyphs)
+        {
+            var member = MemberNaming.Sanitize(glyph.Name);
+            if (MemberNaming.IsValidIdentifier(member) && tuning.TryGetValue((GlyphType, glyph.Id), out var rows))
+                selected.Add((GlyphsScope, GlyphsContainer, member, rows));
+        }
+
+        var members = new Dictionary<(string Scope, string Container, string Member), SortedDictionary<string, ExportTuningValue>>();
+        foreach (var (scope, container, member, rows) in selected)
+            members[(scope, container, member)] = rows;
+
+        var result = new List<TuningRow>();
+        foreach (var ((scope, container, member), rows) in members
+            .OrderBy(entry => ScopeRank(entry.Key.Scope))
+            .ThenBy(entry => entry.Key.Scope, StringComparer.Ordinal)
+            .ThenBy(entry => Array.IndexOf(ContainerOrder, entry.Key.Container))
+            .ThenBy(entry => entry.Key.Member, StringComparer.Ordinal))
+        {
+            var identifiers = rows.Keys
+                .GroupBy(MemberNaming.TuningIdentifier, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+
+            var collides = false;
+            foreach (var (key, value) in rows)
+            {
+                var identifier = MemberNaming.TuningIdentifier(key);
+                if (identifier.Length == 0 || identifiers[identifier] > 1 || identifier == member)
+                {
+                    collides = true;
+                    continue;
+                }
+
+                result.Add(new TuningRow(scope, container, member, key, value));
+            }
+
+            if (collides)
+                gaps.Add(new Gap(scope, member, GapKind.TuningNameCollision));
+        }
+
+        return result;
+    }
+
+    private static int ScopeRank(string scope) => scope switch
+    {
+        SharedScope => 1,
+        ItemsScope => 2,
+        GlyphsScope => 3,
+        _ => 0,
+    };
 
 
     /// <summary>
@@ -221,8 +333,8 @@ public static class MergeEngine
 
     /// <summary>
     /// The charge grant the export names for <paramref name="ability"/>: the talent or the hero's legendary
-    /// item that holds it, the charge count its description states, and the Haste the charge effect takes
-    /// into its time rate. A grant whose holder or count does not resolve is reported as a gap.
+    /// item that holds it, the charge count its description states, and the Cooldown Recovery and Haste the
+    /// charge effect takes into its time rate. A grant whose holder or count does not resolve is reported as a gap.
     /// </summary>
     private static ChargeGrant? ChargeGrantFor(
         MergeInputs inputs, ExportAbility? ability, string scope, string member, ICollection<Gap> gaps)
@@ -261,13 +373,15 @@ public static class MergeEngine
             Source = resolved.Source,
             Id = resolved.Id,
             Charges = count,
-            CooldownHaste = CooldownHasteScaling.TimeRate,
+            CooldownScaling = new() { TimeRateCooldownRecovery = true, TimeRateHaste = true },
         };
     }
 
     private const string TalentType = "talent";
 
     private const string LegendaryPowerType = "legendary-power";
+
+    private const string GlyphType = "glyph";
 
     private static ResourceGeneration? GenerationFor(
         MergeInputs inputs, FSLID id, ICollection<Gap> gaps, string scope, string member)
@@ -456,12 +570,14 @@ public static class MergeEngine
 
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
-        double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int? radius, int charges,
+        double? cooldown, int? range, int? radius, int charges,
         double? castDuration, double? channelDuration, double? channelTickInterval,
         Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null,
         ResourceGeneration? resourceGeneration = null,
-        CooldownHasteScaling? cooldownHaste = null,
+        CooldownScaling? cooldownScaling = null,
+        double? globalCooldown = null,
+        bool? globalCooldownScalesWithHaste = null,
         ChargeGrant? chargeGrant = null,
         bool? castTimeScalesWithHaste = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
@@ -469,10 +585,11 @@ public static class MergeEngine
             AbilityCategory = abilityCategory,
             ResourceGeneration = resourceGeneration,
             Cooldown = cooldown,
-            CooldownHaste = cooldownHaste,
+            CooldownScaling = cooldownScaling,
+            GlobalCooldown = globalCooldown,
+            GlobalCooldownScalesWithHaste = globalCooldownScalesWithHaste,
             ChargeGrant = chargeGrant,
             CastTimeScalesWithHaste = castTimeScalesWithHaste,
-            CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
             Radius = radius,
             Charges = charges,
@@ -566,7 +683,9 @@ public static class MergeEngine
             .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
             .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
             .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
-            .SetIf("cooldownHaste", ability?.CooldownHaste is not null, ProvenanceSource.Export)
+            .SetIf("cooldownScaling", ability?.CooldownScaling is not null, ProvenanceSource.Export)
+            .SetIf("globalCooldown", ability?.GlobalCooldown is not null, ProvenanceSource.Export)
+            .SetIf("globalCooldownScalesWithHaste", ability?.GlobalCooldownScalesWithHaste is not null, ProvenanceSource.Export)
             .SetIf("chargeGrant", ability?.HasteGrantedBy.Count > 0, ProvenanceSource.Export)
             .SetIf("castTimeScalesWithHaste", ability?.CastTimeScalesWithHaste == true, ProvenanceSource.Export)
             .SetIf("range", ability?.Range is not null, ProvenanceSource.Export)
@@ -580,7 +699,6 @@ public static class MergeEngine
 
         var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon,
             cooldown: ability?.Cooldown,
-            cooldownReductionOnTargetDeath: null,
             range: ability?.Range,
             radius: ability?.Radius,
             charges: ability?.ChargeCount ?? 1,
@@ -590,7 +708,9 @@ public static class MergeEngine
             costs: costs,
             abilityCategory: abilityCategory,
             resourceGeneration: generation,
-            cooldownHaste: ability?.CooldownHaste,
+            cooldownScaling: ability?.CooldownScaling,
+            globalCooldown: ability?.GlobalCooldown,
+            globalCooldownScalesWithHaste: ability?.GlobalCooldownScalesWithHaste,
             chargeGrant: ChargeGrantFor(inputs, ability, scope, member, addedGaps),
             castTimeScalesWithHaste: ability?.CastTimeScalesWithHaste == true ? true : null);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);

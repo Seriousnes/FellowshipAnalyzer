@@ -390,7 +390,7 @@ public sealed class SerratedEdgeAnalyzerTests
             withoutCarnage.SerratedEdgeAnalyzers.ShouldHaveSingleItem().Analyzer.Grants.ShouldHaveSingleItem(),
             Spells.HeartSplitter.FSLID).RemainingMs;
 
-        reduced.ShouldBe(unreduced - 3 * CarnageAnalyzer.CooldownReductionMs);
+        reduced.ShouldBe(unreduced - 3 * 1_000);
     }
 
     private static List<Event> CarnageScenario() =>

@@ -53,6 +53,19 @@ public static partial class MemberNaming
         abilityMember + Sanitize(role);
 
     /// <summary>
+    /// Returns the generated constant name for a tuning row key: each <c>.</c> becomes <c>_</c>, every other
+    /// character outside <c>[A-Za-z0-9_]</c> is removed, and a name starting with a digit gets the prefix <c>_</c>.
+    /// </summary>
+    public static string TuningIdentifier(string key)
+    {
+        var identifier = string.Concat(key
+            .Replace('.', '_')
+            .Where(c => c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_'));
+
+        return identifier.Length > 0 && char.IsAsciiDigit(identifier[0]) ? "_" + identifier : identifier;
+    }
+
+    /// <summary>
     /// Returns <see langword="true"/> when <paramref name="member"/> is non-empty and every
     /// character satisfies C# identifier rules (first char: letter or underscore; remaining:
     /// letter, digit, or underscore).

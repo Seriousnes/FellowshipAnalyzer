@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Meiko.Modules;
 [After<SpellUsable>]
 public sealed partial class GuardiansFluidityAnalyzer : Analyzer
 {
-    public const int ReductionMs = 1_000;
+    public static readonly int ReductionMs = (int)(TalentTuning.GuardiansFluidity.CooldownReductionInSeconds * 1000);
 
     public CooldownReductionResult Reduction { get; private set; }
 

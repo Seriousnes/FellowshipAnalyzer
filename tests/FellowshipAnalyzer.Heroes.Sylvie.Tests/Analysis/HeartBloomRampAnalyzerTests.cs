@@ -66,6 +66,81 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
+    public async Task AtHasteZeroACastExpectsEightReleasesTwoSecondsApart()
+    {
+        const int first = PullStart + 1_000;
+
+        var parser = await Analyze(
+            [
+                Cast(first, Spells.HeartBloom),
+                .. Enumerable.Range(1, 8).Select(index =>
+                    Heal(first + (index * SylvieKit.HeartBloomTickIntervalMs), Spells.HeartBloom, TankId, amount: 100)),
+            ]);
+
+        var cast = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.ExpectedReleases.ShouldBe(8);
+        cast.Releases.ShouldBe(8);
+        cast.ReleasedInFull.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task AtAConstantHasteOfThirtyPercentACastExpectsTenReleasesFifteenHundredThirtyEightMillisecondsApart()
+    {
+        const int first = PullStart + 1_000;
+        var period = SylvieKit.HeartBloomTickIntervalMs / 1.3;
+
+        var parser = await Analyze(
+            [
+                ApplyBuff(PullStart + 500, Core.Common.Spells.Spells.SpiritOfHeroism, PlayerId),
+                Cast(first, Spells.HeartBloom),
+                .. Enumerable.Range(1, 10).Select(index =>
+                    Heal(first + (int)Math.Round(index * period), Spells.HeartBloom, TankId, amount: 100)),
+            ]);
+
+        var cast = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        Math.Round(period).ShouldBe(1_538);
+        cast.ExpectedReleases.ShouldBe(10);
+        cast.Releases.ShouldBe(10);
+        cast.ReleasedInFull.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task HasteGainedDuringACastCountsOnlyFromWhereItWasGained()
+    {
+        const int first = PullStart + 1_000;
+        const int hasteGained = first + 4_000;
+        var hastedPeriod = SylvieKit.HeartBloomTickIntervalMs / 1.3;
+
+        var parser = await Analyze(
+            Cast(first, Spells.HeartBloom),
+            Heal(first + 2_000, Spells.HeartBloom, TankId, amount: 100),
+            Heal(first + 3_999, Spells.HeartBloom, TankId, amount: 100),
+            ApplyBuff(hasteGained, Core.Common.Spells.Spells.SpiritOfHeroism, PlayerId),
+            Heal(hasteGained + (int)Math.Round(hastedPeriod), Spells.HeartBloom, TankId, amount: 100),
+            Heal(hasteGained + (int)Math.Round(2 * hastedPeriod), Spells.HeartBloom, TankId, amount: 100),
+            Heal(hasteGained + (int)Math.Round(3 * hastedPeriod), Spells.HeartBloom, TankId, amount: 100),
+            Heal(hasteGained + (int)Math.Round(3 * hastedPeriod) + 1, Spells.HeartBloom, AllyId, amount: 100));
+
+        var cast = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.ExpectedReleases.ShouldBe(9);
+        cast.Releases.ShouldBe(5);
+        cast.ReleasedInFull.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ACastNearThePullEndExpectsOnlyTheReleasesBeforeIt()
+    {
+        var parser = await Analyze(Cast(PullEnd - 4_000, Spells.HeartBloom));
+
+        var cast = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.ExpectedReleases.ShouldBe(2);
+    }
+
+    [Fact]
     public async Task TwoBloomsAliveAtOnceEachKeepTheirOwnReleases()
     {
         var parser = await Analyze(
