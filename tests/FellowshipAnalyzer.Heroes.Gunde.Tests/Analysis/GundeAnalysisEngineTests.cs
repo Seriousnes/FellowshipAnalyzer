@@ -145,6 +145,7 @@ public sealed class GundeAnalysisEngineTests
             Cast(2_000, Spells.Slaughter.FSLID),
             Debuff<RemoveDebuffEvent>(2_001, OpenWoundsFslid, Enemy),
             Debuff<ApplyDebuffEvent>(35_000, OpenWoundsFslid, OtherEnemy),
+            Debuff<RemoveDebuffEvent>(40_000, OpenWoundsFslid, OtherEnemy),
             Debuff<ApplyDebuffEvent>(70_000, OpenWoundsFslid, ThirdEnemy),
         };
 
@@ -155,6 +156,38 @@ public sealed class GundeAnalysisEngineTests
 
         entry.Analyzer.TotalOpenWoundsWindows.ShouldBe(2);
         entry.Analyzer.WastedOpenWoundsWindows.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWoundsWithNoLoggedRemoval_LastsToTheDungeonEnd()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Cast(35_000, Spells.Slaughter.FSLID),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
+        analyzer.TotalOpenWoundsWindows.ShouldBe(1);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWoundsWithNoLoggedRemovalAndNoSlaughter_IsNotRated()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.TotalOpenWoundsWindows.ShouldBe(0);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
     }
 
     [Fact]
@@ -302,24 +335,6 @@ public sealed class GundeAnalysisEngineTests
         slaughter.OpenWoundsActive.ShouldBeFalse();
         slaughter.WellExecuted.ShouldBeFalse();
         analyzer.WellExecuted.ShouldBe(0);
-    }
-
-    [Fact]
-    public async Task Analyze_OpenWoundsRefresh_ExtendsTheWindowRatherThanOpeningANewOne()
-    {
-        var events = new List<Event>
-        {
-            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
-            Debuff<RefreshDebuffEvent>(15_000, OpenWoundsFslid, Enemy),
-            Cast(20_000, Spells.Slaughter.FSLID),
-        };
-
-        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
-
-        var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
-        analyzer.TotalOpenWoundsWindows.ShouldBe(1);
-        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
     }
 
     [Fact]

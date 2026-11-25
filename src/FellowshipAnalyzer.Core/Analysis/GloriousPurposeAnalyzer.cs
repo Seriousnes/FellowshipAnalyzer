@@ -9,17 +9,14 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Models the cooldown recovery Glorious Purpose grants. The Fated Strike weapon's active applies the
-/// buff for the duration the log states, 6 seconds when it states none, multiplying Cooldown Recovery by 3,
-/// so it joins the pool <see cref="StatTracker"/> tracks as a modifier of 3.0. Fated Strike's own cooldown
-/// scales off Ability Cooldown Reduction alone, so it recovers at the normal rate and takes no bonus recovery.
+/// buff, multiplying Cooldown Recovery by 3, so it joins the pool <see cref="StatTracker"/> tracks as a
+/// modifier of 3.0. Fated Strike's own cooldown scales off Ability Cooldown Reduction alone, so it recovers
+/// at the normal rate and takes no bonus recovery.
 /// <para>
-/// The window is driven by buff events. <see cref="OnApply"/> and <see cref="OnRefresh"/> open it and add
-/// the modifier, and both fabricate a <see cref="RemoveBuffEvent"/> at the scheduled 6-second expiry so
-/// the close rides a real, in-order event rather than a lazy per-event poll. A refresh moves the expiry
-/// forward and leaves the earlier fabricated removal in the stream, so <see cref="OnRemove"/> ignores any
-/// fabricated removal that is no longer the scheduled one. An unmatched or repeated apply cannot compound
-/// the modifier because <see cref="CloseWindow"/> only removes while a window is open and a removal of an
-/// absent modifier is a no-op.
+/// The logged <see cref="ApplyBuffEvent"/> opens a window and adds the modifier. The logged
+/// <see cref="RemoveBuffEvent"/> closes it at that event's timestamp and removes the modifier. A
+/// <see cref="RefreshBuffEvent"/> inside an open window changes nothing, and a refresh with no window open
+/// opens one. A window with no logged removal lasts to the end of the dungeon.
 /// </para>
 /// </summary>
 [After<SpellUsable>]
@@ -35,15 +32,11 @@ public sealed partial class GloriousPurposeAnalyzer(
 
     private static readonly CooldownModifier AddedRecoveryModifier = new(RecoveryMultiplier);
 
-    private static readonly int BuffDurationMs = (int)((EffectData.DurationOf(Items.GloriousPurpose.Id)
-        ?? throw new InvalidOperationException("The export gives Glorious Purpose no duration.")) * 1000);
-
     private readonly List<GloriousPurposeWindow> _windows = [];
-    private readonly Dictionary<int, int> _recoveryBySpell = [];
+    private readonly Dictionary<int, int> _closedRecoveryBySpell = [];
 
     private readonly Dictionary<int, int> _snapshot = [];
-    private RemoveBuffEvent? _scheduledRemoval;
-    private int? _scheduledEnd;
+    private bool _isOpen;
     private int _openTimestamp;
 
     /// <summary>All Glorious Purpose recovery windows for the selected player.</summary>
@@ -60,13 +53,13 @@ public sealed partial class GloriousPurposeAnalyzer(
     /// whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>
-        [.. _recoveryBySpell
+        [.. RecoveryBySpell()
             .Where(kv => kv.Value > 0)
             .OrderByDescending(kv => kv.Value)
             .Select(kv => new AbilityRecovery(kv.Key, kv.Value))];
 
     /// <summary>Total bonus cooldown recovery Glorious Purpose granted across all abilities, in milliseconds.</summary>
-    public int TotalRecoveredMs => _recoveryBySpell.Values.Sum();
+    public int TotalRecoveredMs => RecoveryBySpell().Values.Sum();
 
     /// <summary>Total time the buff was active across every window, in milliseconds.</summary>
     public int TotalUptimeMs => _windows.Sum(window => window.EndTimestamp - window.BeginTimestamp);
@@ -82,23 +75,21 @@ public sealed partial class GloriousPurposeAnalyzer(
     private void OnApply(ApplyBuffEvent buffEvent)
     {
         if (IsGloriousPurpose(buffEvent))
-            OpenOrExtendWindow(buffEvent);
+            OpenWindowIfClosed(buffEvent);
     }
 
     [On<RefreshBuffEvent>(To = Actor.Player)]
     private void OnRefresh(RefreshBuffEvent buffEvent)
     {
         if (IsGloriousPurpose(buffEvent))
-            OpenOrExtendWindow(buffEvent);
+            OpenWindowIfClosed(buffEvent);
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnRemove(RemoveBuffEvent buffEvent)
     {
-        if (!IsGloriousPurpose(buffEvent)) return;
-        if (buffEvent.Fabricated == true && !ReferenceEquals(buffEvent, _scheduledRemoval)) return;
-
-        CloseWindow(buffEvent.Timestamp, buffEvent);
+        if (IsGloriousPurpose(buffEvent))
+            CloseWindow(buffEvent.Timestamp, buffEvent);
     }
 
     /// <remarks>
@@ -110,52 +101,21 @@ public sealed partial class GloriousPurposeAnalyzer(
     private static bool IsGloriousPurpose(BuffEvent buffEvent) =>
         buffEvent.Ability.FSLID == Items.GloriousPurpose.FSLID;
 
-    private void OpenOrExtendWindow(BuffEvent buffEvent)
+    private void OpenWindowIfClosed(BuffEvent buffEvent)
     {
-        if (_scheduledEnd is null)
-            OpenWindow(buffEvent);
-        else
-            ExtendWindow(buffEvent);
-    }
+        if (_isOpen) return;
 
-    /// <summary>
-    /// Pushes the expiry of the live window out to a full duration from <paramref name="buffEvent"/>,
-    /// leaving the open modifier and the stored cooldown values in place. Re-fabricating the expiry supersedes
-    /// the earlier scheduled removal, which <see cref="OnRemove"/> then ignores as stale.
-    /// </summary>
-    private void ExtendWindow(BuffEvent buffEvent)
-    {
-        _scheduledEnd = buffEvent.ExpectedEnd ?? buffEvent.Timestamp + BuffDurationMs;
-        _windows[^1] = _windows[^1] with { EndTimestamp = _scheduledEnd.Value };
-
-        FabricateExpiry(buffEvent);
-    }
-
-    private void OpenWindow(BuffEvent buffEvent)
-    {
+        _isOpen = true;
         _openTimestamp = buffEvent.Timestamp;
-        _scheduledEnd = buffEvent.ExpectedEnd ?? buffEvent.Timestamp + BuffDurationMs;
-        _windows.Add(new GloriousPurposeWindow(buffEvent.Timestamp, _scheduledEnd.Value));
+        _windows.Add(new GloriousPurposeWindow(buffEvent.Timestamp, Owner.DungeonEndTime));
 
         _statTracker.AddCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, buffEvent);
-
-        FabricateExpiry(buffEvent);
     }
-
-    private void FabricateExpiry(BuffEvent trigger) =>
-        _scheduledRemoval = Owner.EventEmitter.FabricateEvent(new RemoveBuffEvent
-        {
-            Timestamp = _scheduledEnd!.Value,
-            SourceId = trigger.SourceId,
-            TargetId = trigger.TargetId,
-            Ability = trigger.Ability,
-            AbilityGameId = trigger.AbilityGameId,
-        }, trigger);
 
     [On<ChangeCooldownModifierEvent>]
     private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
     {
-        if (!e.Added || !ReferenceEquals(e.Modifier, AddedRecoveryModifier) || _scheduledEnd is null) return;
+        if (!e.Added || !ReferenceEquals(e.Modifier, AddedRecoveryModifier) || !_isOpen) return;
 
         foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
             if (_abilities.GetAbility(spellId)?.CooldownScaling is { TimeRateCooldownRecovery: true })
@@ -164,23 +124,37 @@ public sealed partial class GloriousPurposeAnalyzer(
 
     private void CloseWindow(int timestamp, Event? trigger)
     {
-        if (_scheduledEnd is not int scheduledEnd) return;
-        var closeAt = Math.Min(timestamp, scheduledEnd);
+        if (!_isOpen) return;
+
         _statTracker.RemoveCooldownModifier(CooldownPool.CooldownRecovery, AddedRecoveryModifier, trigger);
 
+        foreach (var (spellId, bonus) in BonusRecovery(timestamp))
+            _closedRecoveryBySpell[spellId] = _closedRecoveryBySpell.GetValueOrDefault(spellId) + bonus;
+
+        _snapshot.Clear();
+        _isOpen = false;
+        _windows[^1] = _windows[^1] with { EndTimestamp = timestamp };
+    }
+
+    private Dictionary<int, int> RecoveryBySpell()
+    {
+        var recovery = new Dictionary<int, int>(_closedRecoveryBySpell);
+        if (_isOpen)
+            foreach (var (spellId, bonus) in BonusRecovery(Owner.DungeonEndTime))
+                recovery[spellId] = recovery.GetValueOrDefault(spellId) + bonus;
+
+        return recovery;
+    }
+
+    private IEnumerable<(int SpellId, int Bonus)> BonusRecovery(int closeAt)
+    {
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)
         {
-            var onCooldown = Math.Min(wallclock, remainingAtOpen);
-            var bonus = (int)(AddedRecovery * onCooldown);
+            var bonus = (int)(AddedRecovery * Math.Min(wallclock, remainingAtOpen));
             if (bonus > 0)
-                _recoveryBySpell[spellId] = _recoveryBySpell.GetValueOrDefault(spellId) + bonus;
+                yield return (spellId, bonus);
         }
-
-        _snapshot.Clear();
-        _scheduledEnd = null;
-        _scheduledRemoval = null;
-        _windows[^1] = _windows[^1] with { EndTimestamp = closeAt };
     }
 
     /// <inheritdoc/>
