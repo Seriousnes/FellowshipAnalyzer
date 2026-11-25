@@ -123,7 +123,6 @@ public sealed partial class Combatants : Analyzer
             Stacks = 1,
             Timestamp = e.Timestamp,
         });
-        buff.ExpectFrom(e);
 
         entity.ApplyBuff(buff);
     }
@@ -172,18 +171,17 @@ public sealed partial class Combatants : Analyzer
     }
 
     [On<RefreshBuffEvent>]
-    private void OnRefreshBuff(RefreshBuffEvent e) => Refresh(e);
-
-    [On<RefreshDebuffEvent>]
-    private void OnRefreshDebuff(RefreshDebuffEvent e) => Refresh(e);
-
-    private void Refresh(BuffEvent e)
+    private void OnRefreshBuff(RefreshBuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId, e.TargetInstance);
-        if (GetExistingBuff(entity, e.Ability.Id, e.SourceId) is not { } existing) return;
+        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
+    }
 
-        existing.RefreshHistory.Add(e.Timestamp);
-        existing.ExpectFrom(e);
+    [On<RefreshDebuffEvent>]
+    private void OnRefreshDebuff(RefreshDebuffEvent e)
+    {
+        var entity = GetOrCreateEntity(e.TargetId, e.TargetInstance);
+        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
     }
 
     [On<ApplyBuffStackEvent>]
@@ -207,7 +205,6 @@ public sealed partial class Combatants : Analyzer
         if (e is not IBuffStackEvent stackEvent) return;
         var oldStacks = Math.Max(existing.Stacks, 1);
         existing.Stacks = stackEvent.Stack;
-        existing.ExpectFrom(e);
         existing.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
         {
             Stacks = stackEvent.Stack,
@@ -240,15 +237,11 @@ public sealed partial class Combatants : Analyzer
         {
             foreach (var buff in entity.Buffs.Where(b => b.End is null))
             {
-                var lastActivity = Math.Max(buff.StackHistory[^1].Timestamp, buff.RefreshHistory.Count == 0 ? buff.Start : buff.RefreshHistory[^1]);
-                buff.End = buff.ExpectedEnd is { } expectedEnd && expectedEnd >= lastActivity
-                    ? Math.Min(expectedEnd, e.Timestamp)
-                    : e.Timestamp;
-                buff.EndedWithoutRemoval = true;
+                buff.End = e.Timestamp;
                 buff.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
                 {
                     Stacks = 0,
-                    Timestamp = buff.End.Value,
+                    Timestamp = e.Timestamp,
                 });
             }
         }

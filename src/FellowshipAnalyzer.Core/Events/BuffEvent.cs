@@ -25,7 +25,7 @@ public abstract class BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEv
     public virtual int? Duration { get; set; }
     /// <summary>The timestamp at which this application ends when nothing removes or refreshes it. <c>null</c> when <see cref="Duration"/> is absent, is 0 or below, or is <see cref="InfiniteDurationMs"/>.</summary>
     [JsonIgnore]
-    public virtual int? ExpectedEnd => Duration is > 0 and < InfiniteDurationMs ? Timestamp + Duration : null;
+    public int? ExpectedEnd => Duration is > 0 and < InfiniteDurationMs ? Timestamp + Duration : null;
 }
 
 /// <summary>A single continuous application window of a buff or debuff, fabricated by <see cref="Analysis.Combatants"/> from the underlying apply, refresh, remove, and stack events.</summary>
@@ -36,21 +36,6 @@ public class TrackedBuffEvent : BuffEvent
     public int Start { get; set; }
     /// <summary>The timestamp, in milliseconds, at which this window ended, or <c>null</c> while the buff or debuff is still active.</summary>
     public int? End { get; set; }
-    /// <summary><c>true</c> when the log states no removal of this window, so <see cref="End"/> is its <see cref="ExpectedEnd"/> or, with none, the end of the dungeon.</summary>
-    public bool EndedWithoutRemoval { get; set; }
-    private int? _expectedEnd;
-    /// <summary>The timestamp at which this window ends when no removal arrives: the <see cref="BuffEvent.ExpectedEnd"/> of its latest apply or refresh that states a duration. <c>null</c> when that duration is absent or <see cref="BuffEvent.InfiniteDurationMs"/>.</summary>
-    [JsonIgnore]
-    public override int? ExpectedEnd => _expectedEnd;
-    /// <summary>Takes <see cref="BuffEvent.Duration"/> and <see cref="ExpectedEnd"/> from an apply or refresh event. An event with no logged duration leaves a window's expected end unchanged.</summary>
-    internal void ExpectFrom(BuffEvent logged)
-    {
-        if (logged.Duration is null)
-            return;
-
-        Duration = logged.Duration;
-        _expectedEnd = logged.ExpectedEnd;
-    }
     /// <summary>Every stack-count change during this window, in chronological order.</summary>
     public List<StackHistoryElement> StackHistory { get; set; } = [];
     /// <summary>The timestamp of every refresh during this window, where a refresh reapplies the buff or debuff without changing its stack count.</summary>

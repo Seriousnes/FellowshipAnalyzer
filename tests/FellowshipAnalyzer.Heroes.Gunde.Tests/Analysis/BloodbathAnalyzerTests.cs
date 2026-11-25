@@ -203,10 +203,10 @@ public sealed class BloodbathAnalyzerTests
     }
 
     [Theory]
-    [InlineData(3000, 13_000)]
-    [InlineData(5000, 15_000)]
-    [InlineData(null, 13_000)]
-    public async Task Analyze_WithBloodbath_TheWindowEndsAtTheLoggedDurationOrTheExportedOne(int? duration, int expectedEnd)
+    [InlineData(3000, DungeonEnd)]
+    [InlineData(5000, DungeonEnd)]
+    [InlineData(null, DungeonEnd)]
+    public async Task Analyze_WithBloodbath_TheWindowWithNoLoggedRemovalEndsAtTheDungeonEnd(int? duration, int expectedEnd)
     {
         List<Event> events =
         [

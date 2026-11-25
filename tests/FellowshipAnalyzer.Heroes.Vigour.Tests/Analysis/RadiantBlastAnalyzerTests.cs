@@ -62,6 +62,40 @@ public sealed class RadiantBlastAnalyzerTests
     }
 
     [Fact]
+    public void AvatarOfLightBuff_IsTheEffectTheLogWritesForTheBuff()
+    {
+        Spells.AvatarOfLightBuff.FSLID.Value.ShouldBe(1_001_333);
+        Spells.AvatarOfLightResourceCost.FSLID.Value.ShouldBe(1_001_331);
+    }
+
+    [Fact]
+    public async Task AvatarOfLightBuffAsTheLogWritesIt_EndsTheCooldownAndSuppressesNewOnes()
+    {
+        var parser = await Analyze(
+            Cast(2_000, Spells.RadiantBlast),
+            LoggedAvatarBuff<ApplyBuffEvent>(5_000, effectId: 1_001_333, duration: 9_000),
+            Cast(6_000, Spells.RadiantBlast));
+
+        var updates = parser.Events.OfType<UpdateSpellUsableEvent>()
+            .Where(e => e.Ability.Id == Spells.RadiantBlast.FSLID)
+            .ToList();
+        updates.Where(e => e.UpdateType == UpdateSpellUsableType.EndCooldown).Select(e => e.Timestamp).ShouldBe([5_000]);
+        updates.Where(e => e.UpdateType == UpdateSpellUsableType.BeginCooldown).Select(e => e.Timestamp).ShouldBe([2_000]);
+    }
+
+    [Fact]
+    public async Task AvatarOfLightResourceCostEffect_IsNotTheBuff()
+    {
+        var parser = await Analyze(
+            Cast(2_000, Spells.RadiantBlast),
+            LoggedAvatarBuff<ApplyBuffEvent>(5_000, effectId: 1_001_331),
+            Cast(6_000, Spells.RadiantBlast));
+
+        parser.Events.OfType<UpdateSpellUsableEvent>()
+            .ShouldNotContain(e => e.Ability.Id == Spells.RadiantBlast.FSLID && e.UpdateType == UpdateSpellUsableType.EndCooldown && e.Timestamp == 5_000);
+    }
+
+    [Fact]
     public async Task RadiantBlastCastsDuringAvatarOfLightStartNoCooldown()
     {
         var parser = await Analyze(
@@ -106,4 +140,14 @@ public sealed class RadiantBlastAnalyzerTests
         parser.SpellUsable.ShouldNotBeNull().IsAvailable(Spells.CircleOfLight.FSLID).ShouldBeTrue();
         parser.SpellUsable.ShouldNotBeNull().IsAvailable(Spells.RadiantBlast.FSLID).ShouldBeTrue();
     }
+
+    private static T LoggedAvatarBuff<T>(int timestamp, int effectId, int? duration = null) where T : BuffEvent, new() => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = effectId, Name = "Avatar of Light" },
+        AbilityGameId = effectId,
+        Duration = duration,
+    };
 }

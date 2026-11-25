@@ -19,7 +19,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     public const int DetonateSpamThreshold = 3;
 
     /// <summary>
-    /// The Wildfire buff length in milliseconds, used when the log states no duration for its application.
+    /// The Wildfire buff length in milliseconds, used when the log has no application of the buff to the player.
     /// </summary>
     public static readonly int WildfireBuffDurationMs = (int)(SpellTuning.Wildfire.DotBonus_Duration * 1000);
 
@@ -123,13 +123,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 
-        if (buff.EndedWithoutRemoval && buff.Duration is null)
-        {
-            var start = Math.Max(anchor, buff.Start);
-            return (start, start + WildfireBuffDurationMs);
-        }
-
-        return (buff.Start, buff.End ?? buff.Start + WildfireBuffDurationMs);
+        return (Math.Max(anchor, buff.Start), buff.End ?? Owner.DungeonEndTime);
     }
 
     private (bool HasPyromania, bool HasIncinerate, List<CastEvent> Casts) CollectSequence(int anchor)

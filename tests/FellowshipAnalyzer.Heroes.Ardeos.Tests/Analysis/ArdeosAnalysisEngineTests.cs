@@ -280,7 +280,7 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task WildfireBuff_WithLoggedDurationAndNoRemoval_EndsAtLoggedEnd()
+    public async Task WildfireBuff_WithLoggedDurationAndNoRemoval_EndsAtDungeonEnd()
     {
         var window = await WildfireWindow(
             ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
@@ -288,18 +288,30 @@ public sealed class ArdeosAnalysisEngineTests
             Cast(Spells.Detonate.FSLID, 16000));
 
         window.BuffWindowStart.ShouldBe(10000);
-        window.BuffWindowEnd.ShouldBe(15000);
-        window.DetonateCasts.ShouldBe(1);
+        window.BuffWindowEnd.ShouldBe(40000);
+        window.DetonateCasts.ShouldBe(2);
     }
 
     [Fact]
-    public async Task WildfireBuff_WithLoggedRemovalBeforeExpectedEnd_EndsAtRemoval()
+    public async Task WildfireBuff_WithLoggedRemovalBeforeLoggedDurationEnds_EndsAtRemoval()
     {
         var window = await WildfireWindow(
             ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
             RemoveBuff(12000, Spells.WildfireDotBonusBuff.FSLID));
 
         window.BuffWindowEnd.ShouldBe(12000);
+    }
+
+    [Fact]
+    public async Task WildfireBuff_WithLoggedRemovalAfterLoggedDurationEnds_EndsAtRemoval()
+    {
+        var window = await WildfireWindow(
+            ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
+            Cast(Spells.Detonate.FSLID, 18000),
+            RemoveBuff(20000, Spells.WildfireDotBonusBuff.FSLID));
+
+        window.BuffWindowEnd.ShouldBe(20000);
+        window.DetonateCasts.ShouldBe(1);
     }
 
     [Fact]
@@ -312,21 +324,21 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task WildfireBuff_RefreshedWithNewDuration_EndsAtRefreshedEnd()
+    public async Task WildfireBuff_RefreshedWithNewDurationAndNoRemoval_EndsAtDungeonEnd()
     {
         var window = await WildfireWindow(
             ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000),
             RefreshBuff(13000, Spells.WildfireDotBonusBuff.FSLID, duration: 5000));
 
-        window.BuffWindowEnd.ShouldBe(18000);
+        window.BuffWindowEnd.ShouldBe(40000);
     }
 
     [Fact]
-    public async Task WildfireBuff_WithNoLoggedDurationAndNoRemoval_LastsTheWildfireBuffDuration()
+    public async Task WildfireBuff_WithNoLoggedDurationAndNoRemoval_EndsAtDungeonEnd()
     {
         var window = await WildfireWindow(ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID));
 
-        window.BuffWindowEnd.ShouldBe(10000 + WildfireComboAnalyzer.WildfireBuffDurationMs);
+        window.BuffWindowEnd.ShouldBe(40000);
     }
 
     [Fact]
@@ -350,9 +362,10 @@ public sealed class ArdeosAnalysisEngineTests
         var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
         windows.Count.ShouldBe(2);
         windows[0].BuffWindowStart.ShouldBe(30000);
-        windows[0].DetonateCasts.ShouldBe(2);
+        windows[0].BuffWindowEnd.ShouldBe(200000);
+        windows[0].DetonateCasts.ShouldBe(5);
         windows[1].BuffWindowStart.ShouldBe(150000);
-        windows[1].BuffWindowEnd.ShouldBe(150000 + WildfireComboAnalyzer.WildfireBuffDurationMs);
+        windows[1].BuffWindowEnd.ShouldBe(200000);
         windows[1].DetonateCasts.ShouldBe(3);
     }
 

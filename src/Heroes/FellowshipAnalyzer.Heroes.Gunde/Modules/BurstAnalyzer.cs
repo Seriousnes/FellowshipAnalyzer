@@ -7,8 +7,6 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class BurstAnalyzer : Analyzer
 {
-    public const int BuffDurationMs = 12_000;
-
     public const int LeadInMs = 3_000;
 
     private readonly List<RawWindow> _rawWindows = [];
@@ -68,7 +66,7 @@ public sealed partial class BurstAnalyzer : Analyzer
         var full = 0;
         foreach (var raw in _rawWindows)
         {
-            var end = raw.End ?? Math.Min(raw.Start + BuffDurationMs, Pull.EndTime);
+            var end = raw.End ?? Owner.DungeonEndTime;
             var window = new BurstWindow(
                 raw.Start,
                 end,

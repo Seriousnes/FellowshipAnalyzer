@@ -116,101 +116,64 @@ public sealed class CombatantsAuraRegistryTests
         selected.GetBuff(600, forTimestamp: 0)!.IsDebuff.ShouldBeTrue();
     }
 
-    [Fact]
-    public async Task LoggedDuration_WithoutRemoval_EndsAtExpectedEnd()
+    [Theory]
+    [InlineData(5_000)]
+    [InlineData(BuffEvent.InfiniteDurationMs)]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(null)]
+    public async Task WithoutRemoval_EndsAtDungeonEnd_WhateverTheLoggedDuration(int? duration)
     {
-        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000));
+        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: duration));
 
         var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBe(15_000);
-        window.End.ShouldBe(15_000);
-        window.EndedWithoutRemoval.ShouldBeTrue();
-        window.StackHistory[^1].Timestamp.ShouldBe(15_000);
-    }
-
-    [Fact]
-    public async Task LoggedDuration_WithRemovalBeforeExpectedEnd_EndsAtRemoval()
-    {
-        var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000),
-            RemoveDebuff(12_000, 100, 1, EffectId));
-
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.End.ShouldBe(12_000);
-        window.EndedWithoutRemoval.ShouldBeFalse();
-    }
-
-    [Fact]
-    public async Task PermanentDuration_WithoutRemoval_EndsAtDungeonEnd()
-    {
-        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: BuffEvent.InfiniteDurationMs));
-
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBeNull();
         window.End.ShouldBe(60_000);
-        window.EndedWithoutRemoval.ShouldBeTrue();
+        window.StackHistory[^1].Timestamp.ShouldBe(60_000);
     }
 
     [Fact]
-    public async Task NoLoggedDuration_WithoutRemoval_EndsAtDungeonEnd()
-    {
-        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId));
-
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBeNull();
-        window.End.ShouldBe(60_000);
-    }
-
-    [Fact]
-    public async Task ExpectedEndBeyondDungeonEnd_EndsAtDungeonEnd()
+    public async Task ExpectedEndBeyondDungeonEnd_WithoutRemoval_EndsAtDungeonEnd()
     {
         var combatants = await Run(ApplyDebuff(50_000, 100, 1, EffectId, duration: 30_000));
 
         combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(60_000);
     }
 
-    [Fact]
-    public async Task RefreshWithNewDuration_MovesExpectedEnd()
+    [Theory]
+    [InlineData(12_000)]
+    [InlineData(30_000)]
+    public async Task LoggedRemoval_EndsTheWindowAtTheRemoval_WhetherBeforeOrAfterTheLoggedDurationEnds(int removedAt)
     {
         var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
-            RefreshDebuff(14_000, 100, 1, EffectId, duration: 6_000));
+            ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000),
+            RemoveDebuff(removedAt, 100, 1, EffectId));
 
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBe(20_000);
-        window.End.ShouldBe(20_000);
-        window.RefreshHistory.ShouldBe([14_000]);
+        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(removedAt);
     }
 
-    [Fact]
-    public async Task RefreshWithoutDuration_KeepsExpectedEnd()
+    [Theory]
+    [InlineData(6_000)]
+    [InlineData(BuffEvent.InfiniteDurationMs)]
+    [InlineData(null)]
+    public async Task RefreshWithoutRemoval_KeepsTheWindowOpenToDungeonEnd(int? refreshDuration)
     {
         var combatants = await Run(
             ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
-            RefreshDebuff(14_000, 100, 1, EffectId));
-
-        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(16_000);
-    }
-
-    [Fact]
-    public async Task RefreshWithPermanentDuration_ClearsExpectedEnd()
-    {
-        var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 6_000),
-            RefreshDebuff(14_000, 100, 1, EffectId, duration: BuffEvent.InfiniteDurationMs));
+            RefreshDebuff(14_000, 100, 1, EffectId, duration: refreshDuration),
+            RefreshDebuff(30_000, 100, 1, EffectId, duration: refreshDuration));
 
         var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBeNull();
         window.End.ShouldBe(60_000);
+        window.RefreshHistory.ShouldBe([14_000, 30_000]);
     }
 
     [Fact]
-    public async Task StacksAfterExpectedEnd_WithoutRemoval_KeepTheWindowOpenToDungeonEnd()
+    public async Task StacksWithoutRemoval_KeepTheWindowOpenToDungeonEnd_BeforeAndAfterTheLoggedDurationEnds()
     {
         var combatants = await Run(
             ApplyDebuff(10_000, 100, 1, EffectId, duration: 10_000),
             ApplyDebuffStack(15_000, 100, 1, EffectId, stack: 2),
-            ApplyDebuffStack(22_000, 100, 1, EffectId, stack: 3),
+            ApplyDebuffStack(22_000, 100, 1, EffectId, stack: 3, duration: 10_000),
             ApplyDebuffStack(28_000, 100, 1, EffectId, stack: 4));
 
         var unit = combatants.GetCombatant(100, 1)!;
@@ -220,51 +183,6 @@ public sealed class CombatantsAuraRegistryTests
         unit.GetBuff(EffectId, forTimestamp: 55_000).ShouldBeSameAs(window);
         unit.GetBuffUptime(EffectId).ShouldBe(50_000);
         unit.GetAuraWindows(EffectId, 0, 60_000).ShouldHaveSingleItem().End.ShouldBe(60_000);
-    }
-
-    [Fact]
-    public async Task StackWithLoggedDuration_MovesExpectedEnd()
-    {
-        var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 10_000),
-            ApplyDebuffStack(18_000, 100, 1, EffectId, stack: 2, duration: 10_000));
-
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBe(28_000);
-        window.End.ShouldBe(28_000);
-        window.StackHistory[^1].Timestamp.ShouldBe(28_000);
-    }
-
-    [Fact]
-    public async Task StackBeforeExpectedEnd_WithoutRemoval_EndsAtExpectedEnd()
-    {
-        var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 10_000),
-            ApplyDebuffStack(15_000, 100, 1, EffectId, stack: 2));
-
-        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(20_000);
-    }
-
-    [Fact]
-    public async Task RefreshWithoutDurationAfterExpectedEnd_WithoutRemoval_EndsAtDungeonEnd()
-    {
-        var combatants = await Run(
-            ApplyDebuff(10_000, 100, 1, EffectId, duration: 5_000),
-            RefreshDebuff(18_000, 100, 1, EffectId));
-
-        combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem().End.ShouldBe(60_000);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public async Task NonPositiveDuration_WithoutRemoval_HasNoExpectedEnd(int duration)
-    {
-        var combatants = await Run(ApplyDebuff(10_000, 100, 1, EffectId, duration: duration));
-
-        var window = combatants.GetCombatant(100, 1)!.Buffs.ShouldHaveSingleItem();
-        window.ExpectedEnd.ShouldBeNull();
-        window.End.ShouldBe(60_000);
     }
 
     [Fact]

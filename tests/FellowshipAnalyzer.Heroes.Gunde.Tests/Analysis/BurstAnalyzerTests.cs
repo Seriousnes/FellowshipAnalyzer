@@ -20,7 +20,6 @@ public sealed class BurstAnalyzerTests
     private const int PlayerId = 4;
     private const int BossId = 99;
     private const int PullEnd = 200_000;
-    private const int BuffDurationMs = 12_000;
 
     [Fact]
     public async Task Analyze_WindowHoldingAllThreeCooldowns_IsFull()
@@ -108,7 +107,7 @@ public sealed class BurstAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_BuffWithNoRemoval_ClosesAtTheBuffDuration()
+    public async Task Analyze_BuffWithNoRemoval_EndsAtTheDungeonEnd()
     {
         var events = new List<Event>
         {
@@ -120,20 +119,8 @@ public sealed class BurstAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.Start.ShouldBe(10_000);
-        window.End.ShouldBe(10_000 + BuffDurationMs);
-        window.RuptureIn.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task Analyze_BuffNearPullEnd_WithNoRemoval_ClampsToPullEnd()
-    {
-        var events = new List<Event> { WindowOpen(PullEnd - 4_000) };
-
-        var analyzer = await AnalyzeAsync(events);
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.Start.ShouldBe(PullEnd - 4_000);
         window.End.ShouldBe(PullEnd);
+        window.RuptureIn.ShouldBeTrue();
     }
 
     [Fact]
